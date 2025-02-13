@@ -8,6 +8,9 @@ const {
   getProductCategoryByIdController,
   createProductController,
   createProductCategoryController,
+  getAllProductController,
+  deleteProductController,
+  getProductController,
 } = require("../controllers/adminCtrl");
 
 const router = express.Router();
@@ -48,7 +51,16 @@ router.delete(
   deleteProductCategoryController
 );
 
-//POST METHOD || PRODUCT
+// Lấy danh sách san pham
+router.get("/product", authMiddleware, getAllProductController);
+
+// Lấy mot san pham
+router.get("/product/:id", authMiddleware, getProductController);
+
+//Them san pham
 router.post("/product", authMiddleware, createProductController);
+
+//Xoa san pham
+router.delete("/product/:id", authMiddleware, deleteProductController);
 
 module.exports = router;

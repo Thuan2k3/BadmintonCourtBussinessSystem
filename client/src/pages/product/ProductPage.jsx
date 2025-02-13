@@ -7,12 +7,12 @@ import { MdOutlineAddBox, MdOutlineDelete } from "react-icons/md";
 import axios from "axios";
 
 const ProductPage = () => {
-  const [productCategories, setProductCategories] = useState([]);
-  //getDoctors
-  const getProductCategories = async () => {
+  const [product, setProduct] = useState([]);
+  //getAllProduct
+  const getAllProduct = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/admin/getAllProductCategories",
+        "http://localhost:8080/api/v1/admin/product",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -20,7 +20,7 @@ const ProductPage = () => {
         }
       );
       if (res.data.success) {
-        setProductCategories(res.data.data);
+        setProduct(res.data.data);
       }
     } catch (error) {
       console.log(error);
@@ -28,7 +28,7 @@ const ProductPage = () => {
   };
 
   useEffect(() => {
-    getProductCategories();
+    getAllProduct();
   }, []);
 
   return (
@@ -46,27 +46,36 @@ const ProductPage = () => {
             <tr>
               <th>STT</th>
               <th>Tên</th>
+              <th>Giá</th>
+              <th>Mô tả</th>
+              <th>Hình ảnh</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {productCategories.map((productCategory, index) => (
-              <tr
-                key={productCategory._id}
-                className="align-middle text-center"
-              >
+            {product.map((product, index) => (
+              <tr key={product._id} className="align-middle text-center">
                 <td>{index + 1}</td>
-                <td>{productCategory.name}</td>
+                <td>{product.name}</td>
+                <td>{product.price}</td>
+                <td>{product.description}</td>
+                <td>
+                  <img
+                    src={`http://localhost:8080${product.image}`}
+                    alt="Product"
+                    style={{
+                      width: "100px",
+                      height: "100px",
+                      objectFit: "cover",
+                    }}
+                  />
+                </td>
                 <td>
                   <div className="d-flex justify-content-center gap-3">
-                    <Link
-                      to={`/admin/producty/update/${productCategory._id}`}
-                    >
+                    <Link to={`/admin/product/update/${product._id}`}>
                       <AiOutlineEdit className="fs-4 text-warning" />
                     </Link>
-                    <Link
-                      to={`/admin/product/delete/${productCategory._id}`}
-                    >
+                    <Link to={`/admin/product/delete/${product._id}`}>
                       <MdOutlineDelete className="fs-4 text-danger" />
                     </Link>
                   </div>

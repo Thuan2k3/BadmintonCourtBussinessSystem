@@ -12,6 +12,8 @@ import UpdateProductCategoryPage from "./pages/productCategory/UpdateProductCate
 import DeleteProductCategoryPage from "./pages/productCategory/DeleteProductCategoryPage";
 import ProductPage from "./pages/product/ProductPage";
 import CreateProductPage from "./pages/product/CreateProductPage";
+import UpdateProductPage from "./pages/product/UpdateProductPage";
+import DeleteProductPage from "./pages/product/DeleteProductPage";
 
 function App() {
   const { loading } = useSelector((state) => state.alerts);
@@ -91,6 +93,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CreateProductPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/product/update/:id"
+              element={
+                <ProtectedRoute>
+                  <UpdateProductPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/product/delete/:id"
+              element={
+                <ProtectedRoute>
+                  <DeleteProductPage />
                 </ProtectedRoute>
               }
             />

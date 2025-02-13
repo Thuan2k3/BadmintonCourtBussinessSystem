@@ -1,5 +1,8 @@
 const userModel = require("../models/userModels");
 const productCategory = require("../models/productCategoryModels");
+const Product = require("../models/productModels");
+const fs = require("fs");
+const path = require("path");
 
 const getAllUsersController = async (req, res) => {
   try {
@@ -33,7 +36,9 @@ const getProductCategoryByIdController = async (req, res) => {
     const productCategoryById = await productCategory.findById(req.params.id); // Tìm theo ID
 
     if (!productCategoryById) {
-      return res.status(404).json({ success: false, message: "Không tìm thấy danh mục" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Không tìm thấy danh mục" });
     }
 
     res.status(200).json({ success: true, data: productCategoryById });
@@ -118,7 +123,84 @@ const deleteProductCategoryController = async (req, res) => {
   }
 };
 
-const createProductController = () => {};
+const createProductController = async (req, res) => {
+  try {
+    const { name, category, price, description, image } = req.body;
+
+    // Tạo sản phẩm mới
+    const newProduct = new Product({
+      name,
+      category,
+      price,
+      description,
+      image,
+    });
+
+    await newProduct.save();
+
+    res.status(201).json({ success: true, data: newProduct });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Lỗi server" });
+  }
+};
+
+const getAllProductController = async (req, res) => {
+  try {
+    const products = await Product.find(); // Lấy tất cả sản phẩm từ DB
+
+    res.status(200).json({
+      success: true,
+      count: products.length,
+      data: products,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Lỗi server" });
+  }
+};
+
+const getProductController = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: "Sản phẩm không tồn tại!" });
+    }
+    res.json({ success: true, data: product });
+  } catch (error) {
+    console.error("Lỗi khi lấy sản phẩm:", error);
+    res.status(500).json({ message: "Lỗi server!" });
+  }
+};
+
+
+const deleteProductController = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ message: "Sản phẩm không tồn tại!" });
+    }
+
+    // Xây dựng đường dẫn ảnh
+    const imagePath = path.join(__dirname, "..", product.image);
+    console.log("Đường dẫn ảnh:", imagePath);
+
+    // Kiểm tra file có tồn tại không
+    if (fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath); // Xóa ảnh
+      console.log("Ảnh đã bị xóa thành công.");
+    } else {
+      console.log("Ảnh không tồn tại hoặc đã bị xóa trước đó.");
+    }
+
+    // Xóa sản phẩm khỏi database
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: "Xóa sản phẩm thành công!" });
+  } catch (error) {
+    console.error("Lỗi khi xóa sản phẩm:", error);
+    res.status(500).json({ message: "Lỗi server!" });
+  }
+};
 
 module.exports = {
   getAllUsersController,
@@ -127,5 +209,8 @@ module.exports = {
   createProductCategoryController,
   updateProductCategoryController,
   deleteProductCategoryController,
+  getAllProductController,
+  getProductController,
   createProductController,
+  deleteProductController
 };
