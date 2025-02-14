@@ -94,7 +94,7 @@ const CreateProductPage = () => {
           },
         }
       );
-      console.log(updatedValues)
+      console.log(updatedValues);
 
       if (res.data.success) {
         message.success("Thêm sản phẩm thành công");
@@ -161,9 +161,12 @@ const CreateProductPage = () => {
             name="image"
             rules={[{ required: true, message: "Vui lòng tải ảnh lên" }]}
           >
-            <UploadImage onFileSelect={(file) => {setSelectedFile(file)
-              form.setFieldsValue({ image: file.name });
-            }} />
+            <UploadImage
+              onFileSelect={(file) => {
+                setSelectedFile(file);
+                form.setFieldsValue({ image: file.name });
+              }}
+            />
           </Form.Item>
 
           <Button

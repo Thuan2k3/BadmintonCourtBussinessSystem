@@ -173,6 +173,58 @@ const getProductController = async (req, res) => {
   }
 };
 
+const updateProductController = async (req, res) => {
+  try {
+    const { id } = req.params; // Lấy ID sản phẩm
+    const updateData = req.body; // Lấy dữ liệu cập nhật'
+    const { name, category, price, description, image } = req.body;
+
+    // Kiểm tra xem sản phẩm có tồn tại không
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Sản phẩm không tồn tại" });
+    }
+
+    const oldImageName = product.image.replace("/uploads/", "");
+    const newImageName = image.replace("/uploads/", "");
+
+    if (newImageName === oldImageName) {
+      const updatedProduct = await Product.findByIdAndUpdate(
+        id,
+        { ...updateData },
+        { new: true }
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Cập nhật sản phẩm thành công",
+        product: updatedProduct,
+      });
+      return;
+    }
+    // Nếu có hình ảnh mới, xóa ảnh cũ
+    const oldImagePath = path.join(__dirname, "..", "uploads", oldImageName);
+    
+    if (fs.existsSync(oldImagePath)) {
+      fs.unlinkSync(oldImagePath); // Xóa ảnh cũ
+    }
+
+    // Cập nhật dữ liệu sản phẩm
+    const updatedProduct = await Product.findByIdAndUpdate(
+      id,
+      { ...updateData, image: image },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Cập nhật sản phẩm thành công",
+      product: updatedProduct,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+};
 
 const deleteProductController = async (req, res) => {
   try {
@@ -212,5 +264,6 @@ module.exports = {
   getAllProductController,
   getProductController,
   createProductController,
-  deleteProductController
+  updateProductController,
+  deleteProductController,
 };

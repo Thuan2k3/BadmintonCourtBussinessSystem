@@ -59,16 +59,56 @@ const UpdateProductPage = () => {
 
   // Xử lý form submit
   const onFinishHandler = async (values) => {
-    if (!selectedFile) {
-      message.error("Vui lòng chọn ảnh!");
-      return;
-    }
-
     try {
+      if (!selectedFile) {
+        message.error("Vui lòng chọn ảnh!");
+        return;
+      }
+
+      const resProduct = await axios.get(
+        `http://localhost:8080/api/v1/admin/product/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      //Khong cap nhat anh
+      if (
+        resProduct.data.data.image.replace("/uploads/", "") ===
+        selectedFile.name
+      ) {
+        form.setFieldsValue({ values });
+
+        const updatedValues = form.getFieldsValue();
+        console.log("Giá trị form sau khi cập nhật:", updatedValues);
+
+        const res = await axios.put(
+          `http://localhost:8080/api/v1/admin/product/${id}`,
+          updatedValues,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        if (res.data.success) {
+          message.success("Cập nhật sản phẩm thành công!");
+          form.resetFields();
+          setSelectedFile(null);
+          navigate("/admin/product");
+        } else {
+          message.error(res.data.message);
+        }
+        return;
+      }
+
+      // 1. Upload ảnh trước
       const formData = new FormData();
       formData.append("file", selectedFile);
 
-      const uploadRes = await axios.put(
+      const uploadRes = await axios.post(
         "http://localhost:8080/api/v1/upload",
         formData,
         {
@@ -88,7 +128,7 @@ const UpdateProductPage = () => {
       console.log("URL ảnh sau khi upload:", imageUrl);
 
       // Cập nhật giá trị ảnh vào form
-      form.setFieldsValue({ image: imageUrl });
+      form.setFieldsValue({...values, image: imageUrl });
 
       // Lấy giá trị form sau khi cập nhật
       const updatedValues = form.getFieldsValue();
@@ -100,22 +140,16 @@ const UpdateProductPage = () => {
         return;
       }
 
-      // Gửi API tạo sản phẩm
       const res = await axios.put(
-        "http://localhost:8080/api/v1/admin/product",
+        `http://localhost:8080/api/v1/admin/product/${id}`,
+        updatedValues,
         {
-          ...updatedValues,
-        },
-        {
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("token"),
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-      console.log(updatedValues);
 
       if (res.data.success) {
-        message.success("Thêm sản phẩm thành công");
+        message.success("Cập nhật sản phẩm thành công!");
         form.resetFields();
         setSelectedFile(null);
         navigate("/admin/product");
@@ -123,7 +157,10 @@ const UpdateProductPage = () => {
         message.error(res.data.message);
       }
     } catch (error) {
-      console.error("Lỗi khi gửi API:", error.response?.data || error.message);
+      console.error(
+        "Lỗi khi cập nhật sản phẩm:",
+        error.response?.data || error.message
+      );
       message.error("Có lỗi xảy ra, vui lòng thử lại");
     }
   };
@@ -132,6 +169,27 @@ const UpdateProductPage = () => {
     getProduct();
     getProductCategories();
   }, []);
+
+  const setImage = async () => {
+    if (!product || !product.image) return;
+
+    const url = product.image.startsWith("/")
+      ? `http://localhost:8080${product.image}`
+      : `http://localhost:8080/${product.image}`;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Không thể tải ảnh");
+
+      const blob = await response.blob();
+      const nameImage = product.image.replace("/uploads/", "");
+      const file = new File([blob], nameImage, { type: blob.type });
+
+      setSelectedFile(file);
+    } catch (error) {
+      console.error("Lỗi khi tải ảnh:", error);
+    }
+  };
   // Cập nhật form khi `product` thay đổi
   useEffect(() => {
     if (product && Object.keys(product).length > 0) {
@@ -142,6 +200,8 @@ const UpdateProductPage = () => {
         description: product.description,
         image: product.image,
       });
+
+      setImage();
     }
   }, [product]); // Chạy lại khi `product` thay đổi
 
@@ -211,7 +271,7 @@ const UpdateProductPage = () => {
             loading={loading}
             disabled={loading}
           >
-            Thêm sản phẩm
+            Cập nhật sản phẩm
           </Button>
         </Form>
       </div>

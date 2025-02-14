@@ -11,6 +11,7 @@ const {
   getAllProductController,
   deleteProductController,
   getProductController,
+  updateProductController,
 } = require("../controllers/adminCtrl");
 
 const router = express.Router();
@@ -59,6 +60,9 @@ router.get("/product/:id", authMiddleware, getProductController);
 
 //Them san pham
 router.post("/product", authMiddleware, createProductController);
+
+//cap nhat san pham
+router.put("/product/:id", authMiddleware, updateProductController);
 
 //Xoa san pham
 router.delete("/product/:id", authMiddleware, deleteProductController);
