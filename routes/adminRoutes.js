@@ -12,12 +12,32 @@ const {
   deleteProductController,
   getProductController,
   updateProductController,
+  getAllCourtController,
+  getCourtController,
+  createCourtController,
+  updateCourtController,
+  deleteCourtController,
 } = require("../controllers/adminCtrl");
 
 const router = express.Router();
 
 //GET METHOD || USERS
 router.get("/getAllUsers", authMiddleware, getAllUsersController);
+
+// Lấy danh sách san
+router.get("/court", authMiddleware, getAllCourtController);
+
+// Lấy mot san
+router.get("/court/:id", authMiddleware, getCourtController);
+
+//Them san
+router.post("/court", authMiddleware, createCourtController);
+
+//cap nhat san
+router.put("/court/:id", authMiddleware, updateCourtController);
+
+//Xoa san
+router.delete("/court/:id", authMiddleware, deleteCourtController);
 
 // Lấy danh sách danh mục
 router.get(

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const productSchema = new mongoose.Schema({
+const courtSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -15,12 +15,8 @@ const productSchema = new mongoose.Schema({
   image: {
     type: String,
   }, // Lưu URL ảnh sản phẩm
-  category: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "categories",
-  },
 });
 
-const productModel = mongoose.model("products", productSchema);
+const courtModel = mongoose.model("courts", courtSchema);
 
-module.exports = productModel;
+module.exports = courtModel;

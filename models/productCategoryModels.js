@@ -10,7 +10,7 @@ const productCategorySchema = new mongoose.Schema({
 });
 
 const productCategory = mongoose.model(
-  "productcategories",
+  "categories",
   productCategorySchema
 );
 

@@ -25,13 +25,13 @@ export const adminMenu = [
   },
   {
     name: "Quản lý sân",
-    path: "/admin/doctors",
-    icon: "fa-solid fa-user-doctor",
+    path: "/admin/court",
+    icon: "fa-solid fa-table",
   },
   {
     name: "Xem tình trạng sân",
     path: "/admin/users",
-    icon: "fa-solid fa-user",
+    icon: "fa-solid fa-calendar-days",
   },
   {
     name: "Quản lý danh mục sản phẩm",
@@ -46,16 +46,16 @@ export const adminMenu = [
   {
     name: "Quản lý hóa đơn",
     path: "/profile",
-    icon: "fa-solid fa-user",
+    icon: "fa-solid fa-receipt",
   },
   {
     name: "Quản lý Tài Khoản",
-    path: "/profile",
-    icon: "fa-solid fa-user",
+    path: "/admin/account",
+    icon: "fas fa-users",
   },
   {
     name: "Xem thống kê doanh thu",
     path: "/profile",
-    icon: "fa-solid fa-user",
+    icon: "fas fa-chart-bar",
   },
 ];

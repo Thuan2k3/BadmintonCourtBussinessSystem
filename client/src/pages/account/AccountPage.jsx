@@ -6,13 +6,13 @@ import { BsInfoCircle } from "react-icons/bs";
 import { MdOutlineAddBox, MdOutlineDelete } from "react-icons/md";
 import axios from "axios";
 
-const ProductPage = () => {
-  const [product, setProduct] = useState([]);
-  //getAllProduct
-  const getAllProduct = async () => {
+const AccountPage = () => {
+  const [accounts, setAccounts] = useState([]);
+  //getAccounts
+  const getAccounts = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/admin/product",
+        "http://localhost:8080/api/v1/admin/product-categories",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -20,7 +20,7 @@ const ProductPage = () => {
         }
       );
       if (res.data.success) {
-        setProduct(res.data.data);
+        setAccounts(res.data.data);
       }
     } catch (error) {
       console.log(error);
@@ -28,18 +28,17 @@ const ProductPage = () => {
   };
 
   useEffect(() => {
-    getAllProduct();
+    getAccounts();
   }, []);
-  useEffect(() => {
-    console.log(product)
-  }, [product]);
 
   return (
     <Layout>
       <div className="p-2">
-        <h1 className="d-flex justify-content-center">QUẢN LÝ SẢN PHẨM</h1>
+        <h1 className="d-flex justify-content-center">
+          QUẢN LÝ TÀI KHOẢN
+        </h1>
         <Link
-          to="/admin/product/create"
+          to="/admin/account/create"
           className="d-flex justify-content-end fs-1"
         >
           <MdOutlineAddBox></MdOutlineAddBox>
@@ -49,38 +48,27 @@ const ProductPage = () => {
             <tr>
               <th>STT</th>
               <th>Tên</th>
-              <th>Danh mục</th>
-              <th>Giá</th>
-              <th>Mô tả</th>
-              <th>Hình ảnh</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
-            {product.map((product, index) => (
-              <tr key={product._id} className="align-middle text-center">
+            {accounts.map((account, index) => (
+              <tr
+                key={account._id}
+                className="align-middle text-center"
+              >
                 <td>{index + 1}</td>
-                <td>{product.name}</td>
-                <td>{product.category.name}</td>
-                <td>{product.price}</td>
-                <td>{product.description}</td>
-                <td>
-                  <img
-                    src={`http://localhost:8080${product.image}`}
-                    alt="Product"
-                    style={{
-                      width: "100px",
-                      height: "100px",
-                      objectFit: "cover",
-                    }}
-                  />
-                </td>
+                <td>{account.name}</td>
                 <td>
                   <div className="d-flex justify-content-center gap-3">
-                    <Link to={`/admin/product/update/${product._id}`}>
+                    <Link
+                      to={`/admin/account/update/${account._id}`}
+                    >
                       <AiOutlineEdit className="fs-4 text-warning" />
                     </Link>
-                    <Link to={`/admin/product/delete/${product._id}`}>
+                    <Link
+                      to={`/admin/account/delete/${account._id}`}
+                    >
                       <MdOutlineDelete className="fs-4 text-danger" />
                     </Link>
                   </div>
@@ -94,4 +82,4 @@ const ProductPage = () => {
   );
 };
 
-export default ProductPage;
+export default AccountPage;

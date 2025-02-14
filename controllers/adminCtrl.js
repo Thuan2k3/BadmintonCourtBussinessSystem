@@ -1,6 +1,7 @@
 const userModel = require("../models/userModels");
 const productCategory = require("../models/productCategoryModels");
 const Product = require("../models/productModels");
+const Court = require("../models/courtModel");
 const fs = require("fs");
 const path = require("path");
 
@@ -22,6 +23,138 @@ const getAllUsersController = async (req, res) => {
   }
 };
 
+//San pham
+const createCourtController = async (req, res) => {
+  try {
+    const { name, price, description, image } = req.body;
+
+    // Tạo sản phẩm mới
+    const newCourt = new Court({
+      name,
+      price,
+      description,
+      image,
+    });
+
+    await newCourt.save();
+
+    res.status(201).json({ success: true, data: newCourt });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Lỗi server" });
+  }
+};
+
+const getAllCourtController = async (req, res) => {
+  try {
+    const courts = await Court.find(); // Lấy tất cả sản phẩm từ DB
+
+    res.status(200).json({
+      success: true,
+      count: courts.length,
+      data: courts,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Lỗi server" });
+  }
+};
+
+const getCourtController = async (req, res) => {
+  try {
+    const court = await Court.findById(req.params.id);
+    if (!court) {
+      return res.status(404).json({ message: "Sản phẩm không tồn tại!" });
+    }
+    res.json({ success: true, data: court });
+  } catch (error) {
+    console.error("Lỗi khi lấy sản phẩm:", error);
+    res.status(500).json({ message: "Lỗi server!" });
+  }
+};
+
+const updateCourtController = async (req, res) => {
+  try {
+    const { id } = req.params; // Lấy ID sản phẩm
+    const updateData = req.body; // Lấy dữ liệu cập nhật'
+    const { name, price, description, image } = req.body;
+
+    // Kiểm tra xem sản phẩm có tồn tại không
+    const court = await Court.findById(id);
+    if (!court) {
+      return res.status(404).json({ message: "Sản phẩm không tồn tại" });
+    }
+
+    const oldImageName = court.image.replace("/uploads/", "");
+    const newImageName = image.replace("/uploads/", "");
+
+    if (newImageName === oldImageName) {
+      const updatedCourt = await Court.findByIdAndUpdate(
+        id,
+        { ...updateData },
+        { new: true }
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Cập nhật sản phẩm thành công",
+        court: updatedCourt,
+      });
+      return;
+    }
+    // Nếu có hình ảnh mới, xóa ảnh cũ
+    const oldImagePath = path.join(__dirname, "..", "uploads", oldImageName);
+
+    if (fs.existsSync(oldImagePath)) {
+      fs.unlinkSync(oldImagePath); // Xóa ảnh cũ
+    }
+
+    // Cập nhật dữ liệu sản phẩm
+    const updatedCourt = await Court.findByIdAndUpdate(
+      id,
+      { ...updateData, image: image },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Cập nhật sản phẩm thành công",
+      court: updatedCourt,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error: error.message });
+  }
+};
+
+const deleteCourtController = async (req, res) => {
+  try {
+    const court = await Court.findById(req.params.id);
+    if (!court) {
+      return res.status(404).json({ message: "Sản phẩm không tồn tại!" });
+    }
+
+    // Xây dựng đường dẫn ảnh
+    const imagePath = path.join(__dirname, "..", court.image);
+    console.log("Đường dẫn ảnh:", imagePath);
+
+    // Kiểm tra file có tồn tại không
+    if (fs.existsSync(imagePath)) {
+      fs.unlinkSync(imagePath); // Xóa ảnh
+      console.log("Ảnh đã bị xóa thành công.");
+    } else {
+      console.log("Ảnh không tồn tại hoặc đã bị xóa trước đó.");
+    }
+
+    // Xóa sản phẩm khỏi database
+    await Court.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: "Xóa sản phẩm thành công!" });
+  } catch (error) {
+    console.error("Lỗi khi xóa sản phẩm:", error);
+    res.status(500).json({ message: "Lỗi server!" });
+  }
+};
+
+//Danh muc
 const getAllProductCategoryController = async (req, res) => {
   try {
     const productCategories = await productCategory.find();
@@ -147,7 +280,7 @@ const createProductController = async (req, res) => {
 
 const getAllProductController = async (req, res) => {
   try {
-    const products = await Product.find(); // Lấy tất cả sản phẩm từ DB
+    const products = await Product.find().populate("category").exec(); // Lấy tất cả sản phẩm từ DB
 
     res.status(200).json({
       success: true,
@@ -204,7 +337,7 @@ const updateProductController = async (req, res) => {
     }
     // Nếu có hình ảnh mới, xóa ảnh cũ
     const oldImagePath = path.join(__dirname, "..", "uploads", oldImageName);
-    
+
     if (fs.existsSync(oldImagePath)) {
       fs.unlinkSync(oldImagePath); // Xóa ảnh cũ
     }
@@ -256,6 +389,11 @@ const deleteProductController = async (req, res) => {
 
 module.exports = {
   getAllUsersController,
+  getAllCourtController,
+  getCourtController,
+  createCourtController,
+  updateCourtController,
+  deleteCourtController,
   getAllProductCategoryController,
   getProductCategoryByIdController,
   createProductCategoryController,

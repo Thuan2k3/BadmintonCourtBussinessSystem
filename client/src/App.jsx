@@ -14,6 +14,14 @@ import ProductPage from "./pages/product/ProductPage";
 import CreateProductPage from "./pages/product/CreateProductPage";
 import UpdateProductPage from "./pages/product/UpdateProductPage";
 import DeleteProductPage from "./pages/product/DeleteProductPage";
+import CourtPage from "./pages/court/CourtPage";
+import CreateCourtPage from "./pages/court/CreateCourtPage";
+import UpdateCourtPage from "./pages/court/UpdateCourtPage";
+import DeleteCourtPage from "./pages/court/DeleteCourtPage";
+import AccountPage from "./pages/account/AccountPage";
+import CreateAccountPage from "./pages/account/CreateAccountPage";
+import UpdateAccountPage from "./pages/account/UpdateAccountPage";
+import DeleteAccountPage from "./pages/account/DeleteAccountPage";
 
 function App() {
   const { loading } = useSelector((state) => state.alerts);
@@ -46,6 +54,38 @@ function App() {
                 <PublicRoute>
                   <Register />
                 </PublicRoute>
+              }
+            />
+            <Route
+              path="/admin/court"
+              element={
+                <ProtectedRoute>
+                  <CourtPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/court/create"
+              element={
+                <ProtectedRoute>
+                  <CreateCourtPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/court/update/:id"
+              element={
+                <ProtectedRoute>
+                  <UpdateCourtPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/court/delete/:id"
+              element={
+                <ProtectedRoute>
+                  <DeleteCourtPage />
+                </ProtectedRoute>
               }
             />
             <Route
@@ -109,6 +149,38 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DeleteProductPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/account"
+              element={
+                <ProtectedRoute>
+                  <AccountPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/account/create"
+              element={
+                <ProtectedRoute>
+                  <CreateAccountPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/account/update/:id"
+              element={
+                <ProtectedRoute>
+                  <UpdateAccountPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/account/delete/:id"
+              element={
+                <ProtectedRoute>
+                  <DeleteAccountPage />
                 </ProtectedRoute>
               }
             />
