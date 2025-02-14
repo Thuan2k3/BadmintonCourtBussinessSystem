@@ -12,7 +12,7 @@ const AccountPage = () => {
   const getAccounts = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/admin/product-categories",
+        "http://localhost:8080/api/v1/admin/account",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -47,7 +47,13 @@ const AccountPage = () => {
           <thead className="table-dark text-center">
             <tr>
               <th>STT</th>
-              <th>Tên</th>
+              <th>Họ và tên</th>
+              <th>Email</th>
+              <th>Số điện thoại</th>
+              <th>Địa chỉ</th>
+              <th>Vai trò</th>
+              <th>Trạng thái</th>
+              <th></th>
               <th></th>
             </tr>
           </thead>
@@ -58,7 +64,12 @@ const AccountPage = () => {
                 className="align-middle text-center"
               >
                 <td>{index + 1}</td>
-                <td>{account.name}</td>
+                <td>{account.full_name}</td>
+                <td>{account.email}</td>
+                <td>{account.phone}</td>
+                <td>{account.address}</td>
+                <td>{account.isAdmin ? "Admin" : account.isStaff ? "Nhân viên" : "Khách hàng"}</td>
+                <td>{account.isBlocked ? "Bị khóa" : "Hoạt động"}</td>
                 <td>
                   <div className="d-flex justify-content-center gap-3">
                     <Link

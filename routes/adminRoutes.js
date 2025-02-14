@@ -17,6 +17,11 @@ const {
   createCourtController,
   updateCourtController,
   deleteCourtController,
+  getAllAccountController,
+  getAccountController,
+  createAccountController,
+  updateAccountController,
+  deleteAccountController,
 } = require("../controllers/adminCtrl");
 
 const router = express.Router();
@@ -86,5 +91,20 @@ router.put("/product/:id", authMiddleware, updateProductController);
 
 //Xoa san pham
 router.delete("/product/:id", authMiddleware, deleteProductController);
+
+// Lấy danh sách tai khoan
+router.get("/account", authMiddleware, getAllAccountController);
+
+// Lấy mot tai khoan
+router.get("/account/:id", authMiddleware, getAccountController);
+
+//Them tai khoan
+router.post("/account", authMiddleware, createAccountController);
+
+//cap nhat tai khoan
+router.put("/account/:id", authMiddleware, updateAccountController);
+
+//Xoa tai khoan
+router.delete("/account/:id", authMiddleware, deleteAccountController);
 
 module.exports = router;

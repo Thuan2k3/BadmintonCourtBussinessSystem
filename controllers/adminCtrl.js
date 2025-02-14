@@ -1,13 +1,14 @@
-const userModel = require("../models/userModels");
+const User = require("../models/userModels");
 const productCategory = require("../models/productCategoryModels");
 const Product = require("../models/productModels");
 const Court = require("../models/courtModel");
+const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const path = require("path");
 
 const getAllUsersController = async (req, res) => {
   try {
-    const users = await userModel.find({});
+    const users = await User.find({});
     res.status(200).send({
       success: true,
       message: "users data list",
@@ -387,6 +388,152 @@ const deleteProductController = async (req, res) => {
   }
 };
 
+//Tai khoan
+const getAllAccountController = async (req, res) => {
+  try {
+    // Truy vấn danh sách tài khoản, chỉ lấy các trường cần thiết
+    const users = await User.find().select("-password"); // Loại bỏ trường mật khẩu để bảo mật
+
+    res.status(200).json({ success: true, data: users });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Lỗi server", error });
+  }
+};
+
+const getAccountController = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id); // Tìm tài khoản theo ID
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Không tìm thấy tài khoản" });
+    }
+
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Lỗi server", error });
+  }
+};
+
+const createAccountController = async (req, res) => {
+  try {
+    const { full_name, email, password, phone, address, role, isBlocked } =
+      req.body;
+
+    // Kiểm tra các trường bắt buộc
+    if (!full_name || !email || !password || !phone || !address) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Vui lòng nhập đầy đủ thông tin!" });
+    }
+
+    // Kiểm tra tài khoản đã tồn tại chưa
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Email đã tồn tại!" });
+    }
+
+    // Mã hóa mật khẩu
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Tạo user mới
+    const newUser = new User({
+      full_name,
+      email,
+      password: hashedPassword,
+      phone,
+      address,
+      isAdmin: role && role === "admin",
+      isStaff: role && role === "staff",
+      isCustomer: role && role === "customer",
+      isBlocked,
+    });
+
+    await newUser.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Tạo tài khoản thành công!",
+      user: newUser,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "Lỗi server", error });
+  }
+};
+
+const updateAccountController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { full_name, email, phone, address, role, isBlocked } = req.body;
+
+    // Tìm và cập nhật tài khoản
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      {
+        full_name,
+        email,
+        phone,
+        address,
+        isAdmin: role === "admin",
+        isStaff: role === "staff",
+        isCustomer: role === "customer",
+        isBlocked: isBlocked || false, // Thêm trạng thái khóa tài khoản
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "Tài khoản không tồn tại!",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Cập nhật tài khoản thành công!",
+      user: updatedUser,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server",
+      error,
+    });
+  }
+};
+
+const deleteAccountController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedUser = await User.findByIdAndDelete(id);
+
+    if (!deletedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "Tài khoản không tồn tại!",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Xóa tài khoản thành công!",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server",
+      error,
+    });
+  }
+};
+
 module.exports = {
   getAllUsersController,
   getAllCourtController,
@@ -404,4 +551,9 @@ module.exports = {
   createProductController,
   updateProductController,
   deleteProductController,
+  getAllAccountController,
+  getAccountController,
+  createAccountController,
+  updateAccountController,
+  deleteAccountController,
 };

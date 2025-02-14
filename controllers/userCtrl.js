@@ -36,6 +36,12 @@ const loginController = async (req, res) => {
         .status(200)
         .send({ message: "user not found", success: false });
     }
+    if (user.isBlocked) {
+      return res
+        .status(200)
+        .send({ message: "Tài khoản của bạn đã bị khóa!", success: false });
+    }
+    
     const isMath = await bcrypt.compare(req.body.password, user.password);
     if (!isMath) {
       return res

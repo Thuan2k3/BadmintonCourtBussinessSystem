@@ -1,6 +1,6 @@
 import React from "react";
 import Layout from "../../components/Layout";
-import { Form, Input, message } from "antd";
+import { Form, Input, message, Select } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../../redux/features/alertSlice";
@@ -14,7 +14,7 @@ const CreateAccountPage = () => {
       dispatch(showLoading());
       const res = await axios.post(
         "http://localhost:8080/api/v1/admin/account",
-        { name: values.name }, // Lấy giá trị từ form
+        values, // Lấy giá trị từ form
         {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("token"),
@@ -23,7 +23,7 @@ const CreateAccountPage = () => {
       );
       dispatch(hideLoading());
       if (res.data.success) {
-        message.success("Thêm danh mục sản phẩm thành công");
+        message.success("Thêm tài khoản thành công");
         navigate("/admin/account");
       } else {
         message.error(res.data.message);
@@ -40,58 +40,62 @@ const CreateAccountPage = () => {
         <Form layout="vertical" onFinish={onFinishHandler}>
           <h3 className="text-center">THÊM TÀI KHOẢN</h3>
           <Form.Item
-            label="Tên tài khoản"
-            name="name"
-            rules={[
-              { required: true, message: "Vui lòng nhập tên loại sản phẩm" },
-            ]}
+            label="Họ và tên"
+            name="full_name"
+            rules={[{ required: true, message: "Vui lòng nhập họ và tên" }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             label="Email"
-            name="name"
-            rules={[
-              { required: true, message: "Vui lòng nhập tên loại sản phẩm" },
-            ]}
+            name="email"
+            rules={[{ required: true, message: "Vui lòng nhập email" }]}
           >
-            <Input />
+            <Input type="email" />
           </Form.Item>
           <Form.Item
             label="Mật khẩu"
-            name="name"
-            rules={[
-              { required: true, message: "Vui lòng nhập tên loại sản phẩm" },
-            ]}
+            name="password"
+            rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}
           >
-            <Input />
+            <Input type="password" autoComplete="new-password" />
           </Form.Item>
           <Form.Item
             label="Số điện thoại"
-            name="name"
-            rules={[
-              { required: true, message: "Vui lòng nhập tên loại sản phẩm" },
-            ]}
+            name="phone"
+            rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}
           >
-            <Input />
+            <Input type="tel" />
           </Form.Item>
           <Form.Item
             label="Địa chỉ"
-            name="name"
-            rules={[
-              { required: true, message: "Vui lòng nhập tên loại sản phẩm" },
-            ]}
+            name="address"
+            rules={[{ required: true, message: "Vui lòng nhập địa chỉ" }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             label="Vai trò"
-            name="name"
+            name="role"
+            rules={[{ required: true, message: "Vui lòng chọn vai trò" }]}
+          >
+            <Select placeholder="Chọn vai trò">
+              <Select.Option value="admin">Admin</Select.Option>
+              <Select.Option value="staff">Nhân viên</Select.Option>
+              <Select.Option value="customer">Khách hàng</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label="Trạng thái"
+            name="isBlocked"
             rules={[
-              { required: true, message: "Vui lòng nhập tên loại sản phẩm" },
+              { required: true, message: "Vui lòng chọn trạng thái tài khoản" },
             ]}
           >
-            <Input />
+            <Select placeholder="Chọn trạng thái">
+              <Select.Option value={false}>Hoạt động</Select.Option>
+              <Select.Option value={true}>Bị khóa</Select.Option>
+            </Select>
           </Form.Item>
           <button className="btn btn-primary" type="submit">
             Thêm
