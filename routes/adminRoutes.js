@@ -22,6 +22,10 @@ const {
   createAccountController,
   updateAccountController,
   deleteAccountController,
+  createBookingController,
+  getAllBookingController,
+  getBookingController,
+  cancelBookingController,
 } = require("../controllers/adminCtrl");
 
 const router = express.Router();
@@ -43,6 +47,18 @@ router.put("/court/:id", authMiddleware, updateCourtController);
 
 //Xoa san
 router.delete("/court/:id", authMiddleware, deleteCourtController);
+
+// Route tạo booking mới
+router.post("/bookings", authMiddleware, createBookingController);
+
+// Route lấy danh sách tất cả booking
+router.get("/bookings", authMiddleware, getAllBookingController);
+
+// Route lấy thông tin booking theo ID
+router.get("/bookings/:id", authMiddleware, getBookingController);
+
+// Route hủy booking
+router.put("/bookings/:id", authMiddleware, cancelBookingController);
 
 // Lấy danh sách danh mục
 router.get(

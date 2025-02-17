@@ -2,9 +2,11 @@ const User = require("../models/userModels");
 const productCategory = require("../models/productCategoryModels");
 const Product = require("../models/productModels");
 const Court = require("../models/courtModel");
+const Booking = require("../models/bookingModel");
 const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const path = require("path");
+const moment = require("moment");
 
 const getAllUsersController = async (req, res) => {
   try {
@@ -154,6 +156,64 @@ const deleteCourtController = async (req, res) => {
   } catch (error) {
     console.error("Lỗi khi xóa sản phẩm:", error);
     res.status(500).json({ message: "Lỗi server!" });
+  }
+};
+
+//Đặt sân
+const getAllBookingController = async (req, res) => {
+  try {
+    // Lấy danh sách tất cả booking
+    const bookings = await Booking.find().populate("court_id user_id");
+    res.status(200).json(bookings);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const createBookingController = async (req, res) => {
+  try {
+    const { court_id, user_id, start_time, end_time } = req.body;
+
+    // Kiểm tra thông tin sân có hợp lệ không
+    const court = await Court.findById(court_id);
+    if (!court) return res.status(404).json({ message: "Court not found" });
+
+    const newBooking = new Booking({ court_id, user_id, start_time, end_time });
+
+    // Lưu thông tin booking
+    await newBooking.save();
+
+    res.status(201).json(newBooking);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getBookingController = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id).populate(
+      "court_id user_id"
+    );
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    res.status(200).json(booking);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const cancelBookingController = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    // Đánh dấu booking là đã hủy
+    booking.isCancel = true;
+    await booking.save();
+
+    res.status(200).json({ message: "Booking canceled successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -555,6 +615,10 @@ module.exports = {
   createCourtController,
   updateCourtController,
   deleteCourtController,
+  createBookingController,
+  getAllBookingController,
+  getBookingController,
+  cancelBookingController,
   getAllProductCategoryController,
   getProductCategoryByIdController,
   createProductCategoryController,
