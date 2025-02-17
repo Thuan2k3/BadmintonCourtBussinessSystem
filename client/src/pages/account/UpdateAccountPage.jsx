@@ -26,7 +26,6 @@ const UpdateAccountPage = () => {
         form.setFieldsValue({
           full_name: res.data.data.full_name,
           email: res.data.data.email,
-          password: res.data.data.password,
           phone: res.data.data.phone,
           address: res.data.data.address,
           role: res.data.data.isAdmin
@@ -94,13 +93,7 @@ const UpdateAccountPage = () => {
           >
             <Input type="email" />
           </Form.Item>
-          <Form.Item
-            label="Mật khẩu"
-            name="password"
-            rules={[{ required: true, message: "Vui lòng nhập password" }]}
-          >
-            <Input type="password" autoComplete="new-password" />
-          </Form.Item>
+
           <Form.Item
             label="Số điện thoại"
             name="phone"
@@ -137,6 +130,10 @@ const UpdateAccountPage = () => {
               <Select.Option value={false}>Hoạt động</Select.Option>
               <Select.Option value={true}>Bị khóa</Select.Option>
             </Select>
+          </Form.Item>
+
+          <Form.Item label="Mật khẩu" name="password">
+            <Input type="password" autoComplete="new-password" />
           </Form.Item>
 
           <button className="btn btn-primary">Cập nhật</button>

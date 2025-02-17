@@ -11,14 +11,11 @@ const CourtPage = () => {
   //getAllCourt
   const getAllCourt = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:8080/api/v1/admin/court",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const res = await axios.get("http://localhost:8080/api/v1/admin/court", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       if (res.data.success) {
         setCourt(res.data.data);
       }
@@ -49,6 +46,8 @@ const CourtPage = () => {
               <th>Giá</th>
               <th>Mô tả</th>
               <th>Hình ảnh</th>
+              <th>Trạng thái sử dụng sân</th>
+              <th>Trạng thái sân</th>
               <th></th>
             </tr>
           </thead>
@@ -70,6 +69,8 @@ const CourtPage = () => {
                     }}
                   />
                 </td>
+                <td>{court.isEmpty ? "Trống" : "Có người"}</td>
+                <td>{court.isActive ? "Hoạt động" : "Bảo trì"}</td>
                 <td>
                   <div className="d-flex justify-content-center gap-3">
                     <Link to={`/admin/court/update/${court._id}`}>

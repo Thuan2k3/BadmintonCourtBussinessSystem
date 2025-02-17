@@ -29,8 +29,8 @@ export const adminMenu = [
     icon: "fa-solid fa-table",
   },
   {
-    name: "Xem tình trạng sân",
-    path: "/admin/users",
+    name: "Xem tình trạng đặt sân",
+    path: "/admin/court-booking-status",
     icon: "fa-solid fa-calendar-days",
   },
   {

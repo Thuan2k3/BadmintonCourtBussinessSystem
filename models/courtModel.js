@@ -14,7 +14,15 @@ const courtSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-  }, // Lưu URL ảnh sản phẩm
+  }, // Lưu URL ảnh sân
+  isEmpty: {
+    type: Boolean,
+    default: true, // Mặc định sân đang trống
+  },
+  isActive: {
+    type: Boolean,
+    default: true, // Mặc định sân đang hoạt động
+  },
 });
 
 const courtModel = mongoose.model("courts", courtSchema);

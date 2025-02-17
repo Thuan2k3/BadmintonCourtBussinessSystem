@@ -55,8 +55,7 @@ const UpdateCourtPage = () => {
       );
       //Khong cap nhat anh
       if (
-        resCourt.data.data.image.replace("/uploads/", "") ===
-        selectedFile.name
+        resCourt.data.data.image.replace("/uploads/", "") === selectedFile.name
       ) {
         form.setFieldsValue({ values });
 
@@ -108,7 +107,7 @@ const UpdateCourtPage = () => {
       console.log("URL ảnh sau khi upload:", imageUrl);
 
       // Cập nhật giá trị ảnh vào form
-      form.setFieldsValue({...values, image: imageUrl });
+      form.setFieldsValue({ ...values, image: imageUrl });
 
       // Lấy giá trị form sau khi cập nhật
       const updatedValues = form.getFieldsValue();
@@ -177,6 +176,8 @@ const UpdateCourtPage = () => {
         price: court.price,
         description: court.description,
         image: court.image,
+        isEmpty: court.isEmpty,
+        isActive: court.isActive,
       });
 
       setImage();
@@ -224,6 +225,35 @@ const UpdateCourtPage = () => {
               }}
               initImage={`http://localhost:8080${court.image}`} // Dùng backticks để kết hợp biến
             />
+          </Form.Item>
+
+          <Form.Item
+            label="Trạng thái sử dụng sân"
+            name="isEmpty"
+            rules={[
+              {
+                required: true,
+                message: "Vui lòng chọn trạng thái sử dụng sân!",
+              },
+            ]}
+          >
+            <Select>
+              <Select.Option value={true}>Trống</Select.Option>
+              <Select.Option value={false}>Có người</Select.Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            label="Trạng thái sân"
+            name="isActive"
+            rules={[
+              { required: true, message: "Vui lòng chọn trạng thái sân!" },
+            ]}
+          >
+            <Select>
+              <Select.Option value={true}>Hoạt động</Select.Option>
+              <Select.Option value={false}>Bảo trì</Select.Option>
+            </Select>
           </Form.Item>
 
           <Button

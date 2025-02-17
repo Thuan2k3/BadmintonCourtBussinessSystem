@@ -128,6 +128,35 @@ const CreateCourtPage = () => {
             />
           </Form.Item>
 
+          <Form.Item
+            label="Trạng thái sử dụng sân"
+            name="isEmpty"
+            rules={[
+              {
+                required: true,
+                message: "Vui lòng chọn trạng thái sử dụng sân!",
+              },
+            ]}
+          >
+            <Select>
+              <Select.Option value={true}>Trống</Select.Option>
+              <Select.Option value={false}>Có người</Select.Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            label="Trạng thái sân"
+            name="isActive"
+            rules={[
+              { required: true, message: "Vui lòng chọn trạng thái sân!" },
+            ]}
+          >
+            <Select>
+              <Select.Option value={true}>Hoạt động</Select.Option>
+              <Select.Option value={false}>Bảo trì</Select.Option>
+            </Select>
+          </Form.Item>
+
           <Button
             type="primary"
             htmlType="submit"

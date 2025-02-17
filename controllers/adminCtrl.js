@@ -24,10 +24,10 @@ const getAllUsersController = async (req, res) => {
   }
 };
 
-//San pham
+//Sân
 const createCourtController = async (req, res) => {
   try {
-    const { name, price, description, image } = req.body;
+    const { name, price, description, image, isEmpty, isActive } = req.body;
 
     // Tạo sản phẩm mới
     const newCourt = new Court({
@@ -35,6 +35,8 @@ const createCourtController = async (req, res) => {
       price,
       description,
       image,
+      isEmpty: isEmpty !== undefined ? isEmpty : true, // Mặc định là trống
+      isActive: isActive !== undefined ? isActive : true, // Mặc định là hoạt động
     });
 
     await newCourt.save();
@@ -78,7 +80,7 @@ const updateCourtController = async (req, res) => {
   try {
     const { id } = req.params; // Lấy ID sản phẩm
     const updateData = req.body; // Lấy dữ liệu cập nhật'
-    const { name, price, description, image } = req.body;
+    const image = req.body.image;
 
     // Kiểm tra xem sản phẩm có tồn tại không
     const court = await Court.findById(id);
@@ -470,23 +472,35 @@ const createAccountController = async (req, res) => {
 const updateAccountController = async (req, res) => {
   try {
     const { id } = req.params;
-    const { full_name, email, phone, address, role, isBlocked } = req.body;
+    const { full_name, email, phone, address, role, isBlocked, password } =
+      req.body;
+
+    let hashedPassword;
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+
+    // Chuẩn bị dữ liệu cập nhật
+    const updateData = {
+      full_name,
+      email,
+      phone,
+      address,
+      isAdmin: role === "admin",
+      isStaff: role === "staff",
+      isCustomer: role === "customer",
+      isBlocked: isBlocked || false,
+    };
+
+    // Chỉ thêm password vào updateData nếu có
+    if (hashedPassword) {
+      updateData.password = hashedPassword;
+    }
 
     // Tìm và cập nhật tài khoản
-    const updatedUser = await User.findByIdAndUpdate(
-      id,
-      {
-        full_name,
-        email,
-        phone,
-        address,
-        isAdmin: role === "admin",
-        isStaff: role === "staff",
-        isCustomer: role === "customer",
-        isBlocked: isBlocked || false, // Thêm trạng thái khóa tài khoản
-      },
-      { new: true }
-    );
+    const updatedUser = await User.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
 
     if (!updatedUser) {
       return res.status(404).json({
@@ -504,7 +518,7 @@ const updateAccountController = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Lỗi server",
-      error,
+      error: error.message,
     });
   }
 };

@@ -22,6 +22,7 @@ import AccountPage from "./pages/account/AccountPage";
 import CreateAccountPage from "./pages/account/CreateAccountPage";
 import UpdateAccountPage from "./pages/account/UpdateAccountPage";
 import DeleteAccountPage from "./pages/account/DeleteAccountPage";
+import CourtBookingStatusPage from "./pages/courtBookingStatus/CourtBookingStatusPage";
 
 function App() {
   const { loading } = useSelector((state) => state.alerts);
@@ -85,6 +86,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DeleteCourtPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/court-booking-status"
+              element={
+                <ProtectedRoute>
+                  <CourtBookingStatusPage />
                 </ProtectedRoute>
               }
             />
