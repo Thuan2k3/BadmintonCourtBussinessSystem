@@ -23,6 +23,10 @@ import CreateAccountPage from "./pages/account/CreateAccountPage";
 import UpdateAccountPage from "./pages/account/UpdateAccountPage";
 import DeleteAccountPage from "./pages/account/DeleteAccountPage";
 import CourtBookingStatusPage from "./pages/courtBookingStatus/CourtBookingStatusPage";
+import TimeSlotPage from "./pages/timeSlot/TimeSlotPage";
+import CreateTimeSlotPage from "./pages/timeSlot/CreateTimeSlotPage";
+import UpdateTimeSlotPage from "./pages/timeSlot/UpdateTimeSlotPage";
+import DeleteTimeSlotPage from "./pages/timeSlot/DeleteTimeSlotPage";
 
 function App() {
   const { loading } = useSelector((state) => state.alerts);
@@ -86,6 +90,38 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DeleteCourtPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/time-slot"
+              element={
+                <ProtectedRoute>
+                  <TimeSlotPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/time-slot/create"
+              element={
+                <ProtectedRoute>
+                  <CreateTimeSlotPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/time-slot/update/:id"
+              element={
+                <ProtectedRoute>
+                  <UpdateTimeSlotPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/time-slot/delete/:id"
+              element={
+                <ProtectedRoute>
+                  <DeleteTimeSlotPage />
                 </ProtectedRoute>
               }
             />

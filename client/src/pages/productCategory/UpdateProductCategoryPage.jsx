@@ -1,18 +1,20 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../components/Layout";
 import { Form, Input, message } from "antd";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../../redux/features/alertSlice";
 import axios from "axios";
 
 const UpdateProductCategoryPage = () => {
   const { id } = useParams();
+  const [form] = Form.useForm();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [name, setName] = useState("");
 
-  const handleUpdateProductCategory = async (req, res) => {
+  // Cập nhật danh mục sản phẩm
+  const handleUpdateProductCategory = async () => {
     try {
       dispatch(showLoading());
       const res = await axios.put(
@@ -37,6 +39,7 @@ const UpdateProductCategoryPage = () => {
     }
   };
 
+  // Lấy thông tin danh mục sản phẩm theo ID
   const getProductCategoryById = async () => {
     try {
       const res = await axios.get(
@@ -48,7 +51,7 @@ const UpdateProductCategoryPage = () => {
         }
       );
       if (res.data.success) {
-        setName(res.data.data.name); // Cập nhật state
+        setName(res.data.data.name); // Cập nhật state với tên danh mục
       }
     } catch (error) {
       message.error("Có lỗi xảy ra. Vui lòng thử lại!");
@@ -59,10 +62,26 @@ const UpdateProductCategoryPage = () => {
     getProductCategoryById();
   }, []);
 
+  useEffect(() => {
+    if (name) {
+      form.setFieldsValue({
+        name: name, // Đặt giá trị form
+      });
+    }
+  }, [name, form]); // Gọi lại khi name thay đổi
+
+  const handleNameChange = (e) => {
+    setName(e.target.value); // Cập nhật state khi người dùng thay đổi input
+  };
+
   return (
     <Layout>
       <div className="p-4">
-        <Form layout="vertical" onFinish={handleUpdateProductCategory}>
+        <Form
+          layout="vertical"
+          onFinish={handleUpdateProductCategory}
+          form={form}
+        >
           <h3 className="text-center">CẬP NHẬT DANH MỤC SẢN PHẨM</h3>
           <Form.Item
             label="Tên danh mục"
@@ -71,10 +90,7 @@ const UpdateProductCategoryPage = () => {
               { required: true, message: "Vui lòng nhập tên loại sản phẩm" },
             ]}
           >
-            <div>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
-              <br />
-            </div>
+            <Input value={name} onChange={handleNameChange} />
           </Form.Item>
           <button className="btn btn-primary">Cập nhật</button>
         </Form>

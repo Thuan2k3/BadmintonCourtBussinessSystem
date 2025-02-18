@@ -6,7 +6,7 @@ import {
   CloseSquareOutlined,
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
-import { Card, Button, Row, Col, Modal, message } from "antd";
+import { Card, Button, Row, Col, Modal, message, Tooltip } from "antd";
 import { useSelector } from "react-redux";
 
 const { confirm } = Modal;
@@ -56,6 +56,7 @@ const BookingCourt = ({ court }) => {
 
   const canBookingReservation = (reservationTime) => {
     const currentTime = new Date();
+    currentTime.setHours(7, 0, 0, 0);
     console.log(currentTime);
     const reservationDate = new Date(reservationTime);
     console.log(reservationDate);
@@ -92,7 +93,7 @@ const BookingCourt = ({ court }) => {
         // Thông báo thành công
         message.success("Đặt sân thành công!");
       } else {
-        message.warning("Vui lòng đặt trước 24 giờ");
+        message.warning("Vui lòng đặt trước 1 ngày");
       }
     } else {
       // Nếu không có giờ nào được chọn, thông báo lỗi
@@ -102,6 +103,7 @@ const BookingCourt = ({ court }) => {
 
   const canCancelReservation = (reservationTime) => {
     const currentTime = new Date();
+    currentTime.setHours(7, 0, 0, 0);
     console.log(currentTime);
     const reservationDate = new Date(reservationTime);
     console.log(reservationDate);
@@ -262,33 +264,41 @@ const BookingCourt = ({ court }) => {
                 padding: "4px",
               }}
             >
-              <Button
-                size="small"
-                className={`booking-btn ${bookingState[dayIndex][slotIndex]}`}
-                icon={
-                  bookingState[dayIndex][slotIndex] === "booked" ? (
-                    <CheckOutlined />
-                  ) : bookingState[dayIndex][slotIndex] === "selected" ? (
-                    <CheckSquareOutlined />
-                  ) : bookingState[dayIndex][slotIndex] === "unbooked" ? (
-                    <CloseOutlined />
-                  ) : (
-                    <CloseSquareOutlined />
-                  )
+              <Tooltip
+                title={
+                  bookingState[dayIndex][slotIndex] === "booked"
+                    ? `ID: ${court.bookings[dayIndex]?.userId}`
+                    : ""
                 }
-                onClick={() => handleBooking(dayIndex, slotIndex)}
-                disabled={
-                  bookingState[dayIndex][slotIndex] === "booked" &&
-                  user?._id !== court.bookings[dayIndex]?.userId
-                }
-                style={{
-                  width: "100%", // Button chiếm toàn bộ chiều rộng cột
-                  height: "40px",
-                  fontSize: "14px",
-                }}
               >
-                {/* Nội dung Button (giờ) */}
-              </Button>
+                <Button
+                  size="small"
+                  className={`booking-btn ${bookingState[dayIndex][slotIndex]}`}
+                  icon={
+                    bookingState[dayIndex][slotIndex] === "booked" ? (
+                      <CheckOutlined />
+                    ) : bookingState[dayIndex][slotIndex] === "selected" ? (
+                      <CheckSquareOutlined />
+                    ) : bookingState[dayIndex][slotIndex] === "unbooked" ? (
+                      <CloseOutlined />
+                    ) : (
+                      <CloseSquareOutlined />
+                    )
+                  }
+                  onClick={() => handleBooking(dayIndex, slotIndex)}
+                  disabled={
+                    bookingState[dayIndex][slotIndex] === "booked" &&
+                    user?._id !== court.bookings[dayIndex]?.userId
+                  }
+                  style={{
+                    width: "100%", // Button chiếm toàn bộ chiều rộng cột
+                    height: "40px",
+                    fontSize: "14px",
+                  }}
+                >
+                  {/* Nội dung Button (giờ) */}
+                </Button>
+              </Tooltip>
             </Col>
           ))}
         </Row>

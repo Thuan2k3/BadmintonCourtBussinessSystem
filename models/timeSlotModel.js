@@ -8,6 +8,7 @@ const timeSlotSchema = new mongoose.Schema({
   isBooked: {
     type: Boolean,
     required: true,
+    default: false,
   },
 });
 

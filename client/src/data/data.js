@@ -29,6 +29,11 @@ export const adminMenu = [
     icon: "fa-solid fa-table",
   },
   {
+    name: "Quản lý khung giờ",
+    path: "/admin/time-slot",
+    icon: "fa-solid fa-clock",
+  },
+  {
     name: "Xem tình trạng đặt sân",
     path: "/admin/court-booking-status",
     icon: "fa-solid fa-calendar-days",

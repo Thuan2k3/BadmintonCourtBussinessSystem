@@ -26,6 +26,11 @@ const {
   getAllBookingController,
   getBookingController,
   cancelBookingController,
+  getAllTimeSlotController,
+  getTimeSlotController,
+  createTimeSlotController,
+  updateTimeSlotController,
+  deleteTimeSlotController,
 } = require("../controllers/adminCtrl");
 
 const router = express.Router();
@@ -47,6 +52,21 @@ router.put("/court/:id", authMiddleware, updateCourtController);
 
 //Xoa san
 router.delete("/court/:id", authMiddleware, deleteCourtController);
+
+// Lấy danh sách khung gio
+router.get("/time-slot", authMiddleware, getAllTimeSlotController);
+
+// Lấy mot khung gio
+router.get("/time-slot/:id", authMiddleware, getTimeSlotController);
+
+//Them khung gio
+router.post("/time-slot", authMiddleware, createTimeSlotController);
+
+//cap nhat khung gio
+router.put("/time-slot/:id", authMiddleware, updateTimeSlotController);
+
+//Xoa khung gio
+router.delete("/time-slot/:id", authMiddleware, deleteTimeSlotController);
 
 // Route tạo booking mới
 router.post("/bookings", authMiddleware, createBookingController);

@@ -2,6 +2,7 @@ const User = require("../models/userModels");
 const productCategory = require("../models/productCategoryModels");
 const Product = require("../models/productModels");
 const Court = require("../models/courtModel");
+const TimeSlot = require("../models/timeSlotModel");
 const Booking = require("../models/bookingModel");
 const bcrypt = require("bcryptjs");
 const fs = require("fs");
@@ -156,6 +157,138 @@ const deleteCourtController = async (req, res) => {
   } catch (error) {
     console.error("Lỗi khi xóa sản phẩm:", error);
     res.status(500).json({ message: "Lỗi server!" });
+  }
+};
+
+//Khung giờ
+const getAllTimeSlotController = async (req, res) => {
+  try {
+    const timeSlots = await TimeSlot.find().sort({ time: 1 }); // Lấy tất cả khung giờ và sắp xếp theo thời gian
+    res.status(200).json({
+      success: true,
+      message: "Lấy danh sách khung giờ thành công",
+      data: timeSlots,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Có lỗi xảy ra khi lấy danh sách khung giờ",
+    });
+  }
+};
+
+const getTimeSlotController = async (req, res) => {
+  try {
+    const { id } = req.params; // Lấy id từ tham số URL
+
+    // Tìm khung giờ theo ID
+    const timeSlot = await TimeSlot.findById(id);
+
+    if (!timeSlot) {
+      return res.status(404).json({
+        success: false,
+        message: "Khung giờ không tồn tại.",
+      });
+    }
+
+    // Trả về kết quả cho client
+    res.status(200).json({
+      success: true,
+      data: timeSlot,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy khung giờ.",
+    });
+  }
+};
+
+const createTimeSlotController = async (req, res) => {
+  try {
+    const { time } = req.body;
+
+    // Kiểm tra dữ liệu đầu vào
+    if (!time) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Vui lòng nhập đầy đủ giờ." });
+    }
+
+    // Kiểm tra xem khung giờ đã tồn tại chưa
+    const existingSlot = await TimeSlot.findOne({ time });
+    if (existingSlot) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Khung giờ này đã tồn tại." });
+    }
+
+    // Tạo khung giờ mới
+    const newTimeSlot = new TimeSlot({ time });
+    await newTimeSlot.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Tạo khung giờ thành công!",
+      data: newTimeSlot,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Lỗi server!" });
+  }
+};
+const updateTimeSlotController = async (req, res) => {
+  try {
+    const { id } = req.params; // Lấy id từ tham số URL
+    const updateData = req.body; // Lấy dữ liệu cập nhật từ body của yêu cầu
+
+    // Cập nhật khung giờ theo ID
+    const updatedTimeSlot = await TimeSlot.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+
+    if (!updatedTimeSlot) {
+      return res.status(404).json({
+        success: false,
+        message: "Khung giờ không tồn tại.",
+      });
+    }
+
+    // Trả về kết quả cho client
+    res.status(200).json({
+      success: true,
+      data: updatedTimeSlot,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi khi cập nhật khung giờ.",
+    });
+  }
+};
+
+const deleteTimeSlotController = async (req, res) => {
+  try {
+    const { id } = req.params; // Lấy id từ request
+    const deletedTimeSlot = await TimeSlot.findByIdAndDelete(id);
+
+    if (!deletedTimeSlot) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Khung giờ không tồn tại!" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Xóa khung giờ thành công!" });
+  } catch (error) {
+    console.error("Lỗi khi xóa khung giờ:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Lỗi server khi xóa khung giờ!" });
   }
 };
 
@@ -615,6 +748,11 @@ module.exports = {
   createCourtController,
   updateCourtController,
   deleteCourtController,
+  getAllTimeSlotController,
+  getTimeSlotController,
+  createTimeSlotController,
+  updateTimeSlotController,
+  deleteTimeSlotController,
   createBookingController,
   getAllBookingController,
   getBookingController,
