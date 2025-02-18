@@ -32,7 +32,7 @@ const CourtBookingStatusPage = () => {
         {
           date: "2025-02-19",
           court_id: "court_1", // Thêm court_id vào bookings
-          userId: "user_001", // Thêm userId vào bookings
+          userId: "67a9b6783bce6f55ea0219da", // Thêm userId vào bookings
           timeSlots: [
             { time: "08:00", isBooked: false },
             { time: "09:00", isBooked: true },

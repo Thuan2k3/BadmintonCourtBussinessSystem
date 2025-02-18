@@ -2,10 +2,14 @@ import React, { useState } from "react";
 import {
   CheckOutlined,
   CloseOutlined,
-  AppstoreAddOutlined,
+  CheckSquareOutlined,
+  CloseSquareOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
-import { Card, Button, Row, Col } from "antd";
+import { Card, Button, Row, Col, Modal, message } from "antd";
 import { useSelector } from "react-redux";
+
+const { confirm } = Modal;
 
 // Hàm chuyển ngày thành thứ trong tuần
 const getDayOfWeek = (date) => {
@@ -36,14 +40,30 @@ const BookingCourt = ({ court }) => {
       const newState = prevState.map((day, dIdx) =>
         day.map((slot, sIdx) =>
           dIdx === dayIndex && sIdx === slotIndex
-            ? slot === "unbooked" // Nếu là "unbooked", chuyển thành "selected"
+            ? slot === "unbooked"
               ? "selected"
-              : "unbooked" // Nếu là "selected", chuyển lại thành "unbooked"
+              : slot === "booked"
+              ? "selectunbooked"
+              : slot === "selectunbooked"
+              ? "booked"
+              : "unbooked"
             : slot
         )
       );
       return newState;
     });
+  };
+
+  const canBookingReservation = (reservationTime) => {
+    const currentTime = new Date();
+    console.log(currentTime);
+    const reservationDate = new Date(reservationTime);
+    console.log(reservationDate);
+
+    const timeDiff = reservationDate - currentTime; // Time difference in milliseconds
+    const oneDayInMillis = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+
+    return timeDiff >= oneDayInMillis; // Return true if can cancel, false otherwise
   };
 
   const handleConfirm = () => {
@@ -53,40 +73,125 @@ const BookingCourt = ({ court }) => {
     );
 
     if (hasSelectedSlots) {
-      // Cập nhật trạng thái các ô đã chọn thành "booked"
-      setBookingState((prevState) => {
-        const newState = prevState.map((day, dIdx) =>
-          day.map((slot, sIdx) => (slot === "selected" ? "booked" : slot))
+      const canBookingAll = bookingState.some((day, index) => {
+        // Kiểm tra nếu ngày này có bất kỳ khung giờ nào có trạng thái 'selectunbooked'
+        return (
+          day.some((slot) => slot === "selected") &&
+          canBookingReservation(court.bookings[index].date)
         );
-        return newState;
       });
-      // Thông báo thành công
-      alert("Đặt sân thành công!");
+
+      if (canBookingAll) {
+        // Cập nhật trạng thái các ô đã chọn thành "booked"
+        setBookingState((prevState) => {
+          const newState = prevState.map((day, dIdx) =>
+            day.map((slot, sIdx) => (slot === "selected" ? "booked" : slot))
+          );
+          return newState;
+        });
+        // Thông báo thành công
+        message.success("Đặt sân thành công!");
+      } else {
+        message.warning("Vui lòng đặt trước 24 giờ");
+      }
     } else {
       // Nếu không có giờ nào được chọn, thông báo lỗi
-      alert("Vui lòng chọn ít nhất một khung giờ để đặt sân.");
+      message.warning("Vui lòng chọn ít nhất một khung giờ để đặt sân.");
     }
+  };
+
+  const canCancelReservation = (reservationTime) => {
+    const currentTime = new Date();
+    console.log(currentTime);
+    const reservationDate = new Date(reservationTime);
+    console.log(reservationDate);
+
+    const timeDiff = reservationDate - currentTime; // Time difference in milliseconds
+    const oneDayInMillis = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+
+    return timeDiff >= oneDayInMillis; // Return true if can cancel, false otherwise
   };
 
   const handleCancel = () => {
     // Kiểm tra xem có khung giờ nào được chọn không
     const hasSelectedSlots = bookingState.some((day) =>
-      day.some((slot) => slot === "selected")
+      day.some((slot) => slot === "selectunbooked")
     );
 
     if (hasSelectedSlots) {
-      // Cập nhật trạng thái các ô đã chọn thành "unbooked"
-      setBookingState((prevState) => {
-        const newState = prevState.map((day, dIdx) =>
-          day.map((slot, sIdx) => (slot === "selected" ? "unbooked" : slot))
+      // Kiểm tra xem có khung giờ nào không thể hủy
+      const canCancelAll = bookingState.some((day, index) => {
+        // Kiểm tra nếu ngày này có bất kỳ khung giờ nào có trạng thái 'selectunbooked'
+        return (
+          day.some((slot) => slot === "selectunbooked") &&
+          canCancelReservation(court.bookings[index].date)
         );
-        return newState;
       });
-      // Thông báo thành công
-      alert("Hủy đặt sân thành công!");
+
+      if (canCancelAll) {
+        // Cập nhật trạng thái các ô đã chọn thành "unbooked"
+        setBookingState((prevState) => {
+          const newState = prevState.map((day, dIdx) =>
+            day.map((slot, sIdx) =>
+              slot === "selectunbooked" ? "unbooked" : slot
+            )
+          );
+          return newState;
+        });
+        // Thông báo thành công
+        message.success("Hủy đặt sân thành công!");
+      } else {
+        // Nếu không thể hủy do quá thời gian, thông báo lỗi
+        message.warning("Đã quá thời gian hủy đặt sân cho một số khung giờ.");
+      }
     } else {
       // Nếu không có giờ nào được chọn, thông báo lỗi
-      alert("Không có khung giờ nào được chọn để hủy.");
+      message.warning("Không có khung giờ nào được chọn để hủy.");
+    }
+  };
+
+  const showConfirmBooking = () => {
+    // Kiểm tra xem có khung giờ nào được chọn không
+    const hasSelectedSlots = bookingState.some((day) =>
+      day.some((slot) => slot === "selected")
+    );
+    if (!hasSelectedSlots) {
+      message.warning("Vui lòng chọn ít nhất một khung giờ để đặt sân.");
+    } else {
+      confirm({
+        title: "Xác nhận đặt sân",
+        icon: <ExclamationCircleOutlined />,
+        content: "Bạn có chắc chắn muốn đặt sân không?",
+        onOk() {
+          handleConfirm();
+        },
+        onCancel() {
+          console.log("Hủy thao tác đặt sân");
+        },
+      });
+    }
+  };
+
+  const showConfirmCancel = () => {
+    // Kiểm tra xem có khung giờ nào được chọn không
+    const hasSelectedSlots = bookingState.some((day) =>
+      day.some((slot) => slot === "selectunbooked")
+    );
+
+    if (!hasSelectedSlots) {
+      message.warning("Không có khung giờ nào được chọn để hủy.");
+    } else {
+      confirm({
+        title: "Xác nhận hủy đặt sân",
+        icon: <ExclamationCircleOutlined />,
+        content: "Bạn có chắc chắn muốn hủy đặt sân không?",
+        onOk() {
+          handleCancel();
+        },
+        onCancel() {
+          console.log("Hủy thao tác hủy sân");
+        },
+      });
     }
   };
 
@@ -120,6 +225,7 @@ const BookingCourt = ({ court }) => {
             }}
           >
             {getDayOfWeek(day.date)} {/* Hiển thị thứ trong tuần */}
+            {day.date}
           </Col>
         ))}
       </Row>
@@ -163,9 +269,11 @@ const BookingCourt = ({ court }) => {
                   bookingState[dayIndex][slotIndex] === "booked" ? (
                     <CheckOutlined />
                   ) : bookingState[dayIndex][slotIndex] === "selected" ? (
-                    <AppstoreAddOutlined />
-                  ) : (
+                    <CheckSquareOutlined />
+                  ) : bookingState[dayIndex][slotIndex] === "unbooked" ? (
                     <CloseOutlined />
+                  ) : (
+                    <CloseSquareOutlined />
                   )
                 }
                 onClick={() => handleBooking(dayIndex, slotIndex)}
@@ -195,7 +303,7 @@ const BookingCourt = ({ court }) => {
           <Button
             block
             type="primary"
-            onClick={handleConfirm}
+            onClick={showConfirmBooking}
             style={{
               fontSize: "16px",
               height: "40px",
@@ -208,7 +316,7 @@ const BookingCourt = ({ court }) => {
           <Button
             block
             type="default"
-            onClick={handleCancel}
+            onClick={showConfirmCancel}
             style={{
               fontSize: "16px",
               height: "40px",
