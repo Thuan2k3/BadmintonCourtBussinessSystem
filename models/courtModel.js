@@ -13,8 +13,8 @@ const courtSchema = new mongoose.Schema({
     type: String,
   },
   image: {
-    type: String,
-  }, // Lưu URL ảnh sân
+    type: String, // Lưu URL ảnh sân
+  },
   isEmpty: {
     type: Boolean,
     default: true, // Mặc định sân đang trống
@@ -23,8 +23,14 @@ const courtSchema = new mongoose.Schema({
     type: Boolean,
     default: true, // Mặc định sân đang hoạt động
   },
+  bookings: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "bookings",
+    },
+  ],
 });
 
-const courtModel = mongoose.model("courts", courtSchema);
+const Court = mongoose.model("courts", courtSchema);
 
-module.exports = courtModel;
+module.exports = Court;
