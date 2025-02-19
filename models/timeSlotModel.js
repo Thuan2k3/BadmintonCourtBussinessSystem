@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 
 const timeSlotSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "users",
+    required: false,
+  },
   time: {
     type: String,
     required: true,

@@ -74,11 +74,13 @@ const BookingCourt = ({ court }) => {
     );
 
     if (hasSelectedSlots) {
-      const canBookingAll = bookingState.some((day, index) => {
-        // Kiểm tra nếu ngày này có bất kỳ khung giờ nào có trạng thái 'selectunbooked'
+      const canBookingAll = bookingState.every((day, index) => {
+        // Kiểm tra nếu ngày này có ít nhất một khung giờ được chọn
+        const hasSelectedSlot = day.some((slot) => slot === "selected");
+
+        // Nếu ngày này có slot được chọn nhưng không hợp lệ, thì không cho đặt
         return (
-          day.some((slot) => slot === "selected") &&
-          canBookingReservation(court.bookings[index].date)
+          !hasSelectedSlot || canBookingReservation(court.bookings[index].date)
         );
       });
 
@@ -122,11 +124,13 @@ const BookingCourt = ({ court }) => {
 
     if (hasSelectedSlots) {
       // Kiểm tra xem có khung giờ nào không thể hủy
-      const canCancelAll = bookingState.some((day, index) => {
-        // Kiểm tra nếu ngày này có bất kỳ khung giờ nào có trạng thái 'selectunbooked'
+      const canCancelAll = bookingState.every((day, index) => {
+        // Kiểm tra nếu ngày này có ít nhất một khung giờ 'selectunbooked'
+        const hasUnbookedSlot = day.some((slot) => slot === "selectunbooked");
+
+        // Nếu có slot 'selectunbooked' nhưng không thể hủy, thì không cho hủy
         return (
-          day.some((slot) => slot === "selectunbooked") &&
-          canCancelReservation(court.bookings[index].date)
+          !hasUnbookedSlot || canCancelReservation(court.bookings[index].date)
         );
       });
 
