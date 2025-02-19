@@ -26,5 +26,8 @@ const timeSlotBookingSchema = new mongoose.Schema({
   },
 });
 
-const TimeSlotBooking = mongoose.model("timeslotbookings", timeSlotBookingSchema);
+const TimeSlotBooking = mongoose.model(
+  "timeslotbookings",
+  timeSlotBookingSchema
+);
 module.exports = TimeSlotBooking;

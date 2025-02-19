@@ -77,9 +77,8 @@ router.get("/bookings/court", authMiddleware, getCourtsWithBookingsController);
 // Route tạo booking mới
 router.post("/bookings", authMiddleware, createBookingWithCourtController);
 
-// Route hủy booking
 router.delete(
-  "/bookings/:id",
+  "/bookings/:bookingId",
   authMiddleware,
   cancelBookingWithCourtController
 );

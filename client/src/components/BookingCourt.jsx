@@ -88,24 +88,13 @@ const BookingCourt = ({ court }) => {
           },
         }
       );
-
-      if (response.data.success) {
+      console.log(court);
+      if (response.data.results[0].success) {
         message.success("Đặt sân thành công!");
         // Cập nhật UI
-        setBookingState((prevState) =>
-          prevState.map((day, dayIndex) =>
-            day.map((slot, slotIndex) =>
-              selectedSlots.some(
-                (s) =>
-                  s.date === court.bookings[dayIndex].date &&
-                  s.timeSlot ===
-                    court.bookings[dayIndex].timeSlots[slotIndex].time
-              )
-                ? "booked"
-                : slot
-            )
-          )
-        );
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
         message.error(response.data.message || "Đặt sân thất bại!");
       }
@@ -122,9 +111,9 @@ const BookingCourt = ({ court }) => {
       day.forEach((slot, slotIndex) => {
         if (slot === "selectunbooked") {
           selectedSlots.push({
-            courtId: court._id,
-            date: court.bookings[dayIndex].date,
-            timeSlot: court.bookings[dayIndex].timeSlots[slotIndex].time,
+            bookingId: court.bookings[dayIndex].booking_id,
+            timeSlotId:
+              court.bookings[dayIndex].timeSlots[slotIndex].timeSlotBooking_id,
           });
         }
       });
@@ -136,39 +125,27 @@ const BookingCourt = ({ court }) => {
     }
 
     try {
-      const response = await axios.put(
-        "http://localhost:8080/api/v1/admin/bookings",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        },
-        {
-          userId: user._id,
-          bookings: selectedSlots,
-        }
-      );
-
-      if (response.data.success) {
-        message.success("Hủy đặt sân thành công!");
-        // Cập nhật UI
-        setBookingState((prevState) =>
-          prevState.map((day, dayIndex) =>
-            day.map((slot, slotIndex) =>
-              selectedSlots.some(
-                (s) =>
-                  s.date === court.bookings[dayIndex].date &&
-                  s.timeSlot ===
-                    court.bookings[dayIndex].timeSlots[slotIndex].time
-              )
-                ? "unbooked"
-                : slot
-            )
-          )
+      for (const slot of selectedSlots) {
+        const response = await axios.delete(
+          `http://localhost:8080/api/v1/admin/bookings/${slot.bookingId}`,
+          {
+            data: { timeSlotId: slot.timeSlotId },
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
         );
-      } else {
-        message.error(response.data.message || "Hủy đặt sân thất bại!");
+
+        if (response.data.success) {
+          message.success("Hủy đặt sân thành công!");
+        } else {
+          message.error(response.data.message || "Hủy đặt sân thất bại!");
+        }
       }
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       message.error("Có lỗi xảy ra khi hủy đặt sân!");
       console.error(error);
@@ -289,9 +266,24 @@ const BookingCourt = ({ court }) => {
             >
               <Tooltip
                 title={
-                  bookingState[dayIndex][slotIndex] === "booked"
-                    ? `ID: ${court.bookings[dayIndex]?.userId}`
-                    : ""
+                  bookingState[dayIndex][slotIndex] === "booked" ? (
+                    <>
+                      ID:{" "}
+                      {court.bookings[dayIndex].timeSlots[slotIndex]?.userId}{" "}
+                      <br />
+                      Name:{" "}
+                      {court.bookings[dayIndex].timeSlots[slotIndex]?.name}{" "}
+                      <br />
+                      {user.isAdmin || user.isStaff ? (
+                        <>
+                          Email:{" "}
+                          {court.bookings[dayIndex].timeSlots[slotIndex]?.email}
+                        </>
+                      ) : null}
+                    </>
+                  ) : (
+                    ""
+                  )
                 }
               >
                 <Button
@@ -302,7 +294,8 @@ const BookingCourt = ({ court }) => {
                       <CheckOutlined />
                     ) : bookingState[dayIndex][slotIndex] === "selected" ? (
                       <CheckSquareOutlined />
-                    ) : bookingState[dayIndex][slotIndex] === "selectunbooked" ? (
+                    ) : bookingState[dayIndex][slotIndex] ===
+                      "selectunbooked" ? (
                       <CloseSquareOutlined />
                     ) : (
                       <CloseOutlined />
@@ -311,7 +304,8 @@ const BookingCourt = ({ court }) => {
                   onClick={() => handleBooking(dayIndex, slotIndex)}
                   disabled={
                     bookingState[dayIndex][slotIndex] === "booked" &&
-                    user?._id !== court.bookings[dayIndex]?.userId
+                    user?._id !==
+                      court.bookings[dayIndex].timeSlots[slotIndex]?.userId
                   }
                   style={{
                     width: "100%", // Button chiếm toàn bộ chiều rộng cột
