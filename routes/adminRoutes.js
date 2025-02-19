@@ -75,15 +75,11 @@ router.delete("/time-slot/:id", authMiddleware, deleteTimeSlotController);
 router.get("/bookings/court", authMiddleware, getCourtsWithBookingsController);
 
 // Route tạo booking mới
-router.put(
-  "/bookings/:id/create",
-  authMiddleware,
-  createBookingWithCourtController
-);
+router.post("/bookings", authMiddleware, createBookingWithCourtController);
 
 // Route hủy booking
-router.put(
-  "/bookings/:id/cancel",
+router.delete(
+  "/bookings/:id",
   authMiddleware,
   cancelBookingWithCourtController
 );

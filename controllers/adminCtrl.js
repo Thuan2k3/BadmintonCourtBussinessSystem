@@ -3,6 +3,7 @@ const productCategory = require("../models/productCategoryModels");
 const Product = require("../models/productModels");
 const Court = require("../models/courtModel");
 const TimeSlot = require("../models/timeSlotModel");
+const TimeSlotBooking = require("../models/timeSlotBookingModel");
 const Booking = require("../models/bookingModel");
 const bcrypt = require("bcryptjs");
 const fs = require("fs");
@@ -297,14 +298,14 @@ const deleteTimeSlotController = async (req, res) => {
 const getCourtsWithBookingsController = async (req, res) => {
   try {
     const courts = await Court.find().lean();
-    const timeSlots = await TimeSlot.find().lean();
-    const bookings = await Booking.find().populate({ path: "timeSlots", populate: { path: "user" } }).lean();
+    const timeSlots = await TimeSlot.find().lean(); // 🔹 Lấy danh sách khung giờ
+    const timeSlotBookings = await TimeSlotBooking.find().populate("user").lean();
 
     const getNext7Days = () => {
       return Array.from({ length: 7 }, (_, i) => {
         const date = new Date();
         date.setDate(date.getDate() + i);
-        return date.toLocaleDateString("en-CA");
+        return date.toISOString().split("T")[0];
       });
     };
 
@@ -314,24 +315,25 @@ const getCourtsWithBookingsController = async (req, res) => {
       return {
         ...court,
         bookings: dates.map((date) => {
-          const existingBooking = bookings.find(
-            (b) => b.court.toString() === court._id.toString() && b.date.toISOString().split("T")[0] === date
+          const courtBookings = timeSlotBookings.filter(
+            (ts) => ts.court.toString() === court._id.toString() && ts.date.toISOString().split("T")[0] === date
           );
 
           return {
             date,
             court_id: court._id,
-            timeSlots: existingBooking
-              ? existingBooking.timeSlots.map((slot) => ({
-                  userId: slot.user ? slot.user._id : null,
-                  time: slot.time,
-                  isBooked: slot.isBooked,
-                }))
-              : timeSlots.map((slot) => ({
-                  userId: null,
-                  time: slot.time,
-                  isBooked: false,
-                })),
+            timeSlots:
+              courtBookings.length > 0
+                ? courtBookings.map((slot) => ({
+                    userId: slot.user ? slot.user._id : null,
+                    time: slot.time,
+                    isBooked: true,
+                  }))
+                : timeSlots.map((slot) => ({
+                    userId: null,
+                    time: slot.time,
+                    isBooked: false,
+                  })),
           };
         }),
       };
@@ -346,36 +348,64 @@ const getCourtsWithBookingsController = async (req, res) => {
 
 const createBookingWithCourtController = async (req, res) => {
   try {
-    const { courtId, date, timeSlotId, userId } = req.body;
-    
-    const existingBooking = await Booking.findOne({ court: courtId, date }).populate("timeSlots");
-    const timeSlot = await TimeSlot.findById(timeSlotId);
-    
-    if (!timeSlot || timeSlot.isBooked) {
-      return res.status(400).json({ error: "Khung giờ đã được đặt trước." });
-    }
-    
-    if (existingBooking && existingBooking.timeSlots.some(slot => slot._id.toString() === timeSlotId)) {
-      return res.status(400).json({ error: "Khung giờ này đã được đặt trong đặt sân hiện tại." });
+    const { userId, bookings } = req.body;
+
+    if (!userId || !bookings || bookings.length === 0) {
+      return res.status(400).json({ error: "Dữ liệu không hợp lệ!" });
     }
 
-    timeSlot.isBooked = true;
-    timeSlot.user = userId;
-    await timeSlot.save();
-    
-    if (existingBooking) {
-      existingBooking.timeSlots.push(timeSlot);
-      await existingBooking.save();
-    } else {
-      const newBooking = new Booking({
+    const bookingPromises = bookings.map(async (slot) => {
+      const { courtId, date, timeSlot } = slot;
+
+      const bookingDate = new Date(date);
+
+      const today = new Date();
+      today.setHours(7, 0, 0, 0);
+
+      if (bookingDate <= today) {
+        return {
+          error: "Bạn chỉ có thể đặt sân trước ít nhất 1 ngày.",
+          courtId,
+        };
+      }
+
+      // 🔹 Kiểm tra xem khung giờ này đã được đặt chưa
+      const existingBooking = await TimeSlotBooking.findOne({
         court: courtId,
-        date,
-        timeSlots: [timeSlot],
+        date: bookingDate,
+        time: timeSlot,
       });
-      await newBooking.save();
-    }
 
-    res.json({ message: "Đặt sân thành công!" });
+      if (existingBooking) {
+        return { error: `Khung giờ ${timeSlot} đã được đặt.`, courtId };
+      }
+
+      // 🔹 Tạo `TimeSlotBooking` mới
+      const newTimeSlotBooking = new TimeSlotBooking({
+        user: userId,
+        court: courtId,
+        date: bookingDate,
+        time: timeSlot,
+        isBooked: true,
+      });
+
+      await newTimeSlotBooking.save();
+
+      // 🔹 Tạo Booking mới, liên kết với `TimeSlotBooking`
+      const newBooking = new Booking({
+        user: userId,
+        court: courtId,
+        date: bookingDate,
+        timeSlots: [newTimeSlotBooking._id],
+      });
+
+      await newBooking.save();
+
+      return { message: "Đặt sân thành công!", courtId };
+    });
+
+    const results = await Promise.all(bookingPromises);
+    res.status(200).json({ results });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Lỗi server" });
@@ -385,29 +415,41 @@ const createBookingWithCourtController = async (req, res) => {
 const cancelBookingWithCourtController = async (req, res) => {
   try {
     const { bookingId, timeSlotId } = req.body;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Lấy thông tin booking
     const booking = await Booking.findById(bookingId).populate("timeSlots");
-    
     if (!booking) {
       return res.status(404).json({ error: "Không tìm thấy đặt sân." });
     }
-    
-    const timeSlot = await TimeSlot.findById(timeSlotId);
-    if (!timeSlot || !timeSlot.isBooked) {
-      return res.status(400).json({ error: "Khung giờ chưa được đặt hoặc đã hủy." });
+
+    const bookingDate = new Date(booking.date);
+    if (bookingDate <= today) {
+      return res
+        .status(400)
+        .json({ error: "Bạn chỉ có thể hủy sân trước ít nhất 1 ngày." });
     }
-    
+
+    // Kiểm tra khung giờ
+    const timeSlot = await TimeSlot.findById(timeSlotId);
+    if (!timeSlot) {
+      return res.status(404).json({ error: "Không tìm thấy khung giờ." });
+    }
+
+    if (!timeSlot.isBooked) {
+      return res
+        .status(400)
+        .json({ error: "Khung giờ chưa được đặt hoặc đã bị hủy." });
+    }
+
+    // Cập nhật trạng thái của timeSlot
     timeSlot.isBooked = false;
     timeSlot.user = null;
     await timeSlot.save();
-    
-    booking.timeSlots = booking.timeSlots.filter((slot) => slot._id.toString() !== timeSlotId);
-    if (booking.timeSlots.length === 0) {
-      await Booking.findByIdAndDelete(bookingId);
-    } else {
-      await booking.save();
-    }
 
-    res.json({ message: "Hủy đặt sân thành công!" });
+    res.status(200).json({ message: "Hủy đặt sân thành công!", timeSlot });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Lỗi server" });
