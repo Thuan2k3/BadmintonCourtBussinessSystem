@@ -243,19 +243,6 @@ const UpdateCourtPage = () => {
             </Select>
           </Form.Item>
 
-          <Form.Item
-            label="Trạng thái sân"
-            name="isActive"
-            rules={[
-              { required: true, message: "Vui lòng chọn trạng thái sân!" },
-            ]}
-          >
-            <Select>
-              <Select.Option value={true}>Hoạt động</Select.Option>
-              <Select.Option value={false}>Bảo trì</Select.Option>
-            </Select>
-          </Form.Item>
-
           <Button
             type="primary"
             htmlType="submit"

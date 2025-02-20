@@ -76,28 +76,40 @@ const BookingCourt = ({ court }) => {
     }
 
     try {
-      const response = await axios.post(
-        `http://localhost:8080/api/v1/admin/bookings`,
-        {
-          userId: user?._id,
-          bookings: selectedSlots,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+      for (const slot of selectedSlots) {
+        try {
+          const response = await axios.post(
+            `http://localhost:8080/api/v1/admin/bookings`,
+            {
+              userId: user?._id,
+              courtId: slot.courtId,
+              date: slot.date,
+              timeSlot: slot.timeSlot,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+
+          if (response.data.success) {
+            message.success("Đặt sân thành công!");
+          } else {
+            message.error(response.data.message || "Đặt sân thất bại!");
+          }
+        } catch (error) {
+          if (error.response) {
+            message.error(error.response.data.error || "Đặt sân thất bại!");
+          } else {
+            message.error("Có lỗi xảy ra khi đặt sân!");
+          }
         }
-      );
-      console.log(court);
-      if (response.data.results[0].success) {
-        message.success("Đặt sân thành công!");
-        // Cập nhật UI
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      } else {
-        message.error(response.data.message || "Đặt sân thất bại!");
       }
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       message.error("Có lỗi xảy ra khi đặt sân!");
       console.error(error);
@@ -126,20 +138,28 @@ const BookingCourt = ({ court }) => {
 
     try {
       for (const slot of selectedSlots) {
-        const response = await axios.delete(
-          `http://localhost:8080/api/v1/admin/bookings/${slot.bookingId}`,
-          {
-            data: { timeSlotId: slot.timeSlotId },
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        try {
+          const response = await axios.delete(
+            `http://localhost:8080/api/v1/admin/bookings/${slot.bookingId}`,
+            {
+              data: { timeSlotId: slot.timeSlotId },
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
 
-        if (response.data.success) {
-          message.success("Hủy đặt sân thành công!");
-        } else {
-          message.error(response.data.message || "Hủy đặt sân thất bại!");
+          if (response.data.success) {
+            message.success("Hủy đặt sân thành công!");
+          } else {
+            message.error(response.data.message || "Hủy đặt sân thất bại!");
+          }
+        } catch (error) {
+          if (error.response) {
+            message.error(error.response.data.error || "Hủy đặt sân thất bại!");
+          } else {
+            message.error("Có lỗi xảy ra khi hủy đặt sân!");
+          }
         }
       }
 

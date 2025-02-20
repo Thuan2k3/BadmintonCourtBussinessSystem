@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 
 const timeSlotBookingSchema = new mongoose.Schema({
+  booking_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "bookings", // Tham chiếu đến bảng bookings
+    required: true,
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "users",

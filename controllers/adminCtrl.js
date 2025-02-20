@@ -31,7 +31,7 @@ const getAllUsersController = async (req, res) => {
 //Sân
 const createCourtController = async (req, res) => {
   try {
-    const { name, price, description, image, isEmpty, isActive } = req.body;
+    const { name, price, description, image, isEmpty } = req.body;
 
     // Tạo sản phẩm mới
     const newCourt = new Court({
@@ -40,7 +40,6 @@ const createCourtController = async (req, res) => {
       description,
       image,
       isEmpty: isEmpty !== undefined ? isEmpty : true, // Mặc định là trống
-      isActive: isActive !== undefined ? isActive : true, // Mặc định là hoạt động
     });
 
     await newCourt.save();
@@ -371,69 +370,68 @@ const getCourtsWithBookingsController = async (req, res) => {
 
 const createBookingWithCourtController = async (req, res) => {
   try {
-    const { userId, bookings } = req.body;
+    const { userId, courtId, date, timeSlot } = req.body;
 
-    if (!userId || !bookings || bookings.length === 0) {
+    if (!userId || !courtId || !date || !timeSlot) {
       return res.status(400).json({ error: "Dữ liệu không hợp lệ!" });
     }
 
-    const bookingPromises = bookings.map(async (slot) => {
-      const { courtId, date, timeSlot } = slot;
+    const bookingDate = new Date(date);
+    const today = new Date();
+    today.setHours(7, 0, 0, 0);
 
-      const bookingDate = new Date(date);
+    if (bookingDate <= today) {
+      return res
+        .status(400)
+        .json({ error: "Bạn chỉ có thể đặt sân trước ít nhất 1 ngày." });
+    }
 
-      const today = new Date();
-      today.setHours(7, 0, 0, 0);
-
-      if (bookingDate <= today) {
-        return {
-          error: "Bạn chỉ có thể đặt sân trước ít nhất 1 ngày.",
-          courtId,
-        };
-      }
-
-      // 🔹 Kiểm tra xem khung giờ này đã được đặt chưa
-      const existingBooking = await TimeSlotBooking.findOne({
-        court: courtId,
-        date: bookingDate,
-        time: timeSlot,
-      });
-
-      if (existingBooking) {
-        return { error: `Khung giờ ${timeSlot} đã được đặt.`, courtId };
-      }
-
-      // 🔹 Tạo `TimeSlotBooking` mới
-      const newTimeSlotBooking = new TimeSlotBooking({
-        user: userId,
-        court: courtId,
-        date: bookingDate,
-        time: timeSlot,
-        isBooked: true,
-      });
-
-      await newTimeSlotBooking.save();
-
-      // 🔹 Tạo Booking mới, liên kết với `TimeSlotBooking`
-      const newBooking = new Booking({
-        user: userId,
-        court: courtId,
-        date: bookingDate,
-        timeSlots: [newTimeSlotBooking._id],
-      });
-
-      await newBooking.save();
-
-      // 🔹 Thêm `booking_id` vào `Court`
-      await Court.findByIdAndUpdate(courtId, {
-        $push: { bookings: newBooking._id },
-      });
-
-      return { success: true, message: "Đặt sân thành công!", courtId };
+    // Kiểm tra xem khung giờ này đã được đặt chưa
+    const existingBooking = await TimeSlotBooking.findOne({
+      court: courtId,
+      date: bookingDate,
+      time: timeSlot,
     });
 
-    const results = await Promise.all(bookingPromises);
-    res.status(200).json({ results });
+    if (existingBooking) {
+      return res
+        .status(400)
+        .json({ error: `Khung giờ ${timeSlot} đã được đặt.` });
+    }
+
+    // Tạo Booking mới
+    const newBooking = new Booking({
+      user: userId,
+      court: courtId,
+      date: bookingDate,
+      timeSlots: [],
+    });
+
+    await newBooking.save();
+
+    // Tạo TimeSlotBooking mới
+    const newTimeSlotBooking = new TimeSlotBooking({
+      user: userId,
+      court: courtId,
+      date: bookingDate,
+      time: timeSlot,
+      isBooked: true,
+      booking_id: newBooking._id,
+    });
+
+    await newTimeSlotBooking.save();
+
+    // Cập nhật timeSlots trong Booking
+    await Booking.findByIdAndUpdate(newBooking._id, {
+      $push: { timeSlots: newTimeSlotBooking._id },
+    });
+
+    // Thêm booking_id vào Court
+    await Court.findByIdAndUpdate(courtId, {
+      $push: { bookings: newBooking._id },
+    });
+
+    res.status(200).json({ success: true, message: "Đặt sân thành công!" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Lỗi server" });

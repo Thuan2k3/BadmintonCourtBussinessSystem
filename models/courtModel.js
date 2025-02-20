@@ -19,10 +19,6 @@ const courtSchema = new mongoose.Schema({
     type: Boolean,
     default: true, // Mặc định sân đang trống
   },
-  isActive: {
-    type: Boolean,
-    default: true, // Mặc định sân đang hoạt động
-  },
   bookings: [
     {
       type: mongoose.Schema.Types.ObjectId,

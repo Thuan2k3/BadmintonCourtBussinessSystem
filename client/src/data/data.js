@@ -50,8 +50,8 @@ export const adminMenu = [
   },
   {
     name: "Quản lý hóa đơn",
-    path: "/profile",
-    icon: "fa-solid fa-receipt",
+    path: "/admin/invoice",
+    icon: "fa-solid fa-file-invoice",
   },
   {
     name: "Quản lý Tài Khoản",
