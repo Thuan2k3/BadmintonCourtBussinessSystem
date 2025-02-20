@@ -85,7 +85,7 @@ const Layout = ({ children }) => {
           <div className="content">
             <div className="header">
               <div className="header-content" style={{ cursor: "pointer" }}>
-                <Link to="/profile">{user?.name}</Link>
+                <Link to="/profile">{user?.full_name}</Link>
               </div>
             </div>
             <div className="body">{children}</div>

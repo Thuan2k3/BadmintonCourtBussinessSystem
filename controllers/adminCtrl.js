@@ -299,7 +299,7 @@ const getCourtsWithBookingsController = async (req, res) => {
     const courts = await Court.find().populate("bookings").lean();
     const timeSlots = await TimeSlot.find().lean();
     const timeSlotBookings = await TimeSlotBooking.find()
-      .populate("user", "name email")
+      .populate("user", "full_name email")
       .lean();
 
     const getNext7Days = () => {
@@ -336,7 +336,7 @@ const getCourtsWithBookingsController = async (req, res) => {
               ? {
                   timeSlotBooking_id: bookedSlot._id,
                   userId: bookedSlot.user ? bookedSlot.user._id : null,
-                  name: bookedSlot.user ? bookedSlot.user.name : null,
+                  full_name: bookedSlot.user ? bookedSlot.user.full_name : null,
                   email: bookedSlot.user ? bookedSlot.user.email : null,
                   time: bookedSlot.time,
                   isBooked: true,
@@ -344,7 +344,7 @@ const getCourtsWithBookingsController = async (req, res) => {
               : {
                   timeSlotBooking_id: null,
                   userId: null,
-                  name: null,
+                  full_name: null,
                   email: null,
                   time: slot.time,
                   isBooked: false,

@@ -1,24 +1,25 @@
 import React, { useState } from "react";
-import { Table, Button, Typography, Tag, message } from "antd";
-import { PrinterOutlined, DeleteOutlined } from "@ant-design/icons";
-
+import { Button, Table, Tag, Select, InputNumber, message, Typography, Row, Col, Card } from "antd";
+import { DollarCircleOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 import Layout from "../../components/Layout";
 
-const InvoicePage = () => {
-  const [selectedCourt, setSelectedCourt] = useState(null);
-  const [selectedProducts, setSelectedProducts] = useState([]);
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [paymentStatus, setPaymentStatus] = useState("Chưa thanh toán");
-  const [checkinTimes, setCheckinTimes] = useState({});
-  const [checkoutTimes, setCheckoutTimes] = useState({});
-  const [usageDurations, setUsageDurations] = useState({});
+const { Title, Text } = Typography;
+const { Option } = Select;
 
+const BookingCourt = () => {
   const [courts, setCourts] = useState([
-    { name: "Sân 1", isEmpty: true, price: 100000 },
-    { name: "Sân 2", isEmpty: true, price: 120000 },
-    { name: "Sân 3", isEmpty: true, price: 90000 },
-    { name: "Sân 4", isEmpty: true, price: 110000 },
+    { id: 1, name: "Sân 1", price: 100000, status: "empty", checkInTime: null },
+    { id: 2, name: "Sân 2", price: 120000, status: "empty", checkInTime: null },
+    { id: 3, name: "Sân 3", price: 90000, status: "empty", checkInTime: null },
+    { id: 4, name: "Sân 4", price: 110000, status: "empty", checkInTime: null },
   ]);
+
+  const [selectedCourt, setSelectedCourt] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [orderItems, setOrderItems] = useState([]);
+  const [totalAmount, setTotalAmount] = useState(0);
 
   const products = [
     { name: "Nước suối", price: 10000 },
@@ -26,115 +27,159 @@ const InvoicePage = () => {
     { name: "Nước tăng lực", price: 20000 },
   ];
 
-  const handleAddProduct = (product) => {
-    setSelectedProducts([...selectedProducts, product]);
-    setTotalAmount(totalAmount + product.price);
-  };
-
-  const handleRemoveProduct = (index) => {
-    const newProducts = selectedProducts.filter((_, i) => i !== index);
-    const removedProduct = selectedProducts[index];
-    setSelectedProducts(newProducts);
-    setTotalAmount(totalAmount - removedProduct.price);
-  };
-
-  const handlePayment = () => {
-    setPaymentStatus("Đã thanh toán");
-  };
-
   const handleCheckin = (court) => {
-    if (checkinTimes[court.name]) {
-      message.info("Sân này đã được check-in trước đó!");
-      return;
-    }
-    const now = new Date();
-    setCheckinTimes((prev) => ({ ...prev, [court.name]: now }));
-    setCourts((prev) => prev.map(c => c.name === court.name ? { ...c, isEmpty: false } : c));
+    setCourts((prev) =>
+      prev.map((c) =>
+        c.id === court.id ? { ...c, status: "occupied", checkInTime: dayjs() } : c
+      )
+    );
+    message.success(`Check-in sân ${court.name}`);
   };
 
   const handleCheckout = (court) => {
-    if (!checkinTimes[court.name]) {
-      message.error("Sân này chưa được check-in!");
+    if (!court.checkInTime) {
+      message.error("Không tìm thấy thời gian check-in!");
       return;
     }
-    const now = new Date();
-    setCheckoutTimes((prev) => ({ ...prev, [court.name]: now }));
-    const checkinTime = checkinTimes[court.name];
-    if (checkinTime) {
-      let duration = (now - new Date(checkinTime)) / 3600000;
-      duration = Math.max(1, Math.round(duration));
-      setUsageDurations((prev) => ({ ...prev, [court.name]: duration }));
-      setTotalAmount((prev) => prev + (duration * court.price));
+
+    const duration = dayjs().diff(court.checkInTime, "hour", true);
+    const hours = Math.ceil(duration);
+    const courtFee = hours * court.price;
+
+    setCourts((prev) =>
+      prev.map((c) => (c.id === court.id ? { ...c, status: "empty", checkInTime: null } : c))
+    );
+
+    setOrderItems((prev) => [...prev, { name: `${court.name} (${hours} giờ)`, price: courtFee, quantity: 1 }]);
+    setTotalAmount((prev) => prev + courtFee);
+    message.success(`Checkout ${court.name}: ${hours} giờ, tổng tiền: ${courtFee.toLocaleString()} VND`);
+  };
+
+  const handleAddProduct = () => {
+    if (!selectedProduct) {
+      message.warning("Vui lòng chọn sản phẩm!");
+      return;
     }
-    setCourts((prev) => prev.map(c => c.name === court.name ? { ...c, isEmpty: true } : c));
+
+    setOrderItems((prevItems) => {
+      const existingItem = prevItems.find((item) => item.name === selectedProduct.name);
+      if (existingItem) {
+        return prevItems.map((item) =>
+          item.name === selectedProduct.name
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      } else {
+        return [...prevItems, { ...selectedProduct, quantity }];
+      }
+    });
+
+    setTotalAmount((prev) => prev + selectedProduct.price * quantity);
+    message.success(`Đã thêm ${quantity} ${selectedProduct.name} vào giỏ hàng`);
+  };
+
+  const handlePayment = () => {
+    message.success("Thanh toán thành công!");
+    setOrderItems([]);
+    setTotalAmount(0);
   };
 
   return (
     <Layout className="container mt-4">
-      <Typography.Title level={4}>Lập Hóa Đơn</Typography.Title>
+      <Title level={3} className="text-center">Hệ Thống Đặt Sân Cầu Lông</Title>
 
-      <Typography.Text>Chọn sân:</Typography.Text>
-      <div className="mb-3">
-        {courts.map((court) => (
-          <div key={court.name} style={{ display: 'inline-block', margin: '5px' }}>
-            <Button
-              type={selectedCourt?.name === court.name ? "primary" : "default"}
-              onClick={() => setSelectedCourt(court)}
-            >
-              {court.name} - {court.price.toLocaleString()} VND - <Tag color={court.isEmpty ? "green" : "red"}>{court.isEmpty ? "Trống" : "Có người"}</Tag>
-            </Button>
-            <Button type="default" onClick={() => handleCheckin(court)} disabled={!court.isEmpty}>Check-in</Button>
-          </div>
-        ))}
-      </div>
+      <Row gutter={16}>
+        {/* Danh sách sân */}
+        <Col span={12}>
+          <Card title="Danh Sách Sân" bordered>
+            <div className="d-flex flex-wrap">
+              {courts.map((court) => (
+                <Button
+                  key={court.id}
+                  className="m-2"
+                  style={{
+                    width: 100,
+                    height: 100,
+                    backgroundColor: court.status === "empty" ? "#52c41a" : "#595959",
+                    color: "#fff",
+                  }}
+                  onClick={() => setSelectedCourt(court)}
+                >
+                  {court.name} <br />
+                  {court.status === "empty" ? <Tag color="green">Trống</Tag> : <Tag color="red">Có người</Tag>}
+                </Button>
+              ))}
+            </div>
+          </Card>
 
-      {selectedCourt && checkinTimes[selectedCourt.name] && (
-        <div>
-          <Typography.Text strong>Sân thanh toán: {selectedCourt.name}</Typography.Text><br/>
-          <Typography.Text>Thời gian Check-in: {checkinTimes[selectedCourt.name]?.toLocaleString()}</Typography.Text><br/>
-          {checkoutTimes[selectedCourt.name] && <Typography.Text>Thời gian Check-out: {checkoutTimes[selectedCourt.name]?.toLocaleString()}</Typography.Text>}<br/>
-          {usageDurations[selectedCourt.name] !== undefined && <Typography.Text>Tổng thời gian sử dụng: {usageDurations[selectedCourt.name]} giờ</Typography.Text>}<br/>
-          <Button type="danger" onClick={() => handleCheckout(selectedCourt)}>Checkout {selectedCourt.name}</Button>
-          <br/><br/>
-        </div>
-      )}
+          {selectedCourt && (
+            <Card className="mt-3" title="Thông Tin Sân">
+              <Text strong>Sân: {selectedCourt.name}</Text> <br />
+              <Text>Giá: {selectedCourt.price.toLocaleString()} VND / giờ</Text> <br />
+              {selectedCourt.status === "empty" ? (
+                <Button type="primary" onClick={() => handleCheckin(selectedCourt)}>Check-in</Button>
+              ) : (
+                <Button type="danger" onClick={() => handleCheckout(selectedCourt)}>Checkout</Button>
+              )}
+            </Card>
+          )}
+        </Col>
 
-      <Typography.Text>Chọn sản phẩm:</Typography.Text>
-      <div className="mb-3">
-        {products.map((product) => (
-          <Button key={product.name} onClick={() => handleAddProduct(product)} className="m-1">
-            {product.name} - {product.price.toLocaleString()} VND
-          </Button>
-        ))}
-      </div>
+        {/* Hóa đơn */}
+        <Col span={12}>
+          <Card title="Hóa Đơn">
+            <div className="mb-3">
+              <Text strong>Chọn sản phẩm:</Text>
+              <div className="d-flex align-items-center">
+                <Select
+                  placeholder="Chọn sản phẩm"
+                  style={{ width: 200 }}
+                  className="me-2"
+                  onChange={(value) => setSelectedProduct(products.find((p) => p.name === value))}
+                >
+                  {products.map((product) => (
+                    <Option key={product.name} value={product.name}>
+                      {product.name} - {product.price.toLocaleString()} VND
+                    </Option>
+                  ))}
+                </Select>
+                <InputNumber min={1} defaultValue={1} className="me-2" onChange={setQuantity} />
+                <Button onClick={handleAddProduct}>Thêm món</Button>
+              </div>
+            </div>
 
-      <Table dataSource={selectedProducts} columns={[
-        { title: "Sản phẩm", dataIndex: "name", key: "name" },
-        { title: "Giá", dataIndex: "price", key: "price", render: (price) => `${price.toLocaleString()} VND` },
-        {
-          title: "Hành động",
-          key: "action",
-          render: (_, record, index) => (
-            <Button danger icon={<DeleteOutlined />} onClick={() => handleRemoveProduct(index)} />
-          ),
-        },
-      ]} rowKey={(record, index) => index} pagination={false} />
-      <Typography.Text strong>Tổng tiền: {totalAmount.toLocaleString()} VND</Typography.Text>
+            <Table
+              dataSource={orderItems}
+              columns={[
+                { title: "Sản phẩm", dataIndex: "name", key: "name" },
+                { title: "Số lượng", dataIndex: "quantity", key: "quantity" },
+                {
+                  title: "Đơn giá",
+                  dataIndex: "price",
+                  key: "price",
+                  render: (price) => `${price.toLocaleString()} VND`,
+                },
+                {
+                  title: "Thành tiền",
+                  key: "total",
+                  render: (_, record) => `${(record.price * record.quantity).toLocaleString()} VND`,
+                },
+              ]}
+              rowKey={(record, index) => index}
+              pagination={false}
+            />
 
-      <Typography.Text block className="mt-3">
-        Trạng thái thanh toán: <strong>{paymentStatus}</strong>
-      </Typography.Text>
-
-      <div className="mt-3">
-        <Button type="primary" onClick={handlePayment} disabled={paymentStatus === "Đã thanh toán"}>
-          Xác nhận thanh toán
-        </Button>
-        <Button type="default" icon={<PrinterOutlined />} className="ms-2">
-          In hóa đơn
-        </Button>
-      </div>
+            <div className="mt-3 d-flex justify-content-between align-items-center">
+              <Title level={4}>Tổng tiền: {totalAmount.toLocaleString()} VND</Title>
+              <Button type="primary" icon={<DollarCircleOutlined />} onClick={handlePayment}>
+                Thanh toán
+              </Button>
+            </div>
+          </Card>
+        </Col>
+      </Row>
     </Layout>
   );
 };
 
-export default InvoicePage;
+export default BookingCourt;

@@ -291,8 +291,8 @@ const BookingCourt = ({ court }) => {
                       ID:{" "}
                       {court.bookings[dayIndex].timeSlots[slotIndex]?.userId}{" "}
                       <br />
-                      Name:{" "}
-                      {court.bookings[dayIndex].timeSlots[slotIndex]?.name}{" "}
+                      Full name:{" "}
+                      {court.bookings[dayIndex].timeSlots[slotIndex]?.full_name}{" "}
                       <br />
                       {user.isAdmin || user.isStaff ? (
                         <>
