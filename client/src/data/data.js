@@ -60,7 +60,7 @@ export const adminMenu = [
   },
   {
     name: "Xem thống kê doanh thu",
-    path: "/profile",
+    path: "/admin/revenue",
     icon: "fas fa-chart-bar",
   },
 ];

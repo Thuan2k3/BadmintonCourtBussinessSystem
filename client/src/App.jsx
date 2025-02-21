@@ -28,6 +28,7 @@ import CreateTimeSlotPage from "./pages/timeSlot/CreateTimeSlotPage";
 import UpdateTimeSlotPage from "./pages/timeSlot/UpdateTimeSlotPage";
 import DeleteTimeSlotPage from "./pages/timeSlot/DeleteTimeSlotPage";
 import InvoicePage from "./pages/invoice/InvoicePage";
+import RevenueStatisticPage from "./pages/revenueStatistic/RevenueStatisticPage";
 
 function App() {
   const { loading } = useSelector((state) => state.alerts);
@@ -235,6 +236,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <InvoicePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/revenue"
+              element={
+                <ProtectedRoute>
+                  <RevenueStatisticPage />
                 </ProtectedRoute>
               }
             />
