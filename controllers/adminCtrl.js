@@ -387,27 +387,31 @@ const createBookingWithCourtController = async (req, res) => {
     }
 
     // Kiểm tra xem khung giờ này đã được đặt chưa
-    const existingBooking = await TimeSlotBooking.findOne({
+    const existingTimeSlotBooking = await TimeSlotBooking.findOne({
       court: courtId,
       date: bookingDate,
       time: timeSlot,
     });
 
-    if (existingBooking) {
+    if (existingTimeSlotBooking) {
       return res
         .status(400)
         .json({ error: `Khung giờ ${timeSlot} đã được đặt.` });
     }
 
-    // Tạo Booking mới
-    const newBooking = new Booking({
-      user: userId,
-      court: courtId,
-      date: bookingDate,
-      timeSlots: [],
-    });
+    // Tìm booking đã tồn tại trong ngày đó
+    let booking = await Booking.findOne({ date: bookingDate });
 
-    await newBooking.save();
+    // Nếu chưa có booking nào trong ngày, tạo mới
+    if (!booking) {
+      booking = new Booking({
+        date: bookingDate,
+        timeSlots: [],
+      });
+      await booking.save();
+    }
+
+    const timeSlotId = await TimeSlot.findOne({ time: timeSlot });
 
     // Tạo TimeSlotBooking mới
     const newTimeSlotBooking = new TimeSlotBooking({
@@ -415,20 +419,21 @@ const createBookingWithCourtController = async (req, res) => {
       court: courtId,
       date: bookingDate,
       time: timeSlot,
+      timeSlot: timeSlotId,
       isBooked: true,
-      booking_id: newBooking._id,
+      booking_id: booking._id,
     });
 
     await newTimeSlotBooking.save();
 
     // Cập nhật timeSlots trong Booking
-    await Booking.findByIdAndUpdate(newBooking._id, {
+    await Booking.findByIdAndUpdate(booking._id, {
       $push: { timeSlots: newTimeSlotBooking._id },
     });
 
-    // Thêm booking_id vào Court
+    // Thêm booking_id vào Court nếu chưa có
     await Court.findByIdAndUpdate(courtId, {
-      $push: { bookings: newBooking._id },
+      $addToSet: { bookings: booking._id }, // Tránh thêm trùng booking_id
     });
 
     res.status(200).json({ success: true, message: "Đặt sân thành công!" });
@@ -437,7 +442,6 @@ const createBookingWithCourtController = async (req, res) => {
     res.status(500).json({ error: "Lỗi server" });
   }
 };
-
 const cancelBookingWithCourtController = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -458,6 +462,7 @@ const cancelBookingWithCourtController = async (req, res) => {
         .json({ error: "Bạn chỉ có thể hủy sân trước ít nhất 1 ngày." });
     }
 
+    // Xóa TimeSlotBooking
     const deletedBooking = await TimeSlotBooking.findOneAndDelete({
       _id: timeSlotId,
     });
@@ -468,22 +473,24 @@ const cancelBookingWithCourtController = async (req, res) => {
         .json({ error: "Không tìm thấy khung giờ đặt hoặc đã bị hủy." });
     }
 
-    const remainingSlots = await TimeSlotBooking.find({ booking: bookingId });
+    // Cập nhật Booking, xóa timeSlot khỏi danh sách
+    await Booking.findByIdAndUpdate(bookingId, {
+      $pull: { timeSlots: timeSlotId },
+    });
 
-    if (remainingSlots.length === 0) {
-      // Lấy thông tin sân của booking trước khi xóa
-      const court = await Court.findOne({ bookings: bookingId });
+    // Lấy lại danh sách timeSlots sau khi xóa
+    const updatedBooking = await Booking.findById(bookingId);
 
-      // Xóa booking
+    // Nếu mảng timeSlots trống, thì xóa booking
+    if (updatedBooking.timeSlots.length === 0) {
+      // Xóa Booking
       await Booking.findByIdAndDelete(bookingId);
 
-      // Nếu bookingId tồn tại trong danh sách bookings của sân, xóa nó
-      if (court) {
-        await Court.updateOne(
-          { _id: court._id },
-          { $pull: { bookings: bookingId } }
-        );
-      }
+      // Xóa booking khỏi danh sách bookings của sân
+      await Court.updateOne(
+        { bookings: bookingId },
+        { $pull: { bookings: bookingId } }
+      );
 
       return res.status(200).json({
         success: true,
@@ -494,7 +501,7 @@ const cancelBookingWithCourtController = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "Hủy khung giờ thành công!", deletedBooking });
+      .json({ success: true, message: "Hủy khung giờ thành công!" });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Lỗi server" });

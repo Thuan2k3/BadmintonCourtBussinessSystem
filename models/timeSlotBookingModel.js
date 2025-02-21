@@ -16,12 +16,17 @@ const timeSlotBookingSchema = new mongoose.Schema({
     ref: "courts",
     required: true,
   },
-  time: {
-    type: String,
+  timeSlot: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "timeslots",
     required: true,
   },
   date: {
     type: Date,
+    required: true,
+  },
+  time: {
+    type: String,
     required: true,
   },
   isBooked: {
