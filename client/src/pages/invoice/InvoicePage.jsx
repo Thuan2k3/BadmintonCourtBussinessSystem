@@ -1,6 +1,17 @@
 import React, { useState } from "react";
-import { Button, Table, Tag, Select, InputNumber, message, Typography, Row, Col, Card } from "antd";
-import { DollarCircleOutlined } from "@ant-design/icons";
+import {
+  Button,
+  Table,
+  Tag,
+  Select,
+  InputNumber,
+  message,
+  Typography,
+  Row,
+  Col,
+  Card,
+} from "antd";
+import { DollarCircleOutlined, DeleteOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import Layout from "../../components/Layout";
 
@@ -20,6 +31,8 @@ const BookingCourt = () => {
   const [quantity, setQuantity] = useState(1);
   const [orderItems, setOrderItems] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [courtInvoice, setCourtInvoice] = useState(null);
+  const [invoiceTime, setInvoiceTime] = useState(null);
 
   const products = [
     { name: "Nước suối", price: 10000 },
@@ -27,32 +40,73 @@ const BookingCourt = () => {
     { name: "Nước tăng lực", price: 20000 },
   ];
 
-  const handleCheckin = (court) => {
-    setCourts((prev) =>
-      prev.map((c) =>
-        c.id === court.id ? { ...c, status: "occupied", checkInTime: dayjs() } : c
-      )
-    );
-    message.success(`Check-in sân ${court.name}`);
-  };
-
-  const handleCheckout = (court) => {
-    if (!court.checkInTime) {
-      message.error("Không tìm thấy thời gian check-in!");
+  const handleCheckIn = () => {
+    if (selectedCourt.status === "occupied") {
+      message.warning("Sân này đã có người!");
       return;
     }
 
-    const duration = dayjs().diff(court.checkInTime, "hour", true);
-    const hours = Math.ceil(duration);
-    const courtFee = hours * court.price;
-
-    setCourts((prev) =>
-      prev.map((c) => (c.id === court.id ? { ...c, status: "empty", checkInTime: null } : c))
+    setCourts((prevCourts) =>
+      prevCourts.map((court) =>
+        court.id === selectedCourt.id
+          ? { ...court, status: "occupied", checkInTime: dayjs() }
+          : court
+      )
     );
 
-    setOrderItems((prev) => [...prev, { name: `${court.name} (${hours} giờ)`, price: courtFee, quantity: 1 }]);
-    setTotalAmount((prev) => prev + courtFee);
-    message.success(`Checkout ${court.name}: ${hours} giờ, tổng tiền: ${courtFee.toLocaleString()} VND`);
+    setSelectedCourt({
+      ...selectedCourt,
+      status: "occupied",
+      checkInTime: dayjs(),
+    });
+    message.success(`Check-in thành công cho ${selectedCourt.name}`);
+  };
+
+  const handleCheckOut = () => {
+    if (!selectedCourt) {
+      message.warning("Vui lòng chọn sân trước khi check-out!");
+      return;
+    }
+
+    if (selectedCourt.status !== "occupied") {
+      message.warning("Sân này chưa được check-in!");
+      return;
+    }
+
+    const checkOutTime = dayjs();
+    const checkInTime = selectedCourt.checkInTime;
+    const duration = checkOutTime.diff(checkInTime, "hour", true);
+    const roundedDuration = Math.ceil(duration);
+    const courtCost = roundedDuration * selectedCourt.price;
+
+    const newCourtInvoice = {
+      courtName: selectedCourt.name,
+      duration: roundedDuration,
+      cost: selectedCourt.price,
+      totalCost: courtCost,
+      checkInTime: checkInTime.format("HH:mm:ss DD/MM/YYYY"),
+      checkOutTime: checkOutTime.format("HH:mm:ss DD/MM/YYYY"),
+    };
+
+    setCourtInvoice(newCourtInvoice); // Ghi đè dữ liệu cũ bằng hóa đơn mới
+
+    setInvoiceTime(dayjs().format("HH:mm:ss DD/MM/YYYY"));
+
+    setCourts((prevCourts) =>
+      prevCourts.map((court) =>
+        court.id === selectedCourt.id
+          ? { ...court, status: "empty", checkInTime: null }
+          : court
+      )
+    );
+
+    setOrderItems([]);
+    setTotalAmount(0);
+    setSelectedCourt(null);
+
+    message.success(
+      `Check-out thành công! Tổng thời gian chơi: ${roundedDuration} giờ`
+    );
   };
 
   const handleAddProduct = () => {
@@ -62,7 +116,9 @@ const BookingCourt = () => {
     }
 
     setOrderItems((prevItems) => {
-      const existingItem = prevItems.find((item) => item.name === selectedProduct.name);
+      const existingItem = prevItems.find(
+        (item) => item.name === selectedProduct.name
+      );
       if (existingItem) {
         return prevItems.map((item) =>
           item.name === selectedProduct.name
@@ -75,21 +131,42 @@ const BookingCourt = () => {
     });
 
     setTotalAmount((prev) => prev + selectedProduct.price * quantity);
+    if (!invoiceTime) {
+      setInvoiceTime(dayjs().format("HH:mm:ss DD/MM/YYYY"));
+    }
     message.success(`Đã thêm ${quantity} ${selectedProduct.name} vào giỏ hàng`);
   };
 
-  const handlePayment = () => {
-    message.success("Thanh toán thành công!");
-    setOrderItems([]);
-    setTotalAmount(0);
+  const handleDeleteProduct = (productName) => {
+    setOrderItems((prevItems) => {
+      const updatedItems = prevItems.filter(
+        (item) => item.name !== productName
+      );
+      const deletedItem = prevItems.find((item) => item.name === productName);
+
+      if (deletedItem) {
+        setTotalAmount(
+          (prevTotal) => prevTotal - deletedItem.price * deletedItem.quantity
+        );
+      }
+
+      return updatedItems;
+    });
+
+    message.success(`Đã xóa ${productName} khỏi giỏ hàng`);
+  };
+  const handleDeleteInvoice = (index) => {
+    setCourtInvoice((prevInvoice) => prevInvoice.filter((_, i) => i !== index));
+    message.success("Đã xóa hóa đơn thuê sân!");
   };
 
   return (
     <Layout className="container mt-4">
-      <Title level={3} className="text-center">Hệ Thống Đặt Sân Cầu Lông</Title>
+      <Title level={3} className="text-center">
+        Hệ Thống Đặt Sân Cầu Lông
+      </Title>
 
       <Row gutter={16}>
-        {/* Danh sách sân */}
         <Col span={12}>
           <Card title="Danh Sách Sân" bordered>
             <div className="d-flex flex-wrap">
@@ -98,15 +175,20 @@ const BookingCourt = () => {
                   key={court.id}
                   className="m-2"
                   style={{
-                    width: 100,
-                    height: 100,
-                    backgroundColor: court.status === "empty" ? "#52c41a" : "#595959",
+                    width: 120,
+                    height: 120,
+                    backgroundColor:
+                      court.status === "empty" ? "#52c41a" : "#595959",
                     color: "#fff",
                   }}
                   onClick={() => setSelectedCourt(court)}
                 >
                   {court.name} <br />
-                  {court.status === "empty" ? <Tag color="green">Trống</Tag> : <Tag color="red">Có người</Tag>}
+                  {court.status === "empty" ? (
+                    <Tag color="green">Trống</Tag>
+                  ) : (
+                    <Tag color="red">Có người</Tag>
+                  )}
                 </Button>
               ))}
             </div>
@@ -115,19 +197,61 @@ const BookingCourt = () => {
           {selectedCourt && (
             <Card className="mt-3" title="Thông Tin Sân">
               <Text strong>Sân: {selectedCourt.name}</Text> <br />
-              <Text>Giá: {selectedCourt.price.toLocaleString()} VND / giờ</Text> <br />
-              {selectedCourt.status === "empty" ? (
-                <Button type="primary" onClick={() => handleCheckin(selectedCourt)}>Check-in</Button>
-              ) : (
-                <Button type="danger" onClick={() => handleCheckout(selectedCourt)}>Checkout</Button>
-              )}
+              <Text>
+                Giá: {selectedCourt.price.toLocaleString()} VND / giờ
+              </Text>{" "}
+              <br />
+              <Button
+                type="primary"
+                onClick={handleCheckIn}
+                disabled={selectedCourt.status === "occupied"}
+              >
+                Check-in
+              </Button>
+              <Button
+                type="danger"
+                className="ml-2"
+                onClick={handleCheckOut}
+                disabled={selectedCourt.status === "empty"}
+              >
+                Check-out
+              </Button>
             </Card>
           )}
         </Col>
 
-        {/* Hóa đơn */}
         <Col span={12}>
           <Card title="Hóa Đơn">
+            {courtInvoice && (
+              <div title="Hóa Đơn Thuê Sân">
+                <p>
+                  <strong>Sân:</strong> {courtInvoice.courtName}
+                </p>
+                <p>
+                  <strong>Giá thuê 1 giờ:</strong>{" "}
+                  {courtInvoice?.cost?.toLocaleString() || 0} VND
+                </p>
+                <p>
+                  <strong>Thời gian chơi:</strong> {courtInvoice?.duration || 0}{" "}
+                  giờ
+                </p>
+                <p>
+                  <strong>Tổng tiền:</strong>{" "}
+                  {courtInvoice?.totalCost?.toLocaleString() || 0} VND
+                </p>
+                <p>
+                  <strong>Check-in:</strong>{" "}
+                  {courtInvoice?.checkInTime || "N/A"}
+                </p>
+                <p>
+                  <strong>Check-out:</strong>{" "}
+                  {courtInvoice?.checkOutTime || "N/A"}
+                </p>
+              </div>
+            )}
+            <p>
+              <strong>Thời gian lập hóa đơn:</strong> {invoiceTime || "Chưa có"}
+            </p>
             <div className="mb-3">
               <Text strong>Chọn sản phẩm:</Text>
               <div className="d-flex align-items-center">
@@ -135,7 +259,9 @@ const BookingCourt = () => {
                   placeholder="Chọn sản phẩm"
                   style={{ width: 200 }}
                   className="me-2"
-                  onChange={(value) => setSelectedProduct(products.find((p) => p.name === value))}
+                  onChange={(value) =>
+                    setSelectedProduct(products.find((p) => p.name === value))
+                  }
                 >
                   {products.map((product) => (
                     <Option key={product.name} value={product.name}>
@@ -143,7 +269,12 @@ const BookingCourt = () => {
                     </Option>
                   ))}
                 </Select>
-                <InputNumber min={1} defaultValue={1} className="me-2" onChange={setQuantity} />
+                <InputNumber
+                  min={1}
+                  defaultValue={1}
+                  className="me-2"
+                  onChange={setQuantity}
+                />
                 <Button onClick={handleAddProduct}>Thêm món</Button>
               </div>
             </div>
@@ -162,7 +293,22 @@ const BookingCourt = () => {
                 {
                   title: "Thành tiền",
                   key: "total",
-                  render: (_, record) => `${(record.price * record.quantity).toLocaleString()} VND`,
+                  render: (_, record) =>
+                    `${(record.price * record.quantity).toLocaleString()} VND`,
+                },
+                {
+                  title: "Hành động",
+                  key: "action",
+                  render: (_, record) => (
+                    <Button
+                      type="text"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => handleDeleteProduct(record.name)}
+                    >
+                      Xóa
+                    </Button>
+                  ),
                 },
               ]}
               rowKey={(record, index) => index}
@@ -170,8 +316,23 @@ const BookingCourt = () => {
             />
 
             <div className="mt-3 d-flex justify-content-between align-items-center">
-              <Title level={4}>Tổng tiền: {totalAmount.toLocaleString()} VND</Title>
-              <Button type="primary" icon={<DollarCircleOutlined />} onClick={handlePayment}>
+              <Title level={4}>
+                Tổng tiền:{" "}
+                {(
+                  totalAmount + (courtInvoice?.totalCost || 0)
+                ).toLocaleString()}{" "}
+                VND
+              </Title>
+              <Button
+                type="primary"
+                icon={<DollarCircleOutlined />}
+                onClick={() => {
+                  message.success("Thanh toán thành công!");
+                  setOrderItems([]); // Xóa giỏ hàng
+                  setTotalAmount(0); // Reset tổng tiền
+                  setCourtInvoice(null); // Xóa bảng sân (danh sách hóa đơn)
+                }}
+              >
                 Thanh toán
               </Button>
             </div>
