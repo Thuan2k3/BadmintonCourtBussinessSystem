@@ -30,6 +30,18 @@ const removeVietnameseTones = (str) => {
 const InvoicePage = () => {
   const { user } = useSelector((state) => state.user);
   const [courts, setCourts] = useState([]);
+  const defaultCourt = { _id: "guest", name: "guest", isEmpty: true };
+  const [selectedCourt, setSelectedCourt] = useState(defaultCourt);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const [orderItemsCourt, setOrderItemsCourt] = useState([]);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [courtInvoice, setCourtInvoice] = useState(null);
+  const [invoiceTime, setInvoiceTime] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [products, setProducts] = useState([]);
+
+  const [users, setUsers] = useState([]);
   const getAllCourt = async () => {
     try {
       const res = await axios.get("http://localhost:8080/api/v1/admin/court", {
@@ -48,17 +60,27 @@ const InvoicePage = () => {
   useEffect(() => {
     getAllCourt();
   }, []);
+  const getUsers = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:8080/api/v1/admin/account",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (res.data.success) {
+        setUsers(res.data.data); // Thêm "Khách vãng lai" vào đầu danh sách
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-  const defaultCourt = { _id: "guest", name: "guest" };
-  const [selectedCourt, setSelectedCourt] = useState(defaultCourt);
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-  const [orderItemsCourt, setOrderItemsCourt] = useState([]);
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [courtInvoice, setCourtInvoice] = useState(null);
-  const [invoiceTime, setInvoiceTime] = useState([]);
-
-  const [products, setProducts] = useState([]);
+  useEffect(() => {
+    getUsers();
+  }, []);
 
   const getAllProduct = async () => {
     try {
@@ -86,36 +108,50 @@ const InvoicePage = () => {
     setSelectedCourt((prevCourt) =>
       prevCourt?._id === court._id ? defaultCourt : court
     );
+
+    setSelectedUser(null);
   };
-  useEffect(() => {
-    console.log("Sân đang chọn:", selectedCourt);
-  }, [selectedCourt]);
 
   const handleCheckIn = () => {
+    if (!selectedCourt || selectedCourt._id === "guest") {
+      message.warning("Vui lòng chọn sân trước khi check-in!");
+      return;
+    }
+
     if (!selectedCourt?.isEmpty) {
       message.warning("Sân này đã có người!");
       return;
     }
 
     const checkInTime = dayjs();
+    const updatedCourt = { ...selectedCourt, isEmpty: false, checkInTime };
 
+    // Cập nhật danh sách sân
     setCourts((prevCourts) =>
       prevCourts.map((court) =>
-        court._id === selectedCourt._id
-          ? { ...court, isEmpty: false, checkInTime }
-          : court
+        court._id === selectedCourt._id ? updatedCourt : court
       )
     );
 
-    setSelectedCourt({ ...selectedCourt, isEmpty: false, checkInTime });
+    // Cập nhật sân đã chọn
+    setSelectedCourt(updatedCourt);
 
+    // Cập nhật orderItemsCourt
     setOrderItemsCourt((prev) => {
-      const exists = prev.some((item) => item.court._id === selectedCourt._id);
-      if (exists) return prev;
+      if (!selectedCourt || !selectedCourt._id) return prev;
+
+      const exists = prev.find((item) => item.court._id === selectedCourt._id);
+      if (exists) {
+        return prev.map((item) =>
+          item.court._id === selectedCourt._id
+            ? { ...item, court: updatedCourt } // ✅ Cập nhật với sân mới nhất
+            : item
+        );
+      }
 
       return [
         ...prev,
-        { court: selectedCourt, products: [], courtInvoice: null },
+        { court: updatedCourt, products: [], courtInvoice: null },
       ];
     });
 
@@ -211,19 +247,39 @@ const InvoicePage = () => {
       );
 
       if (index !== -1) {
+        // Nếu sân đã tồn tại trong orderItemsCourt
+        let updatedProducts = [...updatedItems[index].products];
+
+        // Tìm sản phẩm trong danh sách hiện có
+        const productIndex = updatedProducts.findIndex(
+          (p) => p._id === selectedProduct._id
+        );
+
+        if (productIndex !== -1) {
+          // Nếu sản phẩm đã tồn tại, tăng số lượng
+          updatedProducts[productIndex] = {
+            ...updatedProducts[productIndex],
+            quantity: updatedProducts[productIndex].quantity + quantity,
+          };
+        } else {
+          // Nếu sản phẩm chưa tồn tại, thêm mới vào danh sách
+          updatedProducts.push({ ...selectedProduct, quantity });
+        }
+
         updatedItems[index] = {
           ...updatedItems[index],
-          products: updatedItems[index].products.map((p) =>
-            p.name === selectedProduct.name
-              ? { ...p, quantity: p.quantity + quantity }
-              : p
-          ),
+          products: updatedProducts, // ✅ Cập nhật lại products
           totalAmount:
             updatedItems[index].totalAmount + selectedProduct.price * quantity,
         };
       } else {
+        // Nếu sân chưa tồn tại, thêm mới
         updatedItems.push({
-          court: selectedCourt || { _id: "guest", name: "guest" },
+          court: selectedCourt || {
+            _id: "guest",
+            name: "guest",
+            isEmpty: true,
+          },
           products: [{ ...selectedProduct, quantity }],
           totalAmount: selectedProduct.price * quantity,
         });
@@ -231,16 +287,19 @@ const InvoicePage = () => {
 
       return updatedItems;
     });
-    setInvoiceTime((prev) => [
-      ...prev.filter(
-        (item) => item._id !== (selectedCourt?._id || "default_court_id")
-      ), // Xóa dữ liệu cũ của sân nếu có
-      {
-        _id: selectedCourt?._id || "default_court_id", // ID sân (hoặc sân mặc định)
-        time: dayjs().format("DD-MM-YYYY HH:mm:ss"), // Thời gian hiện tại
-        user: user?.full_name || "Không xác định", // Tên người lập hóa đơn
-      },
-    ]);
+
+    setInvoiceTime((prev) => {
+      const courtId = selectedCourt?._id || "guest";
+
+      return [
+        ...prev.filter((item) => item._id !== courtId), // Xóa dữ liệu cũ nếu có
+        {
+          _id: courtId,
+          time: dayjs().format("DD-MM-YYYY HH:mm:ss"),
+          user: user?.full_name || "Không xác định",
+        },
+      ];
+    });
 
     message.success(
       `Đã thêm ${quantity} ${selectedProduct.name} ${
@@ -301,7 +360,7 @@ const InvoicePage = () => {
   return (
     <Layout className="container mt-4">
       <Title level={3} className="text-center">
-        Hệ Thống Đặt Sân Cầu Lông
+        HÓA ĐƠN SÂN CẦU LÔNG
       </Title>
 
       <Row gutter={16}>
@@ -333,7 +392,7 @@ const InvoicePage = () => {
             </div>
           </Card>
 
-          {selectedCourt && (
+          {selectedCourt && selectedCourt._id != "guest" && (
             <Card className="mt-3" title="Thông Tin Sân">
               <Text strong>Sân: {selectedCourt.name}</Text> <br />
               <Text>
@@ -421,6 +480,102 @@ const InvoicePage = () => {
             ) : null}
 
             <div className="mb-3">
+              <Text strong>Chọn khách hàng:</Text>
+              <div className="d-flex align-items-center">
+                <Select
+                  showSearch
+                  allowClear
+                  placeholder="Chọn khách hàng:"
+                  style={{ width: 250 }}
+                  className="me-2"
+                  optionFilterProp="label"
+                  value={selectedUser?._id || null}
+                  onChange={(value) => {
+                    setSelectedUser(
+                      value ? users.find((u) => u._id === value) : null
+                    );
+                  }}
+                  filterOption={(input, option) => {
+                    const inputNormalized = removeVietnameseTones(
+                      input.toLowerCase()
+                    );
+                    const optionNormalized = removeVietnameseTones(
+                      option.label.toLowerCase()
+                    );
+                    return optionNormalized.includes(inputNormalized);
+                  }}
+                  options={[
+                    { value: null, label: "Không chọn khách hàng" }, // ✅ Thêm tùy chọn này
+                    ...users.map((user) => ({
+                      value: user._id,
+                      label: `${user.full_name} - ${user.email}`,
+                    })),
+                  ]}
+                />
+                <Button
+                  onClick={() => {
+                    setOrderItemsCourt((prev) => {
+                      let updatedItems = [...prev];
+
+                      const courtKey = selectedCourt
+                        ? selectedCourt._id
+                        : "guest";
+                      const index = updatedItems.findIndex(
+                        (item) => item.court?._id === courtKey
+                      );
+
+                      if (index !== -1) {
+                        if (!selectedUser) {
+                          // Nếu không có người dùng, xóa user khỏi danh sách
+                          updatedItems[index] = {
+                            ...updatedItems[index],
+                            user: null, // Xóa thông tin người chơi
+                          };
+                          message.success("Đã bỏ chọn khách hàng.");
+                        } else {
+                          // Nếu có người dùng, cập nhật lại
+                          updatedItems[index] = {
+                            ...updatedItems[index],
+                            user: selectedUser,
+                          };
+                          message.success(
+                            `Khách hàng đã được cập nhật thành: ${selectedUser.full_name}`
+                          );
+                        }
+                      } else if (selectedUser) {
+                        // Nếu sân chưa có trong danh sách và có người chơi, thêm mới
+                        updatedItems.push({
+                          court: selectedCourt || {
+                            _id: "guest",
+                            name: "Khách vãng lai",
+                          },
+                          user: selectedUser,
+                          products: [],
+                          courtInvoice: null,
+                        });
+                        message.success(
+                          `Khách hàng đã được cập nhật thành: ${selectedUser.full_name}`
+                        );
+                      }
+
+                      return updatedItems;
+                    });
+                  }}
+                >
+                  Xác nhận
+                </Button>
+              </div>
+              {orderItemsCourt.some(
+                (item) => item.court?._id === selectedCourt?._id && item.user
+              ) && (
+                <p>
+                  <strong>Tên khách hàng:</strong>{" "}
+                  {orderItemsCourt.find(
+                    (item) => item.court?._id === selectedCourt?._id
+                  )?.user?.full_name || "Không xác định"}
+                </p>
+              )}
+
               <Text strong>Chọn sản phẩm:</Text>
               <div className="d-flex align-items-center">
                 <Select
@@ -506,7 +661,6 @@ const InvoicePage = () => {
                 Tổng tiền:{" "}
                 {getTotalAmountForCourt(selectedCourt._id).toLocaleString()} VND
               </Title>
-
               <Button
                 type="primary"
                 icon={<DollarCircleOutlined />}
@@ -516,9 +670,13 @@ const InvoicePage = () => {
                     return;
                   }
 
-                  console.log("Selected Court:", selectedCourt);
-                  console.log("Order Items Court before:", orderItemsCourt);
-                  console.log("Invoice Time before:", invoiceTime);
+                  // Nếu sân đã check-in mà chưa check-out, cảnh báo trước
+                  if (selectedCourt && !selectedCourt.isEmpty) {
+                    message.warning(
+                      `Sân ${selectedCourt.name} vẫn đang được sử dụng! Vui lòng check-out trước khi thanh toán.`
+                    );
+                    return;
+                  }
 
                   let updatedOrderItemsCourt;
                   let updatedInvoiceTime = invoiceTime.filter(
@@ -546,12 +704,6 @@ const InvoicePage = () => {
                         String(item.courtId) !== String(defaultCourt._id)
                     );
                   }
-
-                  console.log(
-                    "Order Items Court after:",
-                    updatedOrderItemsCourt
-                  );
-                  console.log("Invoice Time after:", updatedInvoiceTime);
 
                   setOrderItemsCourt(updatedOrderItemsCourt); // Cập nhật danh sách hóa đơn
                   setInvoiceTime(updatedInvoiceTime); // Cập nhật invoiceTime
