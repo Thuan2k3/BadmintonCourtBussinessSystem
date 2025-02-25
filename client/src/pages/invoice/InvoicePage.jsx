@@ -16,6 +16,13 @@ import dayjs from "dayjs";
 import Layout from "../../components/Layout";
 import { useSelector } from "react-redux";
 import axios from "axios";
+import CourtList from "../../components/CourtList";
+import CourtDetails from "../../components/CourtDetails";
+import InvoiceList from "../../components/InvoiceList";
+import CustomerSelector from "../../components/CustomerSelector";
+import ProductSelector from "../../components/ProductSelector";
+import OrderTable from "../../components/OrderTable";
+import CheckoutButton from "../../components/CheckoutButton";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -35,8 +42,6 @@ const InvoicePage = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [orderItemsCourt, setOrderItemsCourt] = useState([]);
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [courtInvoice, setCourtInvoice] = useState(null);
   const [invoiceTime, setInvoiceTime] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [products, setProducts] = useState([]);
@@ -115,6 +120,11 @@ const InvoicePage = () => {
   const handleCheckIn = () => {
     if (!selectedCourt || selectedCourt._id === "guest") {
       message.warning("Vui lòng chọn sân trước khi check-in!");
+      return;
+    }
+
+    if (getTotalAmountForCourt(selectedCourt._id) > 0) {
+      message.warning("Vui lòng thanh toán hóa đơn của sân trước khi check-in!");
       return;
     }
 
@@ -365,357 +375,65 @@ const InvoicePage = () => {
 
       <Row gutter={16}>
         <Col span={12}>
-          <Card title="Danh Sách Sân" bordered>
-            <div className="d-flex flex-wrap">
-              {courts.map((court) => (
-                <Button
-                  key={court._id}
-                  className="m-2"
-                  style={{
-                    width: 120,
-                    height: 120,
-                    backgroundColor: court.isEmpty ? "#52c41a" : "#595959",
-                    color: "#fff",
-                  }}
-                  onClick={() => {
-                    handleSelectedCourt(court);
-                  }}
-                >
-                  {court.name} <br />
-                  {court.isEmpty ? (
-                    <Tag color="green">Trống</Tag>
-                  ) : (
-                    <Tag color="red">Có người</Tag>
-                  )}
-                </Button>
-              ))}
-            </div>
-          </Card>
-
-          {selectedCourt && selectedCourt._id != "guest" && (
-            <Card className="mt-3" title="Thông Tin Sân">
-              <Text strong>Sân: {selectedCourt.name}</Text> <br />
-              <Text>
-                Giá:{" "}
-                {selectedCourt?.price
-                  ? selectedCourt.price.toLocaleString()
-                  : "0"}{" "}
-                VND / giờ
-              </Text>
-              <br />
-              <Button
-                type="primary"
-                onClick={handleCheckIn}
-                disabled={!selectedCourt.isEmpty}
-              >
-                Check-in
-              </Button>
-              <Button
-                type="danger"
-                className="ml-2"
-                onClick={handleCheckOut}
-                disabled={selectedCourt.isEmpty}
-              >
-                Check-out
-              </Button>
-            </Card>
-          )}
+          <div>
+            <CourtList courts={courts} onSelectCourt={handleSelectedCourt} />
+            <CourtDetails
+              selectedCourt={selectedCourt}
+              onCheckIn={handleCheckIn}
+              onCheckOut={handleCheckOut}
+            />
+          </div>
         </Col>
 
         <Col span={12}>
           <Card title="Hóa Đơn">
-            {orderItemsCourt
-              .filter(
-                (item) =>
-                  item.courtInvoice && item.court?._id === selectedCourt?._id
-              ) // Chỉ lấy hóa đơn của sân đang chọn
-              .map((item) => (
-                <div key={item.court._id} className="court-invoice">
-                  <p>
-                    <strong>Sân:</strong> {item.courtInvoice.courtName}
-                  </p>
-                  <p>
-                    <strong>Giá thuê 1 giờ:</strong>{" "}
-                    {item.courtInvoice.cost.toLocaleString()} VND
-                  </p>
-                  <p>
-                    <strong>Thời gian chơi:</strong>{" "}
-                    {item.courtInvoice.duration} giờ
-                  </p>
-                  <p>
-                    <strong>Tổng tiền:</strong>{" "}
-                    {item.courtInvoice.totalCost.toLocaleString()} VND
-                  </p>
-                  <p>
-                    <strong>Check-in:</strong> {item.courtInvoice.checkInTime}
-                  </p>
-                  <p>
-                    <strong>Check-out:</strong> {item.courtInvoice.checkOutTime}
-                  </p>
-                </div>
-              ))}
-            {invoiceTime && invoiceTime.length > 0 ? (
-              invoiceData ? (
-                <div>
-                  {selectedCourt._id === defaultCourt._id ? (
-                    <p>
-                      <strong>Sân:</strong>{" "}
-                      {selectedCourt?.name || "Khách vãng lai"}
-                    </p>
-                  ) : (
-                    <span></span>
-                  )}
-                  <p>
-                    <strong>Thời gian lập hóa đơn:</strong>{" "}
-                    {invoiceData.time || "Không có dữ liệu"}
-                  </p>
-                  <p>
-                    <strong>Người lập hóa đơn:</strong>{" "}
-                    {invoiceData.user || "Không xác định"}
-                  </p>
-                </div>
-              ) : (
-                <span></span>
-              )
-            ) : null}
-
-            <div className="mb-3">
-              <Text strong>Chọn khách hàng:</Text>
-              <div className="d-flex align-items-center">
-                <Select
-                  showSearch
-                  allowClear
-                  placeholder="Chọn khách hàng:"
-                  style={{ width: 250 }}
-                  className="me-2"
-                  optionFilterProp="label"
-                  value={selectedUser?._id || null}
-                  onChange={(value) => {
-                    setSelectedUser(
-                      value ? users.find((u) => u._id === value) : null
-                    );
-                  }}
-                  filterOption={(input, option) => {
-                    const inputNormalized = removeVietnameseTones(
-                      input.toLowerCase()
-                    );
-                    const optionNormalized = removeVietnameseTones(
-                      option.label.toLowerCase()
-                    );
-                    return optionNormalized.includes(inputNormalized);
-                  }}
-                  options={[
-                    { value: null, label: "Không chọn khách hàng" }, // ✅ Thêm tùy chọn này
-                    ...users.map((user) => ({
-                      value: user._id,
-                      label: `${user.full_name} - ${user.email}`,
-                    })),
-                  ]}
-                />
-                <Button
-                  onClick={() => {
-                    setOrderItemsCourt((prev) => {
-                      let updatedItems = [...prev];
-
-                      const courtKey = selectedCourt
-                        ? selectedCourt._id
-                        : "guest";
-                      const index = updatedItems.findIndex(
-                        (item) => item.court?._id === courtKey
-                      );
-
-                      if (index !== -1) {
-                        if (!selectedUser) {
-                          // Nếu không có người dùng, xóa user khỏi danh sách
-                          updatedItems[index] = {
-                            ...updatedItems[index],
-                            user: null, // Xóa thông tin người chơi
-                          };
-                          message.success("Đã bỏ chọn khách hàng.");
-                        } else {
-                          // Nếu có người dùng, cập nhật lại
-                          updatedItems[index] = {
-                            ...updatedItems[index],
-                            user: selectedUser,
-                          };
-                          message.success(
-                            `Khách hàng đã được cập nhật thành: ${selectedUser.full_name}`
-                          );
-                        }
-                      } else if (selectedUser) {
-                        // Nếu sân chưa có trong danh sách và có người chơi, thêm mới
-                        updatedItems.push({
-                          court: selectedCourt || {
-                            _id: "guest",
-                            name: "Khách vãng lai",
-                          },
-                          user: selectedUser,
-                          products: [],
-                          courtInvoice: null,
-                        });
-                        message.success(
-                          `Khách hàng đã được cập nhật thành: ${selectedUser.full_name}`
-                        );
-                      }
-
-                      return updatedItems;
-                    });
-                  }}
-                >
-                  Xác nhận
-                </Button>
-              </div>
-              {orderItemsCourt.some(
-                (item) => item.court?._id === selectedCourt?._id && item.user
-              ) && (
-                <p>
-                  <strong>Tên khách hàng:</strong>{" "}
-                  {orderItemsCourt.find(
-                    (item) => item.court?._id === selectedCourt?._id
-                  )?.user?.full_name || "Không xác định"}
-                </p>
-              )}
-
-              <Text strong>Chọn sản phẩm:</Text>
-              <div className="d-flex align-items-center">
-                <Select
-                  showSearch
-                  placeholder="Chọn sản phẩm"
-                  style={{ width: 200 }}
-                  className="me-2"
-                  optionFilterProp="label"
-                  onChange={(value, option) => {
-                    setSelectedProduct(products.find((p) => p._id === value));
-                  }}
-                  filterOption={(input, option) => {
-                    const inputNormalized = removeVietnameseTones(
-                      input.toLowerCase()
-                    );
-                    const optionNormalized = removeVietnameseTones(
-                      option.label.toLowerCase()
-                    );
-                    return optionNormalized.includes(inputNormalized);
-                  }}
-                  options={products.map((product) => ({
-                    value: product._id, // Đảm bảo value là _id
-                    label: `${
-                      product.name
-                    } - ${product.price.toLocaleString()} VND`, // Đảm bảo label hiển thị đúng
-                  }))}
-                />
-                <InputNumber
-                  min={1}
-                  defaultValue={1}
-                  className="me-2"
-                  onChange={setQuantity}
-                />
-                <Button onClick={handleAddProduct}>Thêm món</Button>
-              </div>
-            </div>
-
-            <Table
-              dataSource={
-                orderItemsCourt.find(
-                  (item) => item.court?._id === selectedCourt?._id
-                )?.products ||
-                orderItemsCourt.find((item) => item.court === null)?.products ||
-                []
-              }
-              columns={[
-                { title: "Sản phẩm", dataIndex: "name", key: "name" },
-                { title: "Số lượng", dataIndex: "quantity", key: "quantity" },
-                {
-                  title: "Đơn giá",
-                  dataIndex: "price",
-                  key: "price",
-                  render: (price) => `${price.toLocaleString()} VND`,
-                },
-                {
-                  title: "Thành tiền",
-                  key: "total",
-                  render: (_, record) =>
-                    `${(record.price * record.quantity).toLocaleString()} VND`,
-                },
-                {
-                  title: "Hành động",
-                  key: "action",
-                  render: (_, record) => (
-                    <Button
-                      type="text"
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={() => handleDeleteProduct(record.name)}
-                    >
-                      Xóa
-                    </Button>
-                  ),
-                },
-              ]}
-              rowKey={(record) =>
-                record._id || `${record.name}-${record.quantity}`
-              }
+            <InvoiceList
+              orderItemsCourt={orderItemsCourt}
+              selectedCourt={selectedCourt}
             />
-
-            <div className="mt-3 d-flex justify-content-between align-items-center">
-              <Title level={4}>
-                Tổng tiền:{" "}
-                {getTotalAmountForCourt(selectedCourt._id).toLocaleString()} VND
-              </Title>
-              <Button
-                type="primary"
-                icon={<DollarCircleOutlined />}
-                onClick={() => {
-                  if (!orderItemsCourt || orderItemsCourt.length === 0) {
-                    message.warning("Không có hóa đơn nào để thanh toán!");
-                    return;
-                  }
-
-                  // Nếu sân đã check-in mà chưa check-out, cảnh báo trước
-                  if (selectedCourt && !selectedCourt.isEmpty) {
-                    message.warning(
-                      `Sân ${selectedCourt.name} vẫn đang được sử dụng! Vui lòng check-out trước khi thanh toán.`
-                    );
-                    return;
-                  }
-
-                  let updatedOrderItemsCourt;
-                  let updatedInvoiceTime = invoiceTime.filter(
-                    (item) => String(item._id) !== String(defaultCourt._id)
-                  );
-
-                  if (selectedCourt && selectedCourt._id !== defaultCourt._id) {
-                    // Nếu chọn sân cụ thể -> Xóa hóa đơn của sân đó
-                    updatedOrderItemsCourt = orderItemsCourt.filter(
-                      (item) => item.court?._id !== selectedCourt._id
-                    );
-
-                    updatedInvoiceTime = updatedInvoiceTime.filter(
-                      (item) =>
-                        String(item.courtId) !== String(selectedCourt._id)
-                    );
-                  } else {
-                    // Nếu là khách vãng lai (guest - defaultCourt) -> Xóa hóa đơn của guest
-                    updatedOrderItemsCourt = orderItemsCourt.filter(
-                      (item) => item.court?._id !== defaultCourt._id
-                    );
-
-                    updatedInvoiceTime = updatedInvoiceTime.filter(
-                      (item) =>
-                        String(item.courtId) !== String(defaultCourt._id)
-                    );
-                  }
-
-                  setOrderItemsCourt(updatedOrderItemsCourt); // Cập nhật danh sách hóa đơn
-                  setInvoiceTime(updatedInvoiceTime); // Cập nhật invoiceTime
-                  message.success("Thanh toán thành công!");
-
-                  // Reset sân đang chọn về guest (defaultCourt)
-                  setSelectedCourt(defaultCourt);
-                }}
-              >
-                Thanh toán
-              </Button>
-            </div>
+            <CustomerSelector
+              users={users}
+              selectedUser={selectedUser}
+              setSelectedUser={setSelectedUser}
+              setOrderItemsCourt={setOrderItemsCourt}
+              selectedCourt={selectedCourt}
+              orderItemsCourt={orderItemsCourt}
+            />
+            {orderItemsCourt.some(
+              (item) => item.court?._id === selectedCourt?._id && item.user
+            ) && (
+              <p>
+                <strong>Tên khách hàng:</strong>{" "}
+                {orderItemsCourt.find(
+                  (item) => item.court?._id === selectedCourt?._id
+                )?.user?.full_name || "Không xác định"}
+              </p>
+            )}
+            <ProductSelector
+              products={products}
+              setSelectedProduct={setSelectedProduct}
+              setQuantity={setQuantity}
+              handleAddProduct={handleAddProduct}
+            />
+            <OrderTable
+              orderItemsCourt={orderItemsCourt}
+              selectedCourt={selectedCourt}
+              handleDeleteProduct={handleDeleteProduct}
+            />
+            <Title level={4}>
+              Tổng tiền:{" "}
+              {getTotalAmountForCourt(selectedCourt._id).toLocaleString()} VND
+            </Title>
+            <CheckoutButton
+              getTotalAmountForCourt={getTotalAmountForCourt}
+              selectedCourt={selectedCourt}
+              orderItemsCourt={orderItemsCourt}
+              setOrderItemsCourt={setOrderItemsCourt}
+              invoiceTime={invoiceTime}
+              setInvoiceTime={setInvoiceTime}
+              defaultCourt={defaultCourt}
+              setSelectedCourt={setSelectedCourt}
+            />
           </Card>
         </Col>
       </Row>

@@ -899,6 +899,106 @@ const deleteAccountController = async (req, res) => {
   }
 };
 
+//Hoa don
+const createInvoiceController = async (req, res) => {
+  try {
+    const { customer, staff, court, products, checkInTime, totalAmount } =
+      req.body;
+
+    // Tạo hóa đơn mới
+    const newInvoice = new Invoice({
+      customer,
+      staff,
+      court,
+      checkInTime,
+      totalAmount,
+    });
+
+    await newInvoice.save();
+
+    // Tạo các chi tiết hóa đơn
+    const invoiceDetails = await Promise.all(
+      products.map(async (item) => {
+        const invoiceDetail = new InvoiceDetail({
+          invoice: newInvoice._id,
+          product: item.product,
+          name: item.name,
+          priceAtTime: item.priceAtTime,
+          quantity: item.quantity,
+        });
+        await invoiceDetail.save();
+        return invoiceDetail._id;
+      })
+    );
+
+    // Cập nhật invoiceDetails vào hóa đơn
+    newInvoice.invoiceDetails = invoiceDetails;
+    await newInvoice.save();
+
+    res.status(201).json(newInvoice);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const getAllInvoicesController = async (req, res) => {
+  try {
+    const invoices = await Invoice.find()
+      .populate("customer", "name email")
+      .populate("staff", "name")
+      .populate("court", "name")
+      .populate({
+        path: "invoiceDetails",
+        populate: { path: "product", select: "name price" },
+      });
+
+    res.status(200).json(invoices);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const updateInvoiceController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { checkOutTime, totalAmount } = req.body;
+
+    const updatedInvoice = await Invoice.findByIdAndUpdate(
+      id,
+      { checkOutTime, totalAmount },
+      { new: true }
+    );
+
+    if (!updatedInvoice) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
+
+    res.status(200).json(updatedInvoice);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const deleteInvoiceController = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Xóa tất cả InvoiceDetail liên quan
+    await InvoiceDetail.deleteMany({ invoice: id });
+
+    // Xóa hóa đơn chính
+    const deletedInvoice = await Invoice.findByIdAndDelete(id);
+
+    if (!deletedInvoice) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
+
+    res.status(200).json({ message: "Invoice deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   getAllUsersController,
   getAllCourtController,
@@ -929,4 +1029,8 @@ module.exports = {
   createAccountController,
   updateAccountController,
   deleteAccountController,
+  getAllInvoicesController,
+  createInvoiceController,
+  updateInvoiceController,
+  deleteInvoiceController,
 };

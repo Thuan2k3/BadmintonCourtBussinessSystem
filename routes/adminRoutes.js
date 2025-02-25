@@ -34,6 +34,10 @@ const {
   getCourtsWithBookingsController,
   createBookingWithCourtController,
   cancelBookingWithCourtController,
+  getAllInvoicesController,
+  createInvoiceController,
+  updateInvoiceController,
+  deleteInvoiceController,
 } = require("../controllers/adminCtrl");
 
 const router = express.Router();
@@ -145,5 +149,17 @@ router.put("/account/:id", authMiddleware, updateAccountController);
 
 //Xoa tai khoan
 router.delete("/account/:id", authMiddleware, deleteAccountController);
+
+// Lấy danh sách hóa đơn
+router.get("/invoices", authMiddleware, getAllInvoicesController);
+
+// Tạo hóa đơn
+router.post("/invoices", authMiddleware, createInvoiceController);
+
+// Cập nhật hóa đơn
+router.put("/invoices/:id", authMiddleware, updateInvoiceController);
+
+// Xóa hóa đơn
+router.delete("/invoices/:id", authMiddleware, deleteInvoiceController);
 
 module.exports = router;
