@@ -10,7 +10,7 @@ const InvoiceSchema = new mongoose.Schema(
     staff: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",
-      required: true,
+      required: false,
     },
     court: {
       type: mongoose.Schema.Types.ObjectId,
@@ -30,10 +30,10 @@ const InvoiceSchema = new mongoose.Schema(
     },
     checkOutTime: {
       type: Date,
+      default: null, // Tránh lỗi nếu chưa check-out
     },
     totalAmount: {
       type: Number,
-      required: true,
       min: 0,
     },
   },

@@ -52,27 +52,35 @@ const CustomerSelector = ({
       }
 
       console.log("📝 Cập nhật danh sách orderItemsCourt:", updatedItems);
+
+      // Nếu là sân "guest", lưu vào localStorage
+      if (courtKey === "guest") {
+        localStorage.setItem("guest_order", JSON.stringify(updatedItems));
+      }
+
       return updatedItems;
     });
 
-    const orderRef = ref(database, `orders/${selectedCourt._id}/customer`);
+    if (selectedCourt._id !== "guest") {
+      const orderRef = ref(database, `orders/${selectedCourt._id}/customer`);
 
-    try {
-      if (selectedUser) {
-        await update(orderRef, {
-          id: selectedUser._id,
-          full_name: selectedUser.full_name,
-          email: selectedUser.email,
-        });
-        message.success(
-          `Khách hàng đã được cập nhật: ${selectedUser.full_name}`
-        );
-      } else {
-        await update(orderRef, null);
-        message.success("Đã bỏ chọn khách hàng.");
+      try {
+        if (selectedUser) {
+          await update(orderRef, {
+            id: selectedUser._id,
+            full_name: selectedUser.full_name,
+            email: selectedUser.email,
+          });
+          message.success(
+            `Khách hàng đã được cập nhật: ${selectedUser.full_name}`
+          );
+        } else {
+          await update(orderRef, null);
+          message.success("Đã bỏ chọn khách hàng.");
+        }
+      } catch (error) {
+        message.error("Lỗi khi cập nhật khách hàng: " + error.message);
       }
-    } catch (error) {
-      message.error("Lỗi khi cập nhật khách hàng: " + error.message);
     }
   };
 

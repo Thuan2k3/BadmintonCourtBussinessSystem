@@ -25,6 +25,7 @@ import OrderTable from "../../components/OrderTable";
 import CheckoutButton from "../../components/CheckoutButton";
 import { ref, get, set, update, onValue, off, remove } from "firebase/database";
 import { database } from "../../firebaseConfig"; // Import Firebase Realtime Database
+import isEqual from "lodash/isEqual";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -122,23 +123,30 @@ const InvoicePage = () => {
     // Tham chiếu đúng order trong Firebase
     const orderItemRef = ref(database, `orders/${courtId}`);
 
-    const newOrderItem = {
-      court,
-      products: [],
-      courtInvoice: null,
-      customer: {
-        id: selectedUser?.id || "unknown",
-        name: selectedUser?.full_name || "Không xác định",
-      },
-    };
-
     try {
+      const snapshot = await get(orderItemRef); // Kiểm tra dữ liệu cũ trong Firebase
+      if (snapshot.exists()) {
+        console.log("✅ Dữ liệu sân đã tồn tại, giữ nguyên:", snapshot.val());
+        return; // Nếu đã có dữ liệu, không cập nhật lại
+      }
+
+      // Nếu chưa có dữ liệu thì tạo mới
+      const newOrderItem = {
+        court,
+        products: [],
+        courtInvoice: null,
+        customer: {
+          id: selectedUser?.id || "unknown",
+          name: selectedUser?.full_name || "Không xác định",
+        },
+      };
+
       await set(orderItemRef, newOrderItem);
       setSelectedUser(null);
       console.log("✅ Cập nhật sân thành công:", court);
     } catch (error) {
-      console.error("❌ Lỗi khi cập nhật sân:", error);
-      message.error("Không thể cập nhật sân trong Firebase!");
+      console.error("❌ Lỗi khi kiểm tra/cập nhật sân:", error);
+      message.error("Không thể kiểm tra/cập nhật sân trong Firebase!");
     }
   };
 
@@ -176,14 +184,13 @@ const InvoicePage = () => {
 
       // ✅ Lưu thông tin check-in vào Firebase
       const orderItemRef = ref(database, `orders/${selectedCourt._id}`);
+      const snapshot = await get(orderItemRef);
+      const existingOrder = snapshot.exists() ? snapshot.val() : {};
       const newOrderItem = {
         court: updatedCourt,
         products: [],
         courtInvoice: null,
-        customer: {
-          id: selectedUser?.id || "unknown",
-          name: selectedUser?.full_name || "Không xác định",
-        },
+        customer: existingOrder.customer || null, // Giữ thông tin khách hàng
       };
 
       await set(orderItemRef, newOrderItem);
@@ -257,11 +264,6 @@ const InvoicePage = () => {
       products:
         orderItemsCourt.find((item) => item.court._id === selectedCourt._id)
           ?.products || [],
-      staff: {
-        id: user._id || "unknown",
-        full_name: user.full_name || "Không xác định",
-      },
-      invoiceTime: new Date(checkOutTime).toLocaleString("vi-VN"),
     };
 
     console.log(newInvoice);
@@ -271,11 +273,6 @@ const InvoicePage = () => {
           court._id === selectedCourt._id
             ? {
                 ...court,
-                isEmpty: true,
-                staff: {
-                  id: user._id || "unknown",
-                  full_name: user.full_name || "Không xác định",
-                },
               }
             : court
         )
@@ -284,6 +281,15 @@ const InvoicePage = () => {
       // ✅ Lưu hóa đơn vào Firebase
       const orderItemRef = ref(database, `orders/${selectedCourt._id}`);
       await update(orderItemRef, { courtInvoice: newInvoice });
+      const courtRef = ref(database, `orders/${selectedCourt._id}/court`);
+      const snapshot = await get(courtRef);
+
+      if (snapshot.exists()) {
+        const courtData = snapshot.val();
+        await update(courtRef, { ...courtData, isEmpty: true }); // ✅ Giữ nguyên dữ liệu khác, chỉ cập nhật isEmpty
+      } else {
+        console.error("Không tìm thấy dữ liệu sân!");
+      }
 
       // ✅ Cập nhật state `orderItemsCourt`
       setOrderItemsCourt((prev) =>
@@ -291,11 +297,8 @@ const InvoicePage = () => {
           item.court?._id === selectedCourt._id
             ? {
                 ...item,
+                isEmpty: true,
                 courtInvoice: newInvoice,
-                staff: {
-                  id: user._id || "unknown",
-                  full_name: user.full_name || "Không xác định",
-                },
               }
             : item
         )
@@ -345,7 +348,10 @@ const InvoicePage = () => {
         );
 
         if (productIndex !== -1) {
-          updatedProducts[productIndex].quantity += quantity;
+          updatedProducts[productIndex] = {
+            ...updatedProducts[productIndex],
+            quantity: updatedProducts[productIndex].quantity + quantity, // ✅ Chắc chắn chỉ cộng đúng số lượng
+          };
         } else {
           updatedProducts.push({ ...selectedProduct, quantity });
         }
@@ -353,65 +359,58 @@ const InvoicePage = () => {
         updatedItems[index] = {
           ...updatedItems[index],
           products: updatedProducts,
-          totalAmount:
-            updatedItems[index].totalAmount + selectedProduct.price * quantity,
+          totalAmount: updatedProducts.reduce(
+            (sum, p) => sum + p.price * p.quantity,
+            0
+          ),
         };
       } else {
         updatedItems.push({
-          court: selectedCourt || {
-            _id: "guest",
-            name: "guest",
-            isEmpty: true,
-          },
+          court: selectedCourt,
           products: [{ ...selectedProduct, quantity }],
-          staff: {
-            id: user._id || "unknown",
-            full_name: user.full_name || "Không xác định",
-          },
-          invoiceTime: new Date(Date.now()).toLocaleString("vi-VN"),
           totalAmount: selectedProduct.price * quantity,
         });
+      }
+
+      // ✅ Lưu vào localStorage nếu là sân "guest"
+      if (courtId === "guest") {
+        localStorage.setItem("guest_order", JSON.stringify(updatedItems));
       }
 
       return updatedItems;
     });
 
-    try {
-      const orderSnap = await get(orderRef);
-      const existingProducts = orderSnap.exists()
-        ? orderSnap.val().products || []
-        : [];
+    if (selectedCourt._id !== "guest") {
+      try {
+        const orderSnap = await get(orderRef);
+        const existingProducts = orderSnap.exists()
+          ? orderSnap.val().products || []
+          : [];
 
-      const productIndex = existingProducts.findIndex(
-        (p) => p._id === selectedProduct._id
-      );
-      if (productIndex !== -1) {
-        existingProducts[productIndex].quantity += quantity;
-      } else {
-        existingProducts.push({ ...selectedProduct, quantity });
+        const productIndex = existingProducts.findIndex(
+          (p) => p._id === selectedProduct._id
+        );
+        if (productIndex !== -1) {
+          existingProducts[productIndex].quantity += quantity;
+        } else {
+          existingProducts.push({ ...selectedProduct, quantity });
+        }
+
+        await update(orderRef, {
+          products: existingProducts,
+          totalAmount: existingProducts.reduce(
+            (sum, p) => sum + p.price * p.quantity,
+            0
+          ),
+        });
+
+        message.success(
+          `Đã thêm ${quantity} ${selectedProduct.name} vào sân ${selectedCourt.name}`
+        );
+      } catch (error) {
+        console.error("Lỗi khi thêm sản phẩm vào Firebase:", error);
+        message.error("Lỗi khi thêm sản phẩm vào Firebase!");
       }
-
-      await update(orderRef, {
-        products: existingProducts,
-        staff: {
-          id: user._id || "unknown",
-          full_name: user.full_name || "Không xác định",
-        },
-        invoiceTime: new Date(Date.now()).toLocaleString("vi-VN"),
-        totalAmount: existingProducts.reduce(
-          (sum, p) => sum + p.price * p.quantity,
-          0
-        ),
-      });
-
-      message.success(
-        `Đã thêm ${quantity} ${selectedProduct.name} vào ${
-          selectedCourt ? `sân ${selectedCourt.name}` : "khách vãng lai"
-        }`
-      );
-    } catch (error) {
-      console.error("Lỗi khi thêm sản phẩm vào Firebase:", error);
-      message.error("Lỗi khi thêm sản phẩm vào Firebase!");
     }
   };
 
@@ -427,73 +426,116 @@ const InvoicePage = () => {
     }
 
     const courtId = selectedCourt._id;
-    const orderRef = ref(database, `orders/${courtId}`);
+    if (courtId !== "guest") {
+      const orderRef = ref(database, `orders/${courtId}`);
 
-    console.log("🛒 Đang xóa sản phẩm:", productId);
-    console.log("🏸 Sân đang chọn:", selectedCourt);
+      console.log("🛒 Đang xóa sản phẩm:", productId);
+      console.log("🏸 Sân đang chọn:", selectedCourt);
 
-    try {
-      // Lấy đơn hàng hiện tại từ Firebase
-      const orderSnap = await get(orderRef);
-      if (!orderSnap.exists()) {
-        message.warning("Không tìm thấy đơn hàng để cập nhật!");
-        return;
-      }
+      try {
+        // Lấy đơn hàng hiện tại từ Firebase
+        const orderSnap = await get(orderRef);
+        if (!orderSnap.exists()) {
+          message.warning("Không tìm thấy đơn hàng để cập nhật!");
+          return;
+        }
 
-      let { products, totalAmount } = orderSnap.val();
+        let { products, totalAmount } = orderSnap.val();
 
-      // Kiểm tra dữ liệu hợp lệ
-      if (!Array.isArray(products)) {
-        console.error(
-          "❌ Lỗi dữ liệu: `products` không phải là mảng",
-          products
+        // Kiểm tra dữ liệu hợp lệ
+        if (!Array.isArray(products)) {
+          console.error(
+            "❌ Lỗi dữ liệu: `products` không phải là mảng",
+            products
+          );
+          message.error("Dữ liệu đơn hàng không hợp lệ!");
+          return;
+        }
+
+        // Lọc sản phẩm cần xóa
+        const updatedProducts = products.filter((p) => p._id !== productId);
+        const newTotalAmount = updatedProducts.reduce(
+          (sum, p) => sum + p.price * p.quantity,
+          0
         );
-        message.error("Dữ liệu đơn hàng không hợp lệ!");
-        return;
+
+        // Cập nhật state trước khi lưu Firebase
+        setOrderItemsCourt((prev) => {
+          const updatedOrders = prev
+            .map((item) => {
+              if (item.court?._id === courtId) {
+                return updatedProducts.length
+                  ? {
+                      ...item,
+                      products: updatedProducts,
+                      totalAmount: newTotalAmount,
+                    }
+                  : null;
+              }
+              return item;
+            })
+            .filter(Boolean);
+
+          console.log(
+            "📝 Danh sách orderItemsCourt sau khi xóa:",
+            updatedOrders
+          );
+          return updatedOrders;
+        });
+
+        // Cập nhật Firebase
+        if (updatedProducts.length > 0) {
+          await update(orderRef, {
+            products: updatedProducts,
+            totalAmount: newTotalAmount,
+          });
+        } else {
+          await update(orderRef, { products: [], totalAmount: 0 });
+        }
+
+        message.success("Xóa sản phẩm thành công!");
+      } catch (error) {
+        console.error("❌ Lỗi khi xóa sản phẩm từ Firebase:", error);
+        message.error("Lỗi khi xóa sản phẩm từ Firebase!");
       }
-
-      // Lọc sản phẩm cần xóa
-      const updatedProducts = products.filter((p) => p._id !== productId);
-      const newTotalAmount = updatedProducts.reduce(
-        (sum, p) => sum + p.price * p.quantity,
-        0
-      );
-
-      // Cập nhật state trước khi lưu Firebase
+    } else {
       setOrderItemsCourt((prev) => {
         const updatedOrders = prev
           .map((item) => {
             if (item.court?._id === courtId) {
+              const updatedProducts = item.products.filter(
+                (p) => p._id !== productId
+              );
+              const newTotalAmount = updatedProducts.reduce(
+                (sum, p) => sum + p.price * p.quantity,
+                0
+              );
+
               return updatedProducts.length
                 ? {
                     ...item,
                     products: updatedProducts,
                     totalAmount: newTotalAmount,
                   }
-                : null;
+                : {
+                    ...item,
+                    products: [],
+                    totalAmount: 0,
+                  }; // ✅ Giữ nguyên thông tin khách hàng (`customer`)
             }
             return item;
           })
           .filter(Boolean);
 
-        console.log("📝 Danh sách orderItemsCourt sau khi xóa:", updatedOrders);
+        // ✅ Lưu danh sách mới vào localStorage nếu là sân "guest"
+        if (courtId === "guest") {
+          localStorage.setItem("guest_order", JSON.stringify(updatedOrders));
+        }
+
         return updatedOrders;
       });
 
-      // Cập nhật Firebase
-      if (updatedProducts.length > 0) {
-        await update(orderRef, {
-          products: updatedProducts,
-          totalAmount: newTotalAmount,
-        });
-      } else {
-        await update(orderRef, { products: [], totalAmount: 0 });
-      }
-
       message.success("Xóa sản phẩm thành công!");
-    } catch (error) {
-      console.error("❌ Lỗi khi xóa sản phẩm từ Firebase:", error);
-      message.error("Lỗi khi xóa sản phẩm từ Firebase!");
     }
   };
 
@@ -528,6 +570,7 @@ const InvoicePage = () => {
             _id: "guest",
             name: "Khách vãng lai",
           },
+          courtInvoice: ordersData[courtId].courtInvoice || null,
           products: ordersData[courtId].products || [],
           totalAmount: ordersData[courtId].totalAmount || 0,
           customer: ordersData[courtId].customer || null,
@@ -542,11 +585,8 @@ const InvoicePage = () => {
     // Cleanup listener khi unmount
     return () => off(orderRef, "value", unsubscribe);
   }, []); // Chỉ chạy 1 lần khi component mounted
-
   // Khi orderItemsCourt thay đổi, cập nhật courts và products
   useEffect(() => {
-    if (!orderItemsCourt.length) return;
-
     // Cập nhật danh sách sân
     const allCourts = courts.map((court) => {
       const existingOrder = orderItemsCourt.find(
@@ -560,6 +600,14 @@ const InvoicePage = () => {
 
     setCourts(allCourts);
   }, [orderItemsCourt]); // Chạy mỗi khi orderItemsCourt thay đổi
+  useEffect(() => {
+    if (selectedCourt._id == "guest") {
+      const guestOrder = localStorage.getItem("guest_order");
+      if (guestOrder) {
+        setOrderItemsCourt(JSON.parse(guestOrder));
+      }
+    }
+  }, [orderItemsCourt]);
 
   return (
     <Layout className="container mt-4">
@@ -611,6 +659,7 @@ const InvoicePage = () => {
             <CheckoutButton
               getTotalAmountForCourt={getTotalAmountForCourt}
               selectedCourt={selectedCourt}
+              selectedUser={selectedUser}
               orderItemsCourt={orderItemsCourt}
               setOrderItemsCourt={setOrderItemsCourt}
               invoiceTime={invoiceTime}

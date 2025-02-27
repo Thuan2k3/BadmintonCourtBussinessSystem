@@ -150,16 +150,7 @@ router.delete("/account/:id", authMiddleware, deleteAccountController);
 // Lấy danh sách hóa đơn
 router.get("/invoice", authMiddleware, getAllInvoicesController);
 
-// Tạo hóa đơn (Xử lý 3 trường hợp)
+// Tạo hóa đơn
 router.post("/invoice", authMiddleware, createInvoiceController);
-
-// Cập nhật hóa đơn
-router.put("/invoice/:id", authMiddleware, updateInvoiceController);
-
-// Cập nhật thời gian check-out
-router.put("/invoice/:id/checkout", authMiddleware, checkOutInvoiceController);
-
-// Xử lý thanh toán hóa đơn
-router.put("/invoice/:id/pay", authMiddleware, payInvoiceController);
 
 module.exports = router;

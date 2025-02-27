@@ -5,24 +5,26 @@ const InvoiceDetailSchema = new mongoose.Schema(
     invoice: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "invoices",
-      required: true,
     },
     product: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "products",
-      required: true,
     },
     name: {
       type: String,
-      required: true,
     },
     priceAtTime: {
       type: Number,
-      required: true,
     },
     quantity: {
       type: Number,
-      required: true,
+      min: 1,
+    },
+    totalCost: {
+      type: Number,
+      default: function () {
+        return this.priceAtTime * this.quantity;
+      },
     },
   },
   { timestamps: true }

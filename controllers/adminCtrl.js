@@ -914,143 +914,91 @@ const getAllInvoicesController = async (req, res) => {
   }
 };
 
-// Tạo hóa đơn (Hỗ trợ 3 trường hợp)
+// Tạo hóa đơn
 const createInvoiceController = async (req, res) => {
   try {
-    const { customer, staff, rentalCourt, products, totalAmount } = req.body;
-
-    // Kiểm tra loại hóa đơn
-    const isBuyingProducts = products && products.length > 0;
-    const isRentingCourt = rentalCourt !== null && rentalCourt !== undefined;
-
-    if (!isBuyingProducts && !isRentingCourt) {
-      return res
-        .status(400)
-        .json({ message: "Hóa đơn phải có sân thuê hoặc sản phẩm" });
-    }
-
-    // Tạo hóa đơn mới
-    const newInvoice = new Invoice({
-      customer: customer || null, // Khách hàng có thể không có
+    const {
+      customer,
       staff,
-      rentalCourt: isRentingCourt ? rentalCourt : null,
-      totalAmount,
-      invoiceDetails: [],
-      isPaid: false,
-      checkInTime: new Date(),
-    });
+      court,
+      invoiceDetails,
+      checkInTime,
+      checkOutTime,
+      duration,
+    } = req.body;
 
-    // Lưu hóa đơn
-    const savedInvoice = await newInvoice.save();
-
-    // Nếu mua sản phẩm, thêm InvoiceDetail
-    let invoiceDetails = [];
-    if (isBuyingProducts) {
-      invoiceDetails = await Promise.all(
-        products.map(async (item) => {
-          const invoiceDetail = new InvoiceDetail({
-            invoice: savedInvoice._id,
-            product: item.product,
-            name: item.name,
-            priceAtTime: item.priceAtTime,
-            quantity: item.quantity,
-          });
-          await invoiceDetail.save();
-          return invoiceDetail._id;
-        })
-      );
-
-      // Cập nhật danh sách chi tiết hóa đơn vào hóa đơn
-      savedInvoice.invoiceDetails = invoiceDetails;
-      await savedInvoice.save();
-    }
-
-    res
-      .status(201)
-      .json({ message: "Hóa đơn tạo thành công", invoice: savedInvoice });
-  } catch (error) {
-    res.status(500).json({ message: "Lỗi server", error });
-  }
-};
-
-// Cập nhật hóa đơn
-const updateInvoiceController = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updatedData = req.body;
-
-    const updatedInvoice = await Invoice.findByIdAndUpdate(id, updatedData, {
-      new: true,
-    });
-
-    if (!updatedInvoice) {
-      return res.status(404).json({ message: "Hóa đơn không tồn tại" });
-    }
-
-    res.status(200).json({
-      message: "Cập nhật hóa đơn thành công",
-      invoice: updatedInvoice,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Lỗi server", error });
-  }
-};
-
-// Cập nhật thời gian check-out
-const checkOutInvoiceController = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const invoice = await Invoice.findById(id);
-
-    if (!invoice) {
-      return res.status(404).json({ message: "Hóa đơn không tồn tại" });
-    }
-
-    invoice.checkOutTime = new Date();
-    await invoice.save();
-
-    res.status(200).json({ message: "Cập nhật check-out thành công", invoice });
-  } catch (error) {
-    res.status(500).json({ message: "Lỗi server", error });
-  }
-};
-
-// Xử lý thanh toán hóa đơn
-const payInvoiceController = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const invoice = await Invoice.findById(id);
-
-    if (!invoice) {
-      return res.status(404).json({ message: "Hóa đơn không tồn tại" });
-    }
-
-    if (invoice.isPaid) {
+    if (!staff) {
       return res
         .status(400)
-        .json({ message: "Hóa đơn này đã được thanh toán trước đó" });
+        .json({ message: "Nhân viên không được để trống!" });
     }
 
-    // Kiểm tra hóa đơn có hợp lệ không (có dịch vụ hoặc sản phẩm không)
-    const hasRentalCourt = invoice.rentalCourt !== null;
-    const hasProducts = invoice.invoiceDetails.length > 0;
+    let totalAmount = 0;
+    const createdDetails = [];
 
-    if (!hasRentalCourt && !hasProducts) {
-      return res.status(400).json({
-        message: "Hóa đơn không có dịch vụ hoặc sản phẩm, không thể thanh toán",
-      });
+    // Xử lý trường hợp mua sản phẩm
+    if (invoiceDetails && invoiceDetails.length > 0) {
+      for (const detail of invoiceDetails) {
+        const newDetail = new InvoiceDetail({
+          invoice: null, // Chưa có invoice ID
+          product: detail.product,
+          name: detail.name,
+          priceAtTime: detail.priceAtTime,
+          quantity: detail.quantity,
+        });
+
+        totalAmount += newDetail.priceAtTime * newDetail.quantity;
+        await newDetail.save();
+        createdDetails.push(newDetail._id);
+      }
     }
 
-    // Cập nhật trạng thái thanh toán
-    invoice.isPaid = true;
-    invoice.paidAt = new Date();
-    await invoice.save();
+    // Xử lý trường hợp thuê sân
+    let courtPrice = 0;
+    if (court) {
+      const courtData = await Court.findById(court);
+      if (!courtData) {
+        return res.status(404).json({ message: "Sân không tồn tại!" });
+      }
 
-    res.status(200).json({ message: "Thanh toán thành công", invoice });
+      // Tính tiền thuê sân
+      courtPrice = courtData.price * (duration || 1);
+      totalAmount += courtPrice;
+    }
+
+    // Tạo hóa đơn
+    const newInvoice = new Invoice({
+      customer: customer || null,
+      staff,
+      court: court || null,
+      invoiceDetails: createdDetails,
+      checkInTime: checkInTime || Date.now(),
+      checkOutTime: checkOutTime || null,
+      totalAmount,
+    });
+
+    await newInvoice.save();
+
+    // Cập nhật invoice ID vào invoiceDetails
+    await InvoiceDetail.updateMany(
+      { _id: { $in: createdDetails } },
+      { $set: { invoice: newInvoice._id } }
+    );
+
+    res.status(201).json({
+      message: "Hóa đơn được tạo thành công!",
+      invoice: {
+        ...newInvoice._doc,
+        createdAt: newInvoice.createdAt,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: "Lỗi server", error });
+    console.error("Lỗi tạo hóa đơn:", error);
+    res.status(500).json({ message: "Lỗi server!", error });
   }
 };
+
+module.exports = { createInvoiceController };
 
 module.exports = {
   getAllUsersController,
@@ -1084,7 +1032,4 @@ module.exports = {
   deleteAccountController,
   getAllInvoicesController,
   createInvoiceController,
-  updateInvoiceController,
-  checkOutInvoiceController,
-  payInvoiceController,
 };
