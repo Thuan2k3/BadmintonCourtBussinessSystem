@@ -1,5 +1,7 @@
 import { Button, message } from "antd";
 import { DollarCircleOutlined } from "@ant-design/icons";
+import { ref, remove } from "firebase/database";
+import { database } from "../firebaseConfig"; // Import Firebase Realtime Database
 
 const CheckoutButton = ({
   getTotalAmountForCourt,
@@ -11,13 +13,15 @@ const CheckoutButton = ({
   defaultCourt,
   setSelectedCourt,
 }) => {
-  const handleCheckout = () => {
-    if (!orderItemsCourt || orderItemsCourt.length === 0) {
+  const handleCheckoutBill = async () => {
+    // Lấy tổng tiền sau khi cập nhật danh sách hóa đơn
+    const newTotal = getTotalAmountForCourt(selectedCourt._id);
+    if (!orderItemsCourt || newTotal <= 0) {
       message.warning("Không có hóa đơn nào để thanh toán!");
       return;
     }
 
-    // Nếu sân đã check-in mà chưa check-out, cảnh báo trước
+    // Kiểm tra sân đã check-out chưa
     if (selectedCourt && !selectedCourt.isEmpty) {
       message.warning(
         `Sân ${selectedCourt.name} vẫn đang được sử dụng! Vui lòng check-out trước khi thanh toán.`
@@ -25,45 +29,38 @@ const CheckoutButton = ({
       return;
     }
 
-    let updatedOrderItemsCourt;
-    let updatedInvoiceTime = invoiceTime.filter(
-      (item) => String(item._id) !== String(defaultCourt._id)
+    let updatedOrderItemsCourt = orderItemsCourt.filter(
+      (item) => item.court?._id !== (selectedCourt?._id || defaultCourt._id)
     );
 
-    if (selectedCourt && selectedCourt._id !== defaultCourt._id) {
-      updatedOrderItemsCourt = orderItemsCourt.filter(
-        (item) => item.court?._id !== selectedCourt._id
-      );
-
-      updatedInvoiceTime = updatedInvoiceTime.filter(
-        (item) => String(item.courtId) !== String(selectedCourt._id)
-      );
-    } else {
-      updatedOrderItemsCourt = orderItemsCourt.filter(
-        (item) => item.court?._id !== defaultCourt._id
-      );
-
-      updatedInvoiceTime = updatedInvoiceTime.filter(
-        (item) => String(item.courtId) !== String(defaultCourt._id)
-      );
-    }
+    let updatedInvoiceTime = invoiceTime.filter(
+      (item) =>
+        String(item.courtId) !== String(selectedCourt?._id || defaultCourt._id)
+    );
 
     setOrderItemsCourt(updatedOrderItemsCourt);
     setInvoiceTime(updatedInvoiceTime);
     setSelectedCourt(defaultCourt);
+    try {
+      // Xóa hóa đơn trên Firebase
+      const courtId = selectedCourt?._id || "guest";
+      const orderRef = ref(database, `orders/${courtId}`);
+      await remove(orderRef);
 
-    // Lấy tổng tiền sau khi cập nhật danh sách hóa đơn
-    const newTotal = getTotalAmountForCourt(updatedOrderItemsCourt);
-    message.success(
-      `Thanh toán thành công! Tổng tiền: ${newTotal.toLocaleString()} VND`
-    );
+      message.success(
+        `Thanh toán thành công! Tổng tiền: ${newTotal.toLocaleString()} VND`
+      );
+    } catch (error) {
+      console.error("Lỗi khi xóa hóa đơn từ Firebase:", error);
+      message.error("Lỗi khi thanh toán! Vui lòng thử lại.");
+    }
   };
 
   return (
     <Button
       type="primary"
       icon={<DollarCircleOutlined />}
-      onClick={handleCheckout}
+      onClick={handleCheckoutBill}
     >
       Thanh toán
     </Button>

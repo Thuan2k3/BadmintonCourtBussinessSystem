@@ -20,11 +20,13 @@ const InvoiceSchema = new mongoose.Schema(
     invoiceDetails: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "invoicedetails", // Đặt tên tham chiếu rõ ràng
+        ref: "invoicedetails",
       },
     ],
     checkInTime: {
       type: Date,
+      required: true,
+      default: Date.now,
     },
     checkOutTime: {
       type: Date,
@@ -32,7 +34,7 @@ const InvoiceSchema = new mongoose.Schema(
     totalAmount: {
       type: Number,
       required: true,
-      min: 0, // Đảm bảo giá trị không âm
+      min: 0,
     },
   },
   { timestamps: true }

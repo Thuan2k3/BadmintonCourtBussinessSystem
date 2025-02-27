@@ -22,10 +22,6 @@ const {
   createAccountController,
   updateAccountController,
   deleteAccountController,
-  createBookingController,
-  getAllBookingController,
-  getBookingController,
-  cancelBookingController,
   getAllTimeSlotController,
   getTimeSlotController,
   createTimeSlotController,
@@ -37,7 +33,8 @@ const {
   getAllInvoicesController,
   createInvoiceController,
   updateInvoiceController,
-  deleteInvoiceController,
+  checkOutInvoiceController,
+  payInvoiceController,
 } = require("../controllers/adminCtrl");
 
 const router = express.Router();
@@ -151,15 +148,18 @@ router.put("/account/:id", authMiddleware, updateAccountController);
 router.delete("/account/:id", authMiddleware, deleteAccountController);
 
 // Lấy danh sách hóa đơn
-router.get("/invoices", authMiddleware, getAllInvoicesController);
+router.get("/invoice", authMiddleware, getAllInvoicesController);
 
-// Tạo hóa đơn
-router.post("/invoices", authMiddleware, createInvoiceController);
+// Tạo hóa đơn (Xử lý 3 trường hợp)
+router.post("/invoice", authMiddleware, createInvoiceController);
 
 // Cập nhật hóa đơn
-router.put("/invoices/:id", authMiddleware, updateInvoiceController);
+router.put("/invoice/:id", authMiddleware, updateInvoiceController);
 
-// Xóa hóa đơn
-router.delete("/invoices/:id", authMiddleware, deleteInvoiceController);
+// Cập nhật thời gian check-out
+router.put("/invoice/:id/checkout", authMiddleware, checkOutInvoiceController);
+
+// Xử lý thanh toán hóa đơn
+router.put("/invoice/:id/pay", authMiddleware, payInvoiceController);
 
 module.exports = router;

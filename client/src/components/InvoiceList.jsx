@@ -39,6 +39,13 @@ const InvoiceList = ({ orderItemsCourt, selectedCourt }) => {
         <p>
           <strong>Check-out:</strong> {item.courtInvoice.checkOutTime}
         </p>
+        <p>
+          <strong>Người lập hóa đơn:</strong> {item.staff.full_name}
+        </p>
+        <p>
+          <strong>Thời gian lập hóa đơn:</strong>
+          {item.courtInvoice.invoiceTime}
+        </p>
       </div>
     ));
 };

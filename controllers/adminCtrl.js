@@ -8,6 +8,8 @@ const Booking = require("../models/bookingModel");
 const bcrypt = require("bcryptjs");
 const fs = require("fs");
 const path = require("path");
+const Invoice = require("../models/invoiceModel");
+const InvoiceDetail = require("../models/invoiceDetailModel");
 const moment = require("moment");
 
 const getAllUsersController = async (req, res) => {
@@ -900,102 +902,153 @@ const deleteAccountController = async (req, res) => {
 };
 
 //Hoa don
+//Lấy danh sách hóa đơn
+const getAllInvoicesController = async (req, res) => {
+  try {
+    const invoices = await Invoice.find().populate(
+      "customer staff rentalCourt invoiceDetails"
+    );
+    res.status(200).json(invoices);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error });
+  }
+};
+
+// Tạo hóa đơn (Hỗ trợ 3 trường hợp)
 const createInvoiceController = async (req, res) => {
   try {
-    const { customer, staff, court, products, checkInTime, totalAmount } =
-      req.body;
+    const { customer, staff, rentalCourt, products, totalAmount } = req.body;
+
+    // Kiểm tra loại hóa đơn
+    const isBuyingProducts = products && products.length > 0;
+    const isRentingCourt = rentalCourt !== null && rentalCourt !== undefined;
+
+    if (!isBuyingProducts && !isRentingCourt) {
+      return res
+        .status(400)
+        .json({ message: "Hóa đơn phải có sân thuê hoặc sản phẩm" });
+    }
 
     // Tạo hóa đơn mới
     const newInvoice = new Invoice({
-      customer,
+      customer: customer || null, // Khách hàng có thể không có
       staff,
-      court,
-      checkInTime,
+      rentalCourt: isRentingCourt ? rentalCourt : null,
       totalAmount,
+      invoiceDetails: [],
+      isPaid: false,
+      checkInTime: new Date(),
     });
 
-    await newInvoice.save();
+    // Lưu hóa đơn
+    const savedInvoice = await newInvoice.save();
 
-    // Tạo các chi tiết hóa đơn
-    const invoiceDetails = await Promise.all(
-      products.map(async (item) => {
-        const invoiceDetail = new InvoiceDetail({
-          invoice: newInvoice._id,
-          product: item.product,
-          name: item.name,
-          priceAtTime: item.priceAtTime,
-          quantity: item.quantity,
-        });
-        await invoiceDetail.save();
-        return invoiceDetail._id;
-      })
-    );
+    // Nếu mua sản phẩm, thêm InvoiceDetail
+    let invoiceDetails = [];
+    if (isBuyingProducts) {
+      invoiceDetails = await Promise.all(
+        products.map(async (item) => {
+          const invoiceDetail = new InvoiceDetail({
+            invoice: savedInvoice._id,
+            product: item.product,
+            name: item.name,
+            priceAtTime: item.priceAtTime,
+            quantity: item.quantity,
+          });
+          await invoiceDetail.save();
+          return invoiceDetail._id;
+        })
+      );
 
-    // Cập nhật invoiceDetails vào hóa đơn
-    newInvoice.invoiceDetails = invoiceDetails;
-    await newInvoice.save();
+      // Cập nhật danh sách chi tiết hóa đơn vào hóa đơn
+      savedInvoice.invoiceDetails = invoiceDetails;
+      await savedInvoice.save();
+    }
 
-    res.status(201).json(newInvoice);
+    res
+      .status(201)
+      .json({ message: "Hóa đơn tạo thành công", invoice: savedInvoice });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: "Lỗi server", error });
   }
 };
 
-const getAllInvoicesController = async (req, res) => {
-  try {
-    const invoices = await Invoice.find()
-      .populate("customer", "name email")
-      .populate("staff", "name")
-      .populate("court", "name")
-      .populate({
-        path: "invoiceDetails",
-        populate: { path: "product", select: "name price" },
-      });
-
-    res.status(200).json(invoices);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
+// Cập nhật hóa đơn
 const updateInvoiceController = async (req, res) => {
   try {
     const { id } = req.params;
-    const { checkOutTime, totalAmount } = req.body;
+    const updatedData = req.body;
 
-    const updatedInvoice = await Invoice.findByIdAndUpdate(
-      id,
-      { checkOutTime, totalAmount },
-      { new: true }
-    );
+    const updatedInvoice = await Invoice.findByIdAndUpdate(id, updatedData, {
+      new: true,
+    });
 
     if (!updatedInvoice) {
-      return res.status(404).json({ message: "Invoice not found" });
+      return res.status(404).json({ message: "Hóa đơn không tồn tại" });
     }
 
-    res.status(200).json(updatedInvoice);
+    res.status(200).json({
+      message: "Cập nhật hóa đơn thành công",
+      invoice: updatedInvoice,
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: "Lỗi server", error });
   }
 };
 
-const deleteInvoiceController = async (req, res) => {
+// Cập nhật thời gian check-out
+const checkOutInvoiceController = async (req, res) => {
   try {
     const { id } = req.params;
+    const invoice = await Invoice.findById(id);
 
-    // Xóa tất cả InvoiceDetail liên quan
-    await InvoiceDetail.deleteMany({ invoice: id });
-
-    // Xóa hóa đơn chính
-    const deletedInvoice = await Invoice.findByIdAndDelete(id);
-
-    if (!deletedInvoice) {
-      return res.status(404).json({ message: "Invoice not found" });
+    if (!invoice) {
+      return res.status(404).json({ message: "Hóa đơn không tồn tại" });
     }
 
-    res.status(200).json({ message: "Invoice deleted successfully" });
+    invoice.checkOutTime = new Date();
+    await invoice.save();
+
+    res.status(200).json({ message: "Cập nhật check-out thành công", invoice });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: "Lỗi server", error });
+  }
+};
+
+// Xử lý thanh toán hóa đơn
+const payInvoiceController = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const invoice = await Invoice.findById(id);
+
+    if (!invoice) {
+      return res.status(404).json({ message: "Hóa đơn không tồn tại" });
+    }
+
+    if (invoice.isPaid) {
+      return res
+        .status(400)
+        .json({ message: "Hóa đơn này đã được thanh toán trước đó" });
+    }
+
+    // Kiểm tra hóa đơn có hợp lệ không (có dịch vụ hoặc sản phẩm không)
+    const hasRentalCourt = invoice.rentalCourt !== null;
+    const hasProducts = invoice.invoiceDetails.length > 0;
+
+    if (!hasRentalCourt && !hasProducts) {
+      return res.status(400).json({
+        message: "Hóa đơn không có dịch vụ hoặc sản phẩm, không thể thanh toán",
+      });
+    }
+
+    // Cập nhật trạng thái thanh toán
+    invoice.isPaid = true;
+    invoice.paidAt = new Date();
+    await invoice.save();
+
+    res.status(200).json({ message: "Thanh toán thành công", invoice });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi server", error });
   }
 };
 
@@ -1032,5 +1085,6 @@ module.exports = {
   getAllInvoicesController,
   createInvoiceController,
   updateInvoiceController,
-  deleteInvoiceController,
+  checkOutInvoiceController,
+  payInvoiceController,
 };

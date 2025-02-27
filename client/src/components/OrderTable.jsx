@@ -45,7 +45,7 @@ const OrderTable = ({
               type="text"
               danger
               icon={<DeleteOutlined />}
-              onClick={() => handleDeleteProduct(record.name)}
+              onClick={() => handleDeleteProduct(record._id)}
             >
               Xóa
             </Button>

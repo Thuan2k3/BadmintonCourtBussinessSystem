@@ -15,11 +15,11 @@ const InvoiceDetailSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-    }, // Lưu tên sản phẩm tại thời điểm mua
+    },
     priceAtTime: {
       type: Number,
       required: true,
-    }, // Lưu giá tại thời điểm mua
+    },
     quantity: {
       type: Number,
       required: true,
