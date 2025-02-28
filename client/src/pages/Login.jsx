@@ -1,10 +1,11 @@
 import React from "react";
-import "../styles/RegisterStyle.css";
+import "../styles/LoginStyle.css";
 import { Form, Input, message } from "antd";
 import { useDispatch } from "react-redux";
 import { showLoading, hideLoading } from "../redux/features/alertSlice";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import GuestLayout from "../components/GuestLayout";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const Login = () => {
     }
   };
   return (
-    <>
+    <GuestLayout>
       <div className="form-container">
         <Form
           layout="vertical"
@@ -54,7 +55,7 @@ const Login = () => {
           </button>
         </Form>
       </div>
-    </>
+    </GuestLayout>
   );
 };
 

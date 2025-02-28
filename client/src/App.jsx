@@ -6,31 +6,35 @@ import { useSelector } from "react-redux";
 import Spinner from "./components/Spinner";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { PublicRoute } from "./components/PublicRoute";
-import ProductCategoryPage from "./pages/productCategory/ProductCategoryPage";
-import CreateProductCategoryPage from "./pages/productCategory/CreateProductCategoryPage";
-import UpdateProductCategoryPage from "./pages/productCategory/UpdateProductCategoryPage";
-import DeleteProductCategoryPage from "./pages/productCategory/DeleteProductCategoryPage";
-import ProductPage from "./pages/product/ProductPage";
-import CreateProductPage from "./pages/product/CreateProductPage";
-import UpdateProductPage from "./pages/product/UpdateProductPage";
-import DeleteProductPage from "./pages/product/DeleteProductPage";
-import CourtPage from "./pages/court/CourtPage";
-import CreateCourtPage from "./pages/court/CreateCourtPage";
-import UpdateCourtPage from "./pages/court/UpdateCourtPage";
-import DeleteCourtPage from "./pages/court/DeleteCourtPage";
-import AccountPage from "./pages/account/AccountPage";
-import CreateAccountPage from "./pages/account/CreateAccountPage";
-import UpdateAccountPage from "./pages/account/UpdateAccountPage";
-import DeleteAccountPage from "./pages/account/DeleteAccountPage";
-import CourtBookingStatusPage from "./pages/courtBookingStatus/CourtBookingStatusPage";
-import TimeSlotPage from "./pages/timeSlot/TimeSlotPage";
-import CreateTimeSlotPage from "./pages/timeSlot/CreateTimeSlotPage";
-import UpdateTimeSlotPage from "./pages/timeSlot/UpdateTimeSlotPage";
-import DeleteTimeSlotPage from "./pages/timeSlot/DeleteTimeSlotPage";
-import InvoicePage from "./pages/invoice/InvoicePage";
-import RevenueStatisticPage from "./pages/revenueStatistic/RevenueStatisticPage";
-import InvoiceHistoryPage from "./pages/invoice/InvoiceHistoryPage";
-import InvoiceDetailPage from "./pages/invoice/InvoiceDetailPage";
+import ProductCategoryPage from "./pages/admin/productCategory/ProductCategoryPage";
+import CreateProductCategoryPage from "./pages/admin/productCategory/CreateProductCategoryPage";
+import UpdateProductCategoryPage from "./pages/admin/productCategory/UpdateProductCategoryPage";
+import DeleteProductCategoryPage from "./pages/admin/productCategory/DeleteProductCategoryPage";
+import ProductPage from "./pages/admin/product/ProductPage";
+import CreateProductPage from "./pages/admin/product/CreateProductPage";
+import UpdateProductPage from "./pages/admin/product/UpdateProductPage";
+import DeleteProductPage from "./pages/admin/product/DeleteProductPage";
+import CourtPage from "./pages/admin/court/CourtPage";
+import CreateCourtPage from "./pages/admin/court/CreateCourtPage";
+import UpdateCourtPage from "./pages/admin/court/UpdateCourtPage";
+import DeleteCourtPage from "./pages/admin/court/DeleteCourtPage";
+import AccountPage from "./pages/admin/account/AccountPage";
+import CreateAccountPage from "./pages/admin/account/CreateAccountPage";
+import UpdateAccountPage from "./pages/admin/account/UpdateAccountPage";
+import DeleteAccountPage from "./pages/admin/account/DeleteAccountPage";
+import CourtBookingStatusPage from "./pages/admin/courtBookingStatus/CourtBookingStatusPage";
+import TimeSlotPage from "./pages/admin/timeSlot/TimeSlotPage";
+import CreateTimeSlotPage from "./pages/admin/timeSlot/CreateTimeSlotPage";
+import UpdateTimeSlotPage from "./pages/admin/timeSlot/UpdateTimeSlotPage";
+import DeleteTimeSlotPage from "./pages/admin/timeSlot/DeleteTimeSlotPage";
+import InvoicePage from "./pages/admin/invoice/InvoicePage";
+import RevenueStatisticPage from "./pages/admin/revenueStatistic/RevenueStatisticPage";
+import InvoiceHistoryPage from "./pages/admin/invoice/InvoiceHistoryPage";
+import InvoiceDetailPage from "./pages/admin/invoice/InvoiceDetailPage";
+import ViewProductPage from "./pages/admin/product/ViewProductPage";
+import GuestHomePage from "./pages/guest/GuestHomePage";
+import GuestViewProductPage from "./pages/guest/ViewProductPage";
+import GuestCourtBookingStatusPage from "./pages/guest/GuestCourtBookingStatusPage";
 
 function App() {
   const { loading } = useSelector((state) => state.alerts);
@@ -50,6 +54,30 @@ function App() {
               }
             />
             <Route
+              path="/home"
+              element={
+                <PublicRoute>
+                  <GuestHomePage />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/product"
+              element={
+                <PublicRoute>
+                  <GuestViewProductPage />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/court-booking-status"
+              element={
+                <PublicRoute>
+                  <GuestCourtBookingStatusPage />
+                </PublicRoute>
+              }
+            />
+            <Route
               path="/login"
               element={
                 <PublicRoute>
@@ -63,6 +91,14 @@ function App() {
                 <PublicRoute>
                   <Register />
                 </PublicRoute>
+              }
+            />
+            <Route
+              path="/customer/product/view"
+              element={
+                <ProtectedRoute>
+                  <ViewProductPage />
+                </ProtectedRoute>
               }
             />
             <Route

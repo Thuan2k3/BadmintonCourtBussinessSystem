@@ -6,7 +6,7 @@ import { useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Badge, message } from "antd";
 import { customerMenu } from "../data/data";
-
+import { staffMenu } from "../data/data";
 const Layout = ({ children }) => {
   const { user } = useSelector((state) => state.user);
   const location = useLocation();
@@ -18,36 +18,6 @@ const Layout = ({ children }) => {
     message.success("Logout successfully");
     navigate("/login");
   };
-
-  // =================Doctor Menu================
-  const staffMenu = [
-    {
-      name: "Home",
-      path: "/",
-      icon: "fa-solid fa-house",
-    },
-    {
-      name: "Quản lý sân",
-      path: "/admin/doctors",
-      icon: "fa-solid fa-user-doctor",
-    },
-    {
-      name: "Xem tình trạng sân",
-      path: "/admin/users",
-      icon: "fa-solid fa-user",
-    },
-    {
-      name: "Quản lý sản phẩm",
-      path: "/staff/product",
-      icon: "fa-brands fa-product-hunt",
-    },
-    {
-      name: "Quản lý hóa đơn",
-      path: "/profile",
-      icon: "fa-solid fa-user",
-    },
-  ];
-  // =================Doctor Menu================
 
   //rendering menu list
   const SidebarMenu = user?.isAdmin

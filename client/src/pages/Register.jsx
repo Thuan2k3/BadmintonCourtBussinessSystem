@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/RegisterStyle.css";
+import "../styles/LoginStyle.css";
 import { Form, Input, message } from "antd";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";

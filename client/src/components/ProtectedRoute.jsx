@@ -47,6 +47,6 @@ export const ProtectedRoute = ({ children }) => {
   if (localStorage.getItem("token")) {
     return children;
   } else {
-    return <Navigate to="/login" />;
+    return <Navigate to="/home" />;
   }
 };
