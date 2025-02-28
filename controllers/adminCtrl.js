@@ -905,12 +905,34 @@ const deleteAccountController = async (req, res) => {
 //Lấy danh sách hóa đơn
 const getAllInvoicesController = async (req, res) => {
   try {
-    const invoices = await Invoice.find().populate(
-      "customer staff rentalCourt invoiceDetails"
-    );
-    res.status(200).json(invoices);
+    const { startDate, endDate } = req.query;
+    let filter = {};
+
+    // Lọc theo khoảng thời gian tạo hóa đơn (timestamps)
+    if (startDate && endDate) {
+      filter.createdAt = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      };
+    }
+
+    // Lấy danh sách hóa đơn kèm thông tin chi tiết
+    const invoices = await Invoice.find(filter)
+      .populate("customer", "full_name email")
+      .populate("staff", "full_name email")
+      .populate("court", "full_name price")
+      .populate({
+        path: "invoiceDetails",
+        populate: { path: "product", select: "name price" },
+      })
+      .sort({ createdAt: -1 }); // Sắp xếp mới nhất lên trước
+
+    res
+      .status(200)
+      .json({ message: "Lấy danh sách hóa đơn thành công!", invoices });
   } catch (error) {
-    res.status(500).json({ message: "Lỗi server", error });
+    console.error("Lỗi lấy danh sách hóa đơn:", error);
+    res.status(500).json({ message: "Lỗi server!", error });
   }
 };
 
@@ -942,7 +964,6 @@ const createInvoiceController = async (req, res) => {
         const newDetail = new InvoiceDetail({
           invoice: null, // Chưa có invoice ID
           product: detail.product,
-          name: detail.name,
           priceAtTime: detail.priceAtTime,
           quantity: detail.quantity,
         });
@@ -997,8 +1018,70 @@ const createInvoiceController = async (req, res) => {
     res.status(500).json({ message: "Lỗi server!", error });
   }
 };
+const getInvoiceDetailController = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-module.exports = { createInvoiceController };
+    const invoice = await Invoice.findById(id)
+      .populate("customer", "full_name email phone")
+      .populate("staff", "full_name email phone")
+      .populate("court", "name price")
+      .populate({
+        path: "invoiceDetails",
+        populate: { path: "product", select: "name price" },
+      });
+
+    if (!invoice) {
+      return res.status(404).json({ message: "Không tìm thấy hóa đơn!" });
+    }
+
+    res.status(200).json({ message: "Lấy hóa đơn thành công!", invoice });
+  } catch (error) {
+    console.error("Lỗi lấy hóa đơn:", error);
+    res.status(500).json({ message: "Lỗi server!", error });
+  }
+};
+
+// Lấy tổng doanh thu theo ngày, tháng, năm
+const getRevenueController = async (req, res) => {
+  try {
+    const { type, startDate, endDate } = req.query;
+
+    // Chuyển đổi ngày từ string sang object Date
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    end.setHours(23, 59, 59, 999);
+
+    let groupBy = {};
+    if (type === "day") {
+      groupBy = {
+        year: { $year: "$createdAt" },
+        month: { $month: "$createdAt" },
+        day: { $dayOfMonth: "$createdAt" },
+      };
+    } else if (type === "month") {
+      groupBy = {
+        year: { $year: "$createdAt" },
+        month: { $month: "$createdAt" },
+      };
+    } else if (type === "year") {
+      groupBy = { year: { $year: "$createdAt" } };
+    } else {
+      return res.status(400).json({ message: "Loại thống kê không hợp lệ" });
+    }
+
+    const revenueData = await Invoice.aggregate([
+      { $match: { createdAt: { $gte: start, $lte: end } } },
+      { $group: { _id: groupBy, totalRevenue: { $sum: "$totalAmount" } } },
+      { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } },
+    ]);
+
+    res.json(revenueData);
+  } catch (error) {
+    console.error("Lỗi khi lấy thống kê doanh thu:", error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
 
 module.exports = {
   getAllUsersController,
@@ -1032,4 +1115,6 @@ module.exports = {
   deleteAccountController,
   getAllInvoicesController,
   createInvoiceController,
+  getInvoiceDetailController,
+  getRevenueController,
 };

@@ -4,6 +4,7 @@ import { ref, remove } from "firebase/database";
 import { database } from "../firebaseConfig";
 import axios from "axios"; // Import axios
 import { useSelector } from "react-redux";
+import moment from "moment";
 
 const CheckoutButton = ({
   getTotalAmountForCourt,
@@ -45,22 +46,40 @@ const CheckoutButton = ({
     // ✅ Duyệt qua danh sách `products` của sân được chọn
     const invoiceDetails = selectedCourtOrders.products.map((product) => ({
       product: product._id,
-      name: product.name,
       priceAtTime: product.price,
       quantity: product.quantity || 1,
     }));
 
+    // Lọc danh sách order chỉ lấy dữ liệu của sân được chọn
+    const filteredOrderItems = orderItemsCourt.filter(
+      (item) => item.court?._id === selectedCourt?._id
+    );
+
+    // Lấy thông tin check-in và check-out từ CourtInvoice
+    const courtInvoice = filteredOrderItems.find(
+      (item) => item.courtInvoice // Giả sử mỗi item có chứa thông tin invoice
+    );
+
+    const checkInTime =
+      courtInvoice?.courtInvoice?.checkInTime || new Date().toISOString();
+    const checkOutTime =
+      courtInvoice?.courtInvoice?.checkOutTime || new Date().toISOString();
+
+    const parseDateString = (dateString) => {
+      return moment(dateString, "HH:mm:ss D/M/YYYY").toISOString();
+    };
+
     const invoiceData = {
       staff: user._id,
       customer: selectedUser?._id || null,
-      court: selectedCourt?._id === "guest" ? null : selectedCourt?._id, // ✅ Xử lý lỗi ObjectId
+      court: selectedCourt?._id === "guest" ? null : selectedCourt?._id,
       totalAmount: newTotal,
-      checkInTime: invoiceTime.find(
-        (item) => String(item.courtId) === String(selectedCourt?._id)
-      )?.checkInTime,
-      checkOutTime: new Date().toISOString(),
-      invoiceDetails, // Chỉ lấy dữ liệu của 1 sân
+      checkInTime: parseDateString(checkInTime),
+      checkOutTime: parseDateString(checkOutTime),
+      invoiceDetails,
     };
+
+    console.log(invoiceData);
 
     console.log("📜 Hóa đơn gửi lên:", invoiceData); // Debug dữ liệu gửi API
 

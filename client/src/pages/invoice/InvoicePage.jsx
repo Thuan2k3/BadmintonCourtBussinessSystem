@@ -26,6 +26,7 @@ import CheckoutButton from "../../components/CheckoutButton";
 import { ref, get, set, update, onValue, off, remove } from "firebase/database";
 import { database } from "../../firebaseConfig"; // Import Firebase Realtime Database
 import isEqual from "lodash/isEqual";
+import { Link } from "react-router-dom";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -667,6 +668,14 @@ const InvoicePage = () => {
               defaultCourt={defaultCourt}
               setSelectedCourt={setSelectedCourt}
             />
+            <Button type="primary" className="m-2">
+              <Link
+                to="/admin/invoice/history"
+                style={{ textDecoration: "none" }}
+              >
+                Xem lịch sử hóa đơn
+              </Link>
+            </Button>
           </Card>
         </Col>
       </Row>

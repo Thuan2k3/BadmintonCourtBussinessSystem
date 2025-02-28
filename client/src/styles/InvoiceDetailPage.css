@@ -1,0 +1,19 @@
+/* Ẩn các phần không cần in */
+@media print {
+  body * {
+    visibility: hidden; /* Ẩn tất cả nội dung */
+  }
+  .print-content,
+  .print-content * {
+    visibility: visible; /* Chỉ hiển thị nội dung cần in */
+  }
+  .print-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  .print-hide {
+    display: none !important; /* Ẩn nút in và tiêu đề khi in */
+  }
+}

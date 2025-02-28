@@ -1,60 +1,84 @@
-import React, { useState } from "react";
-import { Table, DatePicker, Button, Card } from "antd";
+import React, { useEffect, useState } from "react";
+import { Table, DatePicker, Button, Card, Select } from "antd";
 import { Column, Line } from "@ant-design/charts";
+import axios from "axios";
 import dayjs from "dayjs";
 import Layout from "../../components/Layout";
 
 const { RangePicker } = DatePicker;
+const { Option } = Select;
 
 const RevenueStatisticPage = () => {
-  const [dates, setDates] = useState(null);
-  const [filteredData, setFilteredData] = useState([]);
+  const [dates, setDates] = useState([dayjs(), dayjs()]);
+  const [type, setType] = useState("day");
+  const [revenueData, setRevenueData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Dữ liệu giả lập (có thể thay bằng API thực tế)
-  const revenueData = [
-    { key: "1", date: "2025-02-10", total: 5000000 },
-    { key: "2", date: "2025-02-12", total: 6000000 },
-    { key: "3", date: "2025-02-15", total: 7500000 },
-    { key: "4", date: "2025-02-18", total: 4200000 },
-    { key: "5", date: "2025-02-20", total: 6900000 },
-    { key: "6", date: "2025-02-25", total: 8000000 },
-  ];
-
-  // Xử lý lọc theo khoảng thời gian
-  const handleFilter = () => {
+  const fetchRevenue = async () => {
     if (!dates) return;
-    const [start, end] = dates;
-    const filtered = revenueData.filter((item) =>
-      dayjs(item.date).isBetween(start, end, "day", "[]")
-    );
-    setFilteredData(filtered);
-  };
+    setLoading(true);
+    setError(null);
 
-  // Cấu hình cột cho bảng doanh thu
+    const [start, end] = dates;
+    try {
+      const res = await axios.get(
+        "http://localhost:8080/api/v1/admin/revenue",
+        {
+          params: {
+            type,
+            startDate: start.format("YYYY-MM-DD"),
+            endDate: end.format("YYYY-MM-DD"),
+          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      setRevenueData(res.data);
+    } catch (error) {
+      console.error("Lỗi lấy dữ liệu doanh thu:", error);
+      setError("Không thể lấy dữ liệu doanh thu!");
+    } finally {
+      setLoading(false);
+    }
+  };
+  // Gọi API tự động khi component mount
+  useEffect(() => {
+    fetchRevenue();
+  }, []);
+
   const columns = [
     {
-      title: "Ngày",
-      dataIndex: "date",
+      title: type === "day" ? "Ngày" : type === "month" ? "Tháng" : "Năm",
+      dataIndex: "_id",
       key: "date",
-      render: (text) => dayjs(text).format("DD/MM/YYYY"),
+      render: (record) => {
+        if (!record) return "N/A";
+        if (type === "day" && record.day && record.month && record.year)
+          return `${record.day}/${record.month}/${record.year}`;
+        if (type === "month" && record.month && record.year)
+          return `${record.month}/${record.year}`;
+        if (type === "year" && record.year) return record.year;
+        return "N/A";
+      },
     },
     {
       title: "Tổng Doanh Thu (VND)",
-      dataIndex: "total",
-      key: "total",
+      dataIndex: "totalRevenue",
+      key: "totalRevenue",
       render: (text) => text.toLocaleString() + " VND",
     },
   ];
 
-  // Dữ liệu biểu đồ (chuyển đổi từ revenueData)
-  const chartData = (filteredData.length > 0 ? filteredData : revenueData).map(
-    (item) => ({
-      date: dayjs(item.date).format("DD/MM"),
-      revenue: item.total,
-    })
-  );
+  const chartData = revenueData.map((item) => ({
+    date:
+      type === "day"
+        ? `${item._id.day}/${item._id.month}`
+        : type === "month"
+        ? `${item._id.month}/${item._id.year}`
+        : item._id.year,
+    revenue: item.totalRevenue,
+  }));
 
-  // Cấu hình biểu đồ cột (Column Chart)
   const columnConfig = {
     data: chartData,
     xField: "date",
@@ -63,7 +87,6 @@ const RevenueStatisticPage = () => {
     color: "#1890ff",
   };
 
-  // Cấu hình biểu đồ đường (Line Chart)
   const lineConfig = {
     data: chartData,
     xField: "date",
@@ -73,28 +96,39 @@ const RevenueStatisticPage = () => {
   };
 
   return (
-    <Layout className="container mt-4">
-      <Card title="Thống Kê Doanh Thu" className="shadow p-4">
-        {/* Bộ lọc thời gian */}
-        <div className="d-flex align-items-center gap-3 mb-3">
-          <RangePicker onChange={(dates) => setDates(dates)} />
-          <Button type="primary" onClick={handleFilter}>
+    <Layout>
+      <Card>
+        <h1 className="text-center">Thống Kê Doanh Thu</h1>
+        <div className="mb-3 d-flex justify-content-center align-items-center gap-3">
+          <RangePicker
+            value={dates}
+            onChange={(newDates) =>
+              setDates(newDates ? newDates : [dayjs(), dayjs()])
+            }
+          />
+
+          <Select value={type} onChange={setType} style={{ width: 120 }}>
+            <Option value="day">Theo Ngày</Option>
+            <Option value="month">Theo Tháng</Option>
+            <Option value="year">Theo Năm</Option>
+          </Select>
+          <Button type="primary" onClick={fetchRevenue} loading={loading}>
             Lọc
           </Button>
         </div>
 
-        {/* Bảng thống kê doanh thu */}
+        {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
+
         <Table
           columns={columns}
-          dataSource={filteredData.length > 0 ? filteredData : revenueData}
+          dataSource={revenueData}
           pagination={{ pageSize: 5 }}
-          className="mb-4"
+          loading={loading}
         />
 
-        {/* Biểu đồ thống kê doanh thu */}
-        <Card title="Biểu Đồ Doanh Thu" className="mt-3 p-3">
+        <Card title="Biểu Đồ Doanh Thu">
           <h5 className="text-center">Biểu đồ Cột</h5>
-          <Column {...columnConfig} height={300} className="mb-4" />
+          <Column {...columnConfig} height={300} />
           <h5 className="text-center">Biểu đồ Đường</h5>
           <Line {...lineConfig} height={300} />
         </Card>
