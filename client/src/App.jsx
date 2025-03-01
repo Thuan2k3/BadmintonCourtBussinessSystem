@@ -33,7 +33,7 @@ import InvoiceHistoryPage from "./pages/admin/invoice/InvoiceHistoryPage";
 import InvoiceDetailPage from "./pages/admin/invoice/InvoiceDetailPage";
 import ViewProductPage from "./pages/admin/product/ViewProductPage";
 import GuestHomePage from "./pages/guest/GuestHomePage";
-import GuestViewProductPage from "./pages/guest/ViewProductPage";
+import GuestViewProductPage from "./pages/guest/GuestViewProductPage";
 import GuestCourtBookingStatusPage from "./pages/guest/GuestCourtBookingStatusPage";
 
 function App() {

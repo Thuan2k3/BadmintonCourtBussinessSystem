@@ -3,9 +3,11 @@ import GuestLayout from "../../components/GuestLayout";
 import { Link } from "react-router-dom";
 import { MdOutlineAddBox } from "react-icons/md";
 import axios from "axios";
-import { Card, Row, Col, Tabs } from "antd";
+import { Card, Row, Col, Tabs, Tag } from "antd";
 
 const { TabPane } = Tabs;
+import { Typography } from "antd";
+const { Text } = Typography;
 
 const GuestViewProductPage = () => {
   const [products, setProducts] = useState([]);
@@ -14,14 +16,7 @@ const GuestViewProductPage = () => {
   // Lấy danh sách sản phẩm từ API
   const getAllProduct = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:8080/api/v1/admin/product",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const res = await axios.get("http://localhost:8080/api/v1/user/product");
       if (res.data.success) {
         setProducts(res.data.data);
         const uniqueCategories = [
@@ -51,34 +46,26 @@ const GuestViewProductPage = () => {
                   .map((product) => (
                     <Col key={product._id} xs={24} sm={12} md={8} lg={6}>
                       <Card
-                        style={{
-                          backgroundColor: "#f6ffed",
-                        }}
+                        title={product.name}
+                        bordered
+                        hoverable
                         cover={
                           <img
                             src={`http://localhost:8080${product.image}`}
-                            alt={product.name}
-                            style={{ height: "200px", objectFit: "cover" }}
+                            alt="Product"
+                            style={{ height: 150, objectFit: "cover" }}
                           />
                         }
-                        bordered={false}
                       >
-                        <Card.Meta
-                          title={product.name}
-                          description={
-                            <>
-                              <p>
-                                <strong>Giá:</strong> {product.price} VND
-                              </p>
-                              <p
-                                className="text-truncate"
-                                title={product.description}
-                              >
-                                {product.description}
-                              </p>
-                            </>
-                          }
-                        />
+                        <Tag color="blue">
+                          <Text strong>Giá: </Text>
+                          {product.price} VND
+                        </Tag>
+                        {product.description && (
+                          <Tag color="green">
+                            <Text ellipsis>{product.description}</Text>
+                          </Tag>
+                        )}
                       </Card>
                     </Col>
                   ))}

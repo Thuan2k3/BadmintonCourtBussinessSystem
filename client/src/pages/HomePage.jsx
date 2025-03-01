@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Layout from "../components/Layout";
-import { Row, Col, Card } from "antd";
+import { Row, Col, Card, Tag } from "antd";
+import { Typography } from "antd";
+const { Text } = Typography;
 
 const HomePage = () => {
-  const [court, setCourt] = useState([]);
+  const [courts, setCourts] = useState([]);
   //getAllCourt
   const getAllCourt = async () => {
     try {
@@ -14,7 +16,7 @@ const HomePage = () => {
         },
       });
       if (res.data.success) {
-        setCourt(res.data.data);
+        setCourts(res.data.data);
       }
     } catch (error) {
       console.log(error);
@@ -27,39 +29,34 @@ const HomePage = () => {
 
   return (
     <Layout>
-      <div className="p-2">
-        <h1 className="d-flex justify-content-center">Trang chủ</h1>
+      <div className="container mt-4">
+        <h2 id="courts" className="mt-4">
+          DANH SÁCH CÁC SÂN
+        </h2>
         <Row gutter={[16, 16]}>
-          {court.map((court) => (
-            <Col key={court._id} xs={24} sm={12} md={8} lg={6}>
+          {courts.map((court) => (
+            <Col xs={24} sm={12} md={8} key={court.id}>
               <Card
+                title={court.name}
+                bordered
+                hoverable
                 cover={
                   <img
                     src={`http://localhost:8080${court.image}`}
-                    alt={court.name}
-                    style={{ height: "200px", objectFit: "cover" }}
+                    alt="Court"
+                    style={{ height: 150, objectFit: "cover" }}
                   />
                 }
-                bordered={true}
-                style={{ backgroundColor: "#f6ffed"}}
               >
-                <Card.Meta
-                  title={court.name}
-                  description={
-                    <>
-                      <p>
-                        <strong>Giá:</strong> {court.price} VND
-                      </p>
-                      <p className="text-truncate" title={court.description}>
-                        {court.description}
-                      </p>
-                      <p>
-                        <strong>Trạng thái:</strong>{" "}
-                        {court.isEmpty ? "Trống" : "Có người"}
-                      </p>
-                    </>
-                  }
-                />
+                <Tag color="blue">
+                  <Text strong>Giá thuê mỗi giờ: </Text>
+                  {court.price} VND
+                </Tag>
+                {court.description && (
+                  <Tag color="green">
+                    <Text ellipsis>{court.description}</Text>
+                  </Tag>
+                )}
               </Card>
             </Col>
           ))}
