@@ -53,7 +53,7 @@ const GuestViewProductPage = () => {
                           <img
                             src={`http://localhost:8080${product.image}`}
                             alt="Product"
-                            style={{ height: 150, objectFit: "cover" }}
+                            style={{ height: 250, objectFit: "cover" }}
                           />
                         }
                       >
