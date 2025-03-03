@@ -49,6 +49,7 @@ const InvoicePage = () => {
   const [invoiceTime, setInvoiceTime] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [products, setProducts] = useState([]);
+  const [type, setType] = useState("both"); // Mặc định hiển thị cả 2
 
   const [users, setUsers] = useState([]);
   const getAllCourt = async () => {
@@ -252,7 +253,15 @@ const InvoicePage = () => {
       return;
     }
 
-    const duration = Math.ceil((checkOutTime - checkInTime) / (1000 * 60 * 60)); // Tính giờ
+    //Tính tổng số giờ (ít nhất là 1 giờ) và cho phép khách ra trễ không quá 5 phút
+    const duration = (() => {
+      const durationMinutes = (checkOutTime - checkInTime) / (1000 * 60);
+      const fullHours = Math.floor(durationMinutes / 60);
+      const extraMinutes = durationMinutes % 60;
+
+      return Math.max(1, extraMinutes <= 5 ? fullHours : fullHours + 1);
+    })();
+
     const totalCost = duration * selectedCourt.price;
 
     const newInvoice = {
@@ -267,7 +276,6 @@ const InvoicePage = () => {
           ?.products || [],
     };
 
-    console.log(newInvoice);
     try {
       setCourts((prev) =>
         prev.map((court) =>
@@ -609,24 +617,47 @@ const InvoicePage = () => {
       }
     }
   }, [orderItemsCourt]);
+  // Khi thay đổi loại hóa đơn
+  const handleTypeChange = (value) => {
+    setType(value);
+    if (value === "product") {
+      setSelectedCourt(defaultCourt); // Nếu chọn mua sản phẩm thì reset sân
+    }
+  };
 
   return (
     <Layout className="container mt-4">
       <Title level={3} className="text-center">
         HÓA ĐƠN SÂN CẦU LÔNG
       </Title>
-
-      <Row gutter={16}>
-        <Col span={12}>
-          <div>
-            <CourtList courts={courts} onSelectCourt={handleSelectedCourt} />
-            <CourtDetails
-              selectedCourt={selectedCourt}
-              onCheckIn={handleCheckIn}
-              onCheckOut={handleCheckOut}
-            />
-          </div>
-        </Col>
+      <div style={{ marginLeft: "4vh", display: "flex", justifyContent: "center" }}>
+        {/* Chọn loại hóa đơn */}
+        <label style={{ padding: "3px 3px 3px 3px" }}>
+          <strong>Chọn loại hóa đơn:</strong>
+        </label>
+        <Select
+          value={type}
+          onChange={handleTypeChange}
+          style={{ width: "40vh", padding: "3px 3px 3px 3px" }}
+        >
+          <Select.Option value="rent">Thuê sân</Select.Option>
+          <Select.Option value="product">Mua sản phẩm</Select.Option>
+          <Select.Option value="both">Thuê sân + Mua sản phẩm</Select.Option>
+        </Select>
+      </div>
+      <Row gutter={16} style={{ display: "flex", justifyContent: "center" }}>
+        {(type === "rent" || type === "both") && (
+          <Col span={12}>
+            <div>
+              <CourtList courts={courts} onSelectCourt={handleSelectedCourt} />
+              <CourtDetails
+                selectedCourt={selectedCourt}
+                onCheckIn={handleCheckIn}
+                onCheckOut={handleCheckOut}
+              />
+            </div>
+          </Col>
+        )}
 
         <Col span={12}>
           <Card title="Hóa Đơn">
@@ -634,25 +665,31 @@ const InvoicePage = () => {
               orderItemsCourt={orderItemsCourt}
               selectedCourt={selectedCourt}
             />
-            <CustomerSelector
-              users={users}
-              selectedUser={selectedUser}
-              setSelectedUser={setSelectedUser}
-              setOrderItemsCourt={setOrderItemsCourt}
-              selectedCourt={selectedCourt}
-              orderItemsCourt={orderItemsCourt}
-            />
-            <ProductSelector
-              products={products}
-              setSelectedProduct={setSelectedProduct}
-              setQuantity={setQuantity}
-              handleAddProduct={handleAddProduct}
-            />
-            <OrderTable
-              orderItemsCourt={orderItemsCourt}
-              selectedCourt={selectedCourt}
-              handleDeleteProduct={handleDeleteProduct}
-            />
+            {(type === "rent" || type === "both") && (
+              <CustomerSelector
+                users={users}
+                selectedUser={selectedUser}
+                setSelectedUser={setSelectedUser}
+                setOrderItemsCourt={setOrderItemsCourt}
+                selectedCourt={selectedCourt}
+                orderItemsCourt={orderItemsCourt}
+              />
+            )}
+            {(type === "product" || type === "both") && (
+              <>
+                <ProductSelector
+                  products={products}
+                  setSelectedProduct={setSelectedProduct}
+                  setQuantity={setQuantity}
+                  handleAddProduct={handleAddProduct}
+                />
+                <OrderTable
+                  orderItemsCourt={orderItemsCourt}
+                  selectedCourt={selectedCourt}
+                  handleDeleteProduct={handleDeleteProduct}
+                />
+              </>
+            )}
             <Title level={4}>
               Tổng tiền:{" "}
               {getTotalAmountForCourt(selectedCourt._id).toLocaleString()} VND

@@ -25,8 +25,7 @@ const InvoiceSchema = new mongoose.Schema(
     ],
     checkInTime: {
       type: Date,
-      required: true,
-      default: Date.now,
+      default: null,
     },
     checkOutTime: {
       type: Date,

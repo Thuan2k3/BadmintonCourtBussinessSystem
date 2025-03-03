@@ -76,46 +76,110 @@ const InvoiceDetailPage = () => {
             <strong>Nhân Viên:</strong> {invoice.staff?.full_name || "N/A"}
           </p>
           <p>
-            <strong>Sân Đã Đặt:</strong> {invoice.court?.name || "N/A"}
+            <strong>Sân Đã Thuê:</strong>{" "}
+            {invoice.court?.name || "Mua sản phẩm"}
           </p>
-          <p>
-            <strong>Thời Gian Check-in:</strong>{" "}
-            {new Date(invoice.checkInTime).toLocaleString()}
-          </p>
-          <p>
-            <strong>Thời Gian Check-out:</strong>{" "}
-            {invoice.checkOutTime
-              ? new Date(invoice.checkOutTime).toLocaleString()
-              : "Chưa Check-out"}
-          </p>
+          {invoice.court?.price &&
+            invoice.checkInTime &&
+            invoice.checkOutTime && (
+              <>
+                <p>
+                  <strong>Thời Gian Check-in:</strong>{" "}
+                  {new Date(invoice.checkInTime).toLocaleString()}
+                </p>
+                <p>
+                  <strong>Thời Gian Check-out:</strong>{" "}
+                  {new Date(invoice.checkOutTime).toLocaleString()}
+                </p>
+                <p>
+                  <strong>Tổng số giờ thuê:</strong>{" "}
+                  {(() => {
+                    const checkInTime = new Date(invoice.checkInTime).getTime();
+                    const checkOutTime = new Date(
+                      invoice.checkOutTime
+                    ).getTime();
+                    const durationMinutes =
+                      (checkOutTime - checkInTime) / (1000 * 60);
+                    const fullHours = Math.floor(durationMinutes / 60);
+                    const extraMinutes = durationMinutes % 60;
+                    return Math.max(
+                      1,
+                      extraMinutes <= 5 ? fullHours : fullHours + 1
+                    );
+                  })()}{" "}
+                  giờ
+                </p>
+                <p>
+                  <strong>Đơn Giá Thuê Sân:</strong>{" "}
+                  {invoice.court.price.toLocaleString()} đ/giờ
+                </p>
+                <p>
+                  <strong>Tổng Tiền Thuê Sân:</strong>{" "}
+                  {(() => {
+                    const checkInTime = new Date(invoice.checkInTime).getTime();
+                    const checkOutTime = new Date(
+                      invoice.checkOutTime
+                    ).getTime();
+                    const durationMinutes =
+                      (checkOutTime - checkInTime) / (1000 * 60);
+                    const fullHours = Math.floor(durationMinutes / 60);
+                    const extraMinutes = durationMinutes % 60;
+                    const totalHours = Math.max(
+                      1,
+                      extraMinutes <= 5 ? fullHours : fullHours + 1
+                    );
+                    return (
+                      totalHours * (invoice.court?.price || 0)
+                    ).toLocaleString();
+                  })()}{" "}
+                  đ
+                </p>
+              </>
+            )}
+          {invoice.checkInTime && invoice.checkOutTime && <></>}
           <p>
             <strong>Thời Gian Lập Hóa Đơn:</strong>{" "}
             {new Date(invoice.createdAt).toLocaleString()}
           </p>
+
+          {invoice.invoiceDetails && invoice.invoiceDetails.length > 0 ? (
+            <>
+              <h4>Chi Tiết Mua Sản Phẩm Tại Chỗ</h4>
+              <table className="table table-bordered">
+                <thead className="table-dark">
+                  <tr>
+                    <th>STT</th>
+                    <th>Tên Sản Phẩm</th>
+                    <th>Giá</th>
+                    <th>Số Lượng</th>
+                    <th>Thành Tiền</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoice.invoiceDetails.map((detail, index) => (
+                    <tr key={index}>
+                      <td>{index + 1}</td>
+                      <td>{detail.product?.name || "N/A"}</td>
+                      <td>{detail.product?.price?.toLocaleString()} đ</td>
+                      <td>{detail.quantity || 1}</td>
+                      <td>
+                        {(
+                          (detail.quantity || 1) * (detail.product?.price || 0)
+                        ).toLocaleString()}{" "}
+                        đ
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          ) : (
+            <span></span>
+          )}
           <p>
             <strong>Tổng Tiền:</strong> {invoice.totalAmount?.toLocaleString()}{" "}
             đ
           </p>
-
-          <h4>Chi Tiết Mua Hàng</h4>
-          <table className="table table-bordered">
-            <thead className="table-dark">
-              <tr>
-                <th>STT</th>
-                <th>Tên Sản Phẩm</th>
-                <th>Giá</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoice.invoiceDetails?.map((detail, index) => (
-                <tr key={index}>
-                  <td>{index + 1}</td>
-                  <td>{detail.product?.name || "N/A"}</td>
-                  <td>{detail.product?.price?.toLocaleString()} đ</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
 
         {/* Nút In Hóa Đơn */}

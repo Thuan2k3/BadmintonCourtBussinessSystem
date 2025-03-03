@@ -60,14 +60,24 @@ const CheckoutButton = ({
       (item) => item.courtInvoice // Giả sử mỗi item có chứa thông tin invoice
     );
 
-    const checkInTime =
-      courtInvoice?.courtInvoice?.checkInTime || new Date().toISOString();
-    const checkOutTime =
-      courtInvoice?.courtInvoice?.checkOutTime || new Date().toISOString();
+    const checkInTime = courtInvoice?.courtInvoice?.checkInTime || null;
+    const checkOutTime = courtInvoice?.courtInvoice?.checkOutTime || null;
 
     const parseDateString = (dateString) => {
       return moment(dateString, "HH:mm:ss D/M/YYYY").toISOString();
     };
+
+    //Tính tổng số giờ (ít nhất là 1 giờ) và cho phép khách ra trễ không quá 5 phút
+    const duration = (() => {
+      const durationMinutes =
+        (new Date(checkOutTime) - new Date(checkInTime)) / (1000 * 60);
+      const fullHours = Math.floor(durationMinutes / 60);
+      const extraMinutes = durationMinutes % 60;
+
+      return checkInTime && checkOutTime
+        ? Math.max(1, extraMinutes <= 5 ? fullHours : fullHours + 1)
+        : 0;
+    })();
 
     const invoiceData = {
       staff: user._id,
@@ -76,6 +86,7 @@ const CheckoutButton = ({
       totalAmount: newTotal,
       checkInTime: parseDateString(checkInTime),
       checkOutTime: parseDateString(checkOutTime),
+      duration,
       invoiceDetails,
     };
 

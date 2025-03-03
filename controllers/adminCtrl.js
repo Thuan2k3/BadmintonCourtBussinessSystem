@@ -983,7 +983,7 @@ const createInvoiceController = async (req, res) => {
       }
 
       // Tính tiền thuê sân
-      courtPrice = courtData.price * (duration || 1);
+      courtPrice = courtData.price * (duration || 0);
       totalAmount += courtPrice;
     }
 
@@ -993,7 +993,7 @@ const createInvoiceController = async (req, res) => {
       staff,
       court: court || null,
       invoiceDetails: createdDetails,
-      checkInTime: checkInTime || Date.now(),
+      checkInTime: checkInTime || null,
       checkOutTime: checkOutTime || null,
       totalAmount,
     });
@@ -1018,6 +1018,7 @@ const createInvoiceController = async (req, res) => {
     res.status(500).json({ message: "Lỗi server!", error });
   }
 };
+
 const getInvoiceDetailController = async (req, res) => {
   try {
     const { id } = req.params;
