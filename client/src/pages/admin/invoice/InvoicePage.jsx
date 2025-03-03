@@ -336,8 +336,16 @@ const InvoicePage = () => {
   };
 
   const handleAddProduct = async () => {
+    if (type === "both" && selectedCourt._id === "guest") {
+      message.warning("Vui lòng chọn sân");
+      return;
+    }
     if (!selectedProduct || quantity <= 0) {
       message.warning("Vui lòng chọn sản phẩm và số lượng hợp lệ!");
+      return;
+    }
+    if (type === "both" && selectedCourt.isEmpty === true) {
+      message.warning("Vui lòng chọn check in trước khi thêm sản phẩm");
       return;
     }
 
@@ -630,7 +638,9 @@ const InvoicePage = () => {
       <Title level={3} className="text-center">
         HÓA ĐƠN SÂN CẦU LÔNG
       </Title>
-      <div style={{ marginLeft: "4vh", display: "flex", justifyContent: "center" }}>
+      <div
+        style={{ marginLeft: "4vh", display: "flex", justifyContent: "center" }}
+      >
         {/* Chọn loại hóa đơn */}
         <label style={{ padding: "3px 3px 3px 3px" }}>
           <strong>Chọn loại hóa đơn:</strong>
