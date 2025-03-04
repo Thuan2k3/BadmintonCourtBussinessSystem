@@ -744,11 +744,10 @@ const deleteProductController = async (req, res) => {
 };
 
 //Tai khoan
+// 📌 Lấy danh sách tất cả tài khoản
 const getAllAccountController = async (req, res) => {
   try {
-    // Truy vấn danh sách tài khoản, chỉ lấy các trường cần thiết
-    const users = await User.find().select("-password"); // Loại bỏ trường mật khẩu để bảo mật
-
+    const users = await User.find().select("-password"); // Ẩn mật khẩu
     res.status(200).json({ success: true, data: users });
   } catch (error) {
     console.error(error);
@@ -756,9 +755,10 @@ const getAllAccountController = async (req, res) => {
   }
 };
 
+// 📌 Lấy thông tin một tài khoản
 const getAccountController = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id); // Tìm tài khoản theo ID
+    const user = await User.findById(req.params.id).select("-password");
 
     if (!user) {
       return res
@@ -773,19 +773,19 @@ const getAccountController = async (req, res) => {
   }
 };
 
+// 📌 Tạo tài khoản mới
 const createAccountController = async (req, res) => {
   try {
     const { full_name, email, password, phone, address, role, isBlocked } =
       req.body;
 
-    // Kiểm tra các trường bắt buộc
-    if (!full_name || !email || !password || !phone || !address) {
+    if (!full_name || !email || !password || !phone || !address || !role) {
       return res
         .status(400)
         .json({ success: false, message: "Vui lòng nhập đầy đủ thông tin!" });
     }
 
-    // Kiểm tra tài khoản đã tồn tại chưa
+    // Kiểm tra email đã tồn tại chưa
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res
@@ -796,17 +796,15 @@ const createAccountController = async (req, res) => {
     // Mã hóa mật khẩu
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Tạo user mới
+    // Tạo tài khoản mới
     const newUser = new User({
       full_name,
       email,
       password: hashedPassword,
       phone,
       address,
-      isAdmin: role && role === "admin",
-      isStaff: role && role === "staff",
-      isCustomer: role && role === "customer",
-      isBlocked,
+      role,
+      isBlocked: isBlocked || false,
     });
 
     await newUser.save();
@@ -822,44 +820,29 @@ const createAccountController = async (req, res) => {
   }
 };
 
+// 📌 Cập nhật tài khoản
 const updateAccountController = async (req, res) => {
   try {
     const { id } = req.params;
     const { full_name, email, phone, address, role, isBlocked, password } =
       req.body;
 
-    let hashedPassword;
+    let updateData = { full_name, email, phone, address, role, isBlocked };
+
+    // Nếu có mật khẩu mới thì mã hóa
     if (password) {
-      hashedPassword = await bcrypt.hash(password, 10);
+      updateData.password = await bcrypt.hash(password, 10);
     }
 
-    // Chuẩn bị dữ liệu cập nhật
-    const updateData = {
-      full_name,
-      email,
-      phone,
-      address,
-      isAdmin: role === "admin",
-      isStaff: role === "staff",
-      isCustomer: role === "customer",
-      isBlocked: isBlocked || false,
-    };
-
-    // Chỉ thêm password vào updateData nếu có
-    if (hashedPassword) {
-      updateData.password = hashedPassword;
-    }
-
-    // Tìm và cập nhật tài khoản
+    // Cập nhật tài khoản
     const updatedUser = await User.findByIdAndUpdate(id, updateData, {
       new: true,
     });
 
     if (!updatedUser) {
-      return res.status(404).json({
-        success: false,
-        message: "Tài khoản không tồn tại!",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Tài khoản không tồn tại!" });
     }
 
     res.status(200).json({
@@ -868,36 +851,29 @@ const updateAccountController = async (req, res) => {
       user: updatedUser,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Lỗi server",
-      error: error.message,
-    });
+    res
+      .status(500)
+      .json({ success: false, message: "Lỗi server", error: error.message });
   }
 };
 
+// 📌 Xóa tài khoản
 const deleteAccountController = async (req, res) => {
   try {
     const { id } = req.params;
     const deletedUser = await User.findByIdAndDelete(id);
 
     if (!deletedUser) {
-      return res.status(404).json({
-        success: false,
-        message: "Tài khoản không tồn tại!",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Tài khoản không tồn tại!" });
     }
 
-    res.status(200).json({
-      success: true,
-      message: "Xóa tài khoản thành công!",
-    });
+    res
+      .status(200)
+      .json({ success: true, message: "Xóa tài khoản thành công!" });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Lỗi server",
-      error,
-    });
+    res.status(500).json({ success: false, message: "Lỗi server", error });
   }
 };
 

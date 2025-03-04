@@ -23,20 +23,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
-    // Các vai trò (Chỉ có 1 vai trò là true, còn lại là false)
-    isAdmin: {
-      type: Boolean,
-      default: false,
+    role: {
+      type: String,
+      enum: ["admin", "employee", "customer"],
+      required: true,
+      default: "customer",
     },
-    isStaff: {
-      type: Boolean,
-      default: false,
-    },
-    isCustomer: {
-      type: Boolean,
-      default: true,
-    }, // Mặc định là khách hàng
     isBlocked: { type: Boolean, default: false },
   },
   { timestamps: true }

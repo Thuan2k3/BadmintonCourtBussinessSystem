@@ -28,11 +28,7 @@ const UpdateAccountPage = () => {
           email: res.data.data.email,
           phone: res.data.data.phone,
           address: res.data.data.address,
-          role: res.data.data.isAdmin
-            ? "admin"
-            : res.data.data.isStaff
-            ? "staff"
-            : "customer",
+          role: res.data.data.role,
           isBlocked: res.data.data.isBlocked ? "blocked" : "active",
         });
       }
@@ -115,7 +111,7 @@ const UpdateAccountPage = () => {
           >
             <Select placeholder="Chọn vai trò">
               <Select.Option value="admin">Admin</Select.Option>
-              <Select.Option value="staff">Nhân viên</Select.Option>
+              <Select.Option value="employee">Nhân viên</Select.Option>
               <Select.Option value="customer">Khách hàng</Select.Option>
             </Select>
           </Form.Item>

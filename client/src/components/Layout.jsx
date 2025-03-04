@@ -6,7 +6,7 @@ import { useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Badge, message } from "antd";
 import { customerMenu } from "../data/data";
-import { staffMenu } from "../data/data";
+import { employeeMenu } from "../data/data";
 const Layout = ({ children }) => {
   const { user } = useSelector((state) => state.user);
   const location = useLocation();
@@ -20,11 +20,12 @@ const Layout = ({ children }) => {
   };
 
   //rendering menu list
-  const SidebarMenu = user?.isAdmin
-    ? adminMenu
-    : user?.isStaff
-    ? staffMenu
-    : customerMenu;
+  const SidebarMenu =
+    user?.role === "admin"
+      ? adminMenu
+      : user?.role === "employee"
+      ? employeeMenu
+      : customerMenu;
   return (
     <>
       <div className="main">

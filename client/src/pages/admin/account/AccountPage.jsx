@@ -64,9 +64,9 @@ const AccountPage = () => {
                 <td>{account.phone}</td>
                 <td>{account.address}</td>
                 <td>
-                  {account.isAdmin
+                  {account.role === "admin"
                     ? "Admin"
-                    : account.isStaff
+                    : account.role === "employee"
                     ? "Nhân viên"
                     : "Khách hàng"}
                 </td>

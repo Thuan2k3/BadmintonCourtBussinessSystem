@@ -16,8 +16,8 @@ export const customerMenu = [
   },
 ];
 
-// =================Staff Menu================
-export const staffMenu = [
+// =================Employee Menu================
+export const employeeMenu = [
   {
     name: "Home",
     path: "/",
@@ -54,7 +54,7 @@ export const staffMenu = [
     icon: "fa-solid fa-file-invoice",
   },
 ];
-// =================Staff Menu================
+// =================Employee Menu================
 
 //admin menu
 export const adminMenu = [

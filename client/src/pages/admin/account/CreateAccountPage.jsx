@@ -81,7 +81,7 @@ const CreateAccountPage = () => {
           >
             <Select placeholder="Chọn vai trò">
               <Select.Option value="admin">Admin</Select.Option>
-              <Select.Option value="staff">Nhân viên</Select.Option>
+              <Select.Option value="employee">Nhân viên</Select.Option>
               <Select.Option value="customer">Khách hàng</Select.Option>
             </Select>
           </Form.Item>
