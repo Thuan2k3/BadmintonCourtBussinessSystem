@@ -292,9 +292,11 @@ const BookingCourt = ({ court }) => {
                       {court.bookings[dayIndex].timeSlots[slotIndex]?.userId}{" "}
                       <br />
                       Full name:{" "}
-                      {court.bookings[dayIndex].timeSlots[slotIndex]?.full_name}{" "}
+                      {
+                        court.bookings[dayIndex].timeSlots[slotIndex]?.full_name
+                      }{" "}
                       <br />
-                      {user.isAdmin || user.isStaff ? (
+                      {user.role === "admin" || user.role === "employee" ? (
                         <>
                           Email:{" "}
                           {court.bookings[dayIndex].timeSlots[slotIndex]?.email}
