@@ -30,6 +30,20 @@ const userSchema = new mongoose.Schema(
       default: "customer",
     },
     isBlocked: { type: Boolean, default: false },
+
+    // 🔗 Tham chiếu đến bảng cụ thể theo vai trò
+    admin: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "admins",
+    },
+    employee: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "employees",
+    },
+    customer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "customers",
+    },
   },
   { timestamps: true }
 );

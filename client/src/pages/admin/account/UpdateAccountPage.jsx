@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
-import { Form, Input, Select, message } from "antd";
+import { Form, Input, Select, message, DatePicker } from "antd";
 import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../../../redux/features/alertSlice";
@@ -11,6 +11,7 @@ const UpdateAccountPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [form] = Form.useForm(); // Sử dụng form Ant Design
+  const [role, setRole] = useState("");
 
   const getAccountById = async () => {
     try {
@@ -30,7 +31,10 @@ const UpdateAccountPage = () => {
           address: res.data.data.address,
           role: res.data.data.role,
           isBlocked: res.data.data.isBlocked ? "blocked" : "active",
+          hire_date: res.data.data.hire_date,
+          salary: res.data.data.salary,
         });
+        setRole(res.data.data.role);
       }
     } catch (error) {
       message.error("Có lỗi xảy ra. Vui lòng thử lại!");
@@ -109,12 +113,27 @@ const UpdateAccountPage = () => {
             name="role"
             rules={[{ required: true, message: "Vui lòng chọn vai trò" }]}
           >
-            <Select placeholder="Chọn vai trò">
+            <Select
+              placeholder="Chọn vai trò"
+              onChange={(value) => setRole(value)}
+            >
               <Select.Option value="admin">Admin</Select.Option>
               <Select.Option value="employee">Nhân viên</Select.Option>
               <Select.Option value="customer">Khách hàng</Select.Option>
             </Select>
           </Form.Item>
+
+          {role === "employee" && (
+            <>
+              <Form.Item label="Ngày nhận việc" name="hire_date">
+                <DatePicker style={{ width: "100%" }} />
+              </Form.Item>
+              <Form.Item label="Lương" name="salary">
+                <Input type="number" />
+              </Form.Item>
+            </>
+          )}
+
           <Form.Item
             label="Trạng thái"
             name="isBlocked"

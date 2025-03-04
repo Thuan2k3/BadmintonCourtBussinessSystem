@@ -1,20 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import Layout from "../../../components/Layout";
-import { Form, Input, message, Select } from "antd";
-import { Link, useNavigate } from "react-router-dom";
+import { Form, Input, message, Select, DatePicker } from "antd";
+import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { hideLoading, showLoading } from "../../../redux/features/alertSlice";
 import axios from "axios";
+
 const CreateAccountPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  //form handler
+  const [role, setRole] = useState(null);
+
   const onFinishHandler = async (values) => {
     try {
       dispatch(showLoading());
       const res = await axios.post(
         "http://localhost:8080/api/v1/admin/account",
-        values, // Lấy giá trị từ form
+        values,
         {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("token"),
@@ -34,6 +36,7 @@ const CreateAccountPage = () => {
       message.error("Có lỗi xảy ra, vui lòng thử lại");
     }
   };
+
   return (
     <Layout>
       <div className="p-4">
@@ -79,12 +82,25 @@ const CreateAccountPage = () => {
             name="role"
             rules={[{ required: true, message: "Vui lòng chọn vai trò" }]}
           >
-            <Select placeholder="Chọn vai trò">
+            <Select
+              placeholder="Chọn vai trò"
+              onChange={(value) => setRole(value)}
+            >
               <Select.Option value="admin">Admin</Select.Option>
               <Select.Option value="employee">Nhân viên</Select.Option>
               <Select.Option value="customer">Khách hàng</Select.Option>
             </Select>
           </Form.Item>
+          {role === "employee" && (
+            <>
+              <Form.Item label="Ngày nhận việc" name="hire_date">
+                <DatePicker className="w-100" format="DD/MM/YYYY" />
+              </Form.Item>
+              <Form.Item label="Lương" name="salary">
+                <Input type="number" min={0} />
+              </Form.Item>
+            </>
+          )}
           <Form.Item
             label="Trạng thái"
             name="isBlocked"

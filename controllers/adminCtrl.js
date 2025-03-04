@@ -1,4 +1,7 @@
 const User = require("../models/userModels");
+const Admin = require("../models/adminModel");
+const Employee = require("../models/employeeModel");
+const Customer = require("../models/customerModel");
 const productCategory = require("../models/productCategoryModels");
 const Product = require("../models/productModels");
 const Court = require("../models/courtModel");
@@ -744,10 +747,13 @@ const deleteProductController = async (req, res) => {
 };
 
 //Tai khoan
-// 📌 Lấy danh sách tất cả tài khoản
+// 📌 Lấy danh sách tất cả tài khoản (có populate thông tin chi tiết)
 const getAllAccountController = async (req, res) => {
   try {
-    const users = await User.find().select("-password"); // Ẩn mật khẩu
+    const users = await User.find()
+      .select("-password") // Ẩn mật khẩu
+      .populate("admin employee customer"); // Lấy thông tin từ bảng liên quan
+
     res.status(200).json({ success: true, data: users });
   } catch (error) {
     console.error(error);
@@ -755,10 +761,12 @@ const getAllAccountController = async (req, res) => {
   }
 };
 
-// 📌 Lấy thông tin một tài khoản
+// 📌 Lấy thông tin một tài khoản (có populate thông tin chi tiết)
 const getAccountController = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("-password");
+    const user = await User.findById(req.params.id)
+      .select("-password") // Ẩn mật khẩu
+      .populate("admin employee customer"); // Lấy thông tin từ bảng liên quan
 
     if (!user) {
       return res
@@ -776,8 +784,17 @@ const getAccountController = async (req, res) => {
 // 📌 Tạo tài khoản mới
 const createAccountController = async (req, res) => {
   try {
-    const { full_name, email, password, phone, address, role, isBlocked } =
-      req.body;
+    const {
+      full_name,
+      email,
+      password,
+      phone,
+      address,
+      role,
+      isBlocked,
+      hire_date,
+      salary,
+    } = req.body;
 
     if (!full_name || !email || !password || !phone || !address || !role) {
       return res
@@ -796,7 +813,7 @@ const createAccountController = async (req, res) => {
     // Mã hóa mật khẩu
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Tạo tài khoản mới
+    // Tạo tài khoản mới trong bảng User
     const newUser = new User({
       full_name,
       email,
@@ -809,6 +826,24 @@ const createAccountController = async (req, res) => {
 
     await newUser.save();
 
+    let reference;
+    if (role === "admin") {
+      reference = await new Admin({ user: newUser._id }).save();
+      newUser.admin = reference._id;
+    } else if (role === "employee") {
+      reference = await new Employee({
+        user: newUser._id,
+        hire_date: hire_date || Date.now(),
+        salary: salary || null, // Cho phép salary trống
+      }).save();
+      newUser.employee = reference._id;
+    } else if (role === "customer") {
+      reference = await new Customer({ user: newUser._id }).save();
+      newUser.customer = reference._id;
+    }
+
+    await newUser.save(); // Cập nhật ID tham chiếu vào user
+
     res.status(201).json({
       success: true,
       message: "Tạo tài khoản thành công!",
@@ -820,12 +855,20 @@ const createAccountController = async (req, res) => {
   }
 };
 
-// 📌 Cập nhật tài khoản
 const updateAccountController = async (req, res) => {
   try {
     const { id } = req.params;
-    const { full_name, email, phone, address, role, isBlocked, password } =
-      req.body;
+    const {
+      full_name,
+      email,
+      phone,
+      address,
+      role,
+      isBlocked,
+      password,
+      hire_date,
+      salary,
+    } = req.body;
 
     let updateData = { full_name, email, phone, address, role, isBlocked };
 
@@ -834,7 +877,7 @@ const updateAccountController = async (req, res) => {
       updateData.password = await bcrypt.hash(password, 10);
     }
 
-    // Cập nhật tài khoản
+    // Cập nhật tài khoản User
     const updatedUser = await User.findByIdAndUpdate(id, updateData, {
       new: true,
     });
@@ -843,6 +886,15 @@ const updateAccountController = async (req, res) => {
       return res
         .status(404)
         .json({ success: false, message: "Tài khoản không tồn tại!" });
+    }
+
+    // Nếu user là employee, cập nhật thêm hire_date và salary
+    if (updatedUser.role === "employee") {
+      await Employee.findOneAndUpdate(
+        { user: id },
+        { hire_date: hire_date || Date.now(), salary: salary || null },
+        { new: true }
+      );
     }
 
     res.status(200).json({
@@ -857,23 +909,43 @@ const updateAccountController = async (req, res) => {
   }
 };
 
-// 📌 Xóa tài khoản
 const deleteAccountController = async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedUser = await User.findByIdAndDelete(id);
 
-    if (!deletedUser) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Tài khoản không tồn tại!" });
+    // Kiểm tra xem tài khoản có tồn tại không
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Tài khoản không tồn tại!",
+      });
     }
 
-    res
-      .status(200)
-      .json({ success: true, message: "Xóa tài khoản thành công!" });
+    // Xóa thông tin chi tiết dựa trên vai trò
+    if (user.admin || user.employee || user.customer) {
+      if (user.role === "employee") {
+        await Employee.findOneAndDelete({ user: id });
+      } else if (user.role === "admin") {
+        await Admin.findOneAndDelete({ user: id });
+      } else if (user.role === "customer") {
+        await Customer.findOneAndDelete({ user: id });
+      }
+    }
+
+    // Xóa tài khoản
+    await User.findByIdAndDelete(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Xóa tài khoản thành công!",
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Lỗi server", error });
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server",
+      error: error.message,
+    });
   }
 };
 
