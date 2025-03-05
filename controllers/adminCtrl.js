@@ -1135,6 +1135,29 @@ const getInvoiceDetailController = async (req, res) => {
   }
 };
 
+const getTimeSlotBooking = async (req, res) => {
+  try {
+    const { courtId, date, time } = req.params;
+    const selectedDate = new Date(date);
+
+    const booking = await TimeSlotBooking.findOne({
+      court: courtId,
+      date: selectedDate,
+      time: time, // Lọc theo giờ
+      isBooked: true,
+    }).populate("user");
+
+    if (!booking) {
+      return res.status(404).json({ message: "Không tìm thấy đặt sân" });
+    }
+
+    res.json(booking);
+  } catch (error) {
+    console.error("Lỗi khi lấy timeslot booking:", error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 // Lấy tổng doanh thu theo ngày, tháng, năm
 const getRevenueController = async (req, res) => {
   try {
@@ -1244,5 +1267,6 @@ module.exports = {
   getAllInvoicesController,
   createInvoiceController,
   getInvoiceDetailController,
+  getTimeSlotBooking,
   getRevenueController,
 };

@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ref, update } from "firebase/database";
 import { Select, Button, Typography, message } from "antd";
 import { database } from "../firebaseConfig"; // Import Firebase
+import axios from "axios";
 
 const { Text } = Typography;
 
@@ -20,6 +21,13 @@ const CustomerSelector = ({
   selectedCourt,
   setOrderItemsCourt,
 }) => {
+  const getCurrentDateTime = () => {
+    const now = new Date();
+    const date = now.toISOString().split("T")[0]; // YYYY-MM-DD
+    const time = now.getHours() + ":00"; // Lấy giờ hiện tại, làm tròn về dạng "HH:00"
+    return { date, time };
+  };
+
   const handleConfirm = async () => {
     if (!selectedCourt || !selectedCourt._id) {
       message.error("Vui lòng chọn sân trước khi gán khách hàng!");
@@ -83,6 +91,35 @@ const CustomerSelector = ({
       }
     }
   };
+  useEffect(() => {
+    const fetchBookedCustomer = async () => {
+      if (!selectedCourt?._id) return;
+
+      const { date, time } =
+        selectedCourt.date && selectedCourt.time
+          ? { date: selectedCourt.date, time: selectedCourt.time }
+          : getCurrentDateTime();
+
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/v1/admin/court/${selectedCourt._id}/${date}/${time}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+        if (response.data) {
+          setSelectedUser(response.data.user);
+        }
+      } catch (error) {
+        console.error("Không tìm thấy khách hàng đặt sân:", error);
+        setSelectedUser(null);
+      }
+    };
+
+    fetchBookedCustomer();
+  }, [selectedCourt]);
 
   return (
     <div className="mb-3">
@@ -99,13 +136,6 @@ const CustomerSelector = ({
           onChange={(value) => {
             setSelectedUser(value ? users.find((u) => u._id === value) : null);
           }}
-          filterOption={(input, option) => {
-            const inputNormalized = removeVietnameseTones(input.toLowerCase());
-            const optionNormalized = removeVietnameseTones(
-              option.label.toLowerCase()
-            );
-            return optionNormalized.includes(inputNormalized);
-          }}
           options={[
             { value: null, label: "Không chọn khách hàng" },
             ...users.map((user) => ({
@@ -116,14 +146,10 @@ const CustomerSelector = ({
         />
         <Button onClick={handleConfirm}>Xác nhận</Button>
       </div>
-      {orderItemsCourt.some(
-        (item) => item.court?._id === selectedCourt?._id && item.customer
-      ) && (
+      {selectedUser && (
         <p>
-          <strong>Tên khách hàng:</strong>{" "}
-          {orderItemsCourt.find(
-            (item) => item.court?._id === selectedCourt?._id
-          )?.customer?.full_name || "Không xác định"}
+          <strong>Khách hàng đặt sân:</strong> {selectedUser.full_name} -{" "}
+          {selectedUser.email}
         </p>
       )}
     </div>

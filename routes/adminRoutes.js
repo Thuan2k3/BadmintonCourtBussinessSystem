@@ -37,6 +37,7 @@ const {
   payInvoiceController,
   getInvoiceDetailController,
   getRevenueController,
+  getTimeSlotBooking,
 } = require("../controllers/adminCtrl");
 
 const router = express.Router();
@@ -157,6 +158,8 @@ router.post("/invoice", authMiddleware, createInvoiceController);
 
 //Lấy hóa đơn theo id
 router.get("/invoice/:id", authMiddleware, getInvoiceDetailController);
+
+router.get("/court/:courtId/:date/:time", authMiddleware, getTimeSlotBooking);
 
 // API: Thống kê tổng doanh thu theo ngày, tháng, năm
 router.get("/revenue", authMiddleware, getRevenueController);
