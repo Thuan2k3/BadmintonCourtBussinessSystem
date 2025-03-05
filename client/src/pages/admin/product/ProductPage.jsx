@@ -31,7 +31,7 @@ const ProductPage = () => {
     getAllProduct();
   }, []);
   useEffect(() => {
-    console.log(product)
+    console.log(product);
   }, [product]);
 
   return (

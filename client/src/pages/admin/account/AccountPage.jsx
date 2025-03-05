@@ -40,6 +40,7 @@ const AccountPage = () => {
             <th>Email</th>
             <th>Số điện thoại</th>
             <th>Địa chỉ</th>
+            {role === "employee" && <th>Ngày nhận việc</th>}
             <th>Trạng thái</th>
             <th>Hành động</th>
           </tr>
@@ -52,6 +53,11 @@ const AccountPage = () => {
               <td>{account.email}</td>
               <td>{account.phone}</td>
               <td>{account.address}</td>
+              {role === "employee" && (
+                <td>
+                  {new Date(account.employee.hire_date).toLocaleDateString()}
+                </td>
+              )}
               <td>{account.isBlocked ? "Bị khóa" : "Hoạt động"}</td>
               <td>
                 <div className="d-flex justify-content-center gap-3">

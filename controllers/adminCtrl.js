@@ -867,14 +867,26 @@ const updateAccountController = async (req, res) => {
       hire_date,
     } = req.body;
 
-    let updateData = { full_name, email, phone, address, role, isBlocked };
+    let updateData = { full_name, phone, address, role, isBlocked };
 
-    // Nếu có mật khẩu mới thì mã hóa
+    // Nếu có email mới, kiểm tra xem có bị trùng không
+    if (email) {
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail && existingEmail._id.toString() !== id) {
+        return res.status(400).json({
+          success: false,
+          message: "Email đã tồn tại!",
+        });
+      }
+      updateData.email = email;
+    }
+
+    // Nếu có mật khẩu mới, mã hóa trước khi cập nhật
     if (password) {
       updateData.password = await bcrypt.hash(password, 10);
     }
 
-    // Lấy thông tin user trước khi cập nhật
+    // Kiểm tra user có tồn tại không
     const existingUser = await User.findById(id);
     if (!existingUser) {
       return res.status(404).json({
@@ -885,51 +897,53 @@ const updateAccountController = async (req, res) => {
 
     const oldRole = existingUser.role;
 
+    // Nếu role thay đổi, kiểm tra trước khi cập nhật
+    if (oldRole !== role) {
+      const hasInvoices = await Invoice.exists({
+        $or: [{ customer: id }, { employee: id }],
+      });
+
+      if (hasInvoices) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Không thể cập nhật vai trò vì tài khoản đã tồn tại trong hóa đơn!",
+        });
+      }
+    }
+
     // Cập nhật thông tin user
     const updatedUser = await User.findByIdAndUpdate(id, updateData, {
       new: true,
     });
 
-    // Nếu role thay đổi, xử lý cập nhật collection tương ứng
-    if (oldRole !== role) {
-      // Kiểm tra xem user có hóa đơn không
-      const hasInvoices = await Invoice.exists({
-        $or: [{ customer: id }, { employee: id }],
+    if (!updatedUser) {
+      return res.status(500).json({
+        success: false,
+        message: "Cập nhật tài khoản thất bại!",
       });
+    }
 
-      if (!hasInvoices) {
-        // Nếu không có hóa đơn → Xóa collection tương ứng với role cũ
-        if (oldRole === "employee") {
-          await Employee.findOneAndDelete({ user: id });
-        } else if (oldRole === "admin") {
-          await Admin.findOneAndDelete({ user: id });
-        } else if (oldRole === "customer") {
-          await Customer.findOneAndDelete({ user: id });
-        }
-      }
+    // Nếu role thay đổi, xóa thông tin cũ và cập nhật dữ liệu mới
+    if (oldRole !== role) {
+      await Promise.all([
+        oldRole === "employee" && Employee.findOneAndDelete({ user: id }),
+        oldRole === "admin" && Admin.findOneAndDelete({ user: id }),
+        oldRole === "customer" && Customer.findOneAndDelete({ user: id }),
+      ]);
 
-      // Thêm hoặc cập nhật document trong collection role mới
       if (role === "employee") {
         await Employee.findOneAndUpdate(
           { user: id },
-          { hire_date: hire_date || Date.now() },
+          { hire_date: hire_date || existingUser.hire_date || Date.now() },
           { upsert: true, new: true }
         );
       } else if (role === "admin") {
-        await Admin.findOneAndUpdate(
-          { user: id },
-          {},
-          { upsert: true, new: true }
-        );
+        await Admin.findOneAndUpdate({ user: id }, {}, { upsert: true });
       } else if (role === "customer") {
-        await Customer.findOneAndUpdate(
-          { user: id },
-          {},
-          { upsert: true, new: true }
-        );
+        await Customer.findOneAndUpdate({ user: id }, {}, { upsert: true });
       }
     } else if (role === "employee" && hire_date) {
-      // Nếu user vẫn là employee thì chỉ cập nhật hire_date nếu có
       await Employee.findOneAndUpdate(
         { user: id },
         { hire_date: hire_date },
