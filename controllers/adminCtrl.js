@@ -141,7 +141,20 @@ const deleteCourtController = async (req, res) => {
   try {
     const court = await Court.findById(req.params.id);
     if (!court) {
-      return res.status(404).json({ message: "Sản phẩm không tồn tại!" });
+      return res.status(404).json({ message: "Sân không tồn tại!" });
+    }
+
+    // Kiểm tra xem sân có tồn tại trong timeslotbooking hoặc invoice không
+    const isUsedInTimeslot = await TimeSlotBooking.exists({
+      court: req.params.id,
+    });
+    const isUsedInInvoice = await Invoice.exists({ court: req.params.id });
+
+    if (isUsedInTimeslot || isUsedInInvoice) {
+      return res.status(400).json({
+        success: false,
+        message: "Không thể xóa sân vì đang được sử dụng!",
+      });
     }
 
     // Xây dựng đường dẫn ảnh
@@ -156,11 +169,11 @@ const deleteCourtController = async (req, res) => {
       console.log("Ảnh không tồn tại hoặc đã bị xóa trước đó.");
     }
 
-    // Xóa sản phẩm khỏi database
+    // Xóa sân khỏi database
     await Court.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: "Xóa sản phẩm thành công!" });
+    res.json({ success: true, message: "Xóa sân thành công!" });
   } catch (error) {
-    console.error("Lỗi khi xóa sản phẩm:", error);
+    console.error("Lỗi khi xóa sân:", error);
     res.status(500).json({ message: "Lỗi server!" });
   }
 };
@@ -277,14 +290,28 @@ const updateTimeSlotController = async (req, res) => {
 
 const deleteTimeSlotController = async (req, res) => {
   try {
-    const { id } = req.params; // Lấy id từ request
-    const deletedTimeSlot = await TimeSlot.findByIdAndDelete(id);
+    const { id } = req.params;
 
-    if (!deletedTimeSlot) {
+    // Kiểm tra xem khung giờ có tồn tại không
+    const timeSlot = await TimeSlot.findById(id);
+    if (!timeSlot) {
       return res
         .status(404)
         .json({ success: false, message: "Khung giờ không tồn tại!" });
     }
+
+    // Kiểm tra xem khung giờ có đang được sử dụng trong TimeSlotBooking không
+    const isBooked = await TimeSlotBooking.exists({ timeSlot: id });
+
+    if (isBooked) {
+      return res.status(400).json({
+        success: false,
+        message: "Không thể xóa khung giờ vì đang có người đặt!",
+      });
+    }
+
+    // Xóa khung giờ nếu không có ai đặt
+    await TimeSlot.findByIdAndDelete(id);
 
     res
       .status(200)
@@ -599,18 +626,33 @@ const updateProductCategoryController = async (req, res) => {
 const deleteProductCategoryController = async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedProductCategory = await productCategory.findByIdAndDelete(id);
 
-    if (!deletedProductCategory) {
+    // Kiểm tra xem danh mục có tồn tại không
+    const category = await productCategory.findById(id);
+    if (!category) {
       return res
         .status(404)
         .json({ success: false, message: "Danh mục không tồn tại!" });
     }
 
+    // Kiểm tra xem danh mục có sản phẩm nào thuộc về nó không
+    const isCategoryUsed = await Product.exists({ category: id });
+
+    if (isCategoryUsed) {
+      return res.status(400).json({
+        success: false,
+        message: "Không thể xóa danh mục vì đã có sản phẩm sử dụng!",
+      });
+    }
+
+    // Nếu không có sản phẩm nào thuộc danh mục này, tiến hành xóa
+    await productCategory.findByIdAndDelete(id);
+
     res
       .status(200)
       .json({ success: true, message: "Xóa danh mục thành công!" });
   } catch (error) {
+    console.error("Lỗi khi xóa danh mục:", error);
     res.status(500).json({ success: false, message: "Lỗi server", error });
   }
 };
@@ -723,6 +765,18 @@ const deleteProductController = async (req, res) => {
     const product = await Product.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ message: "Sản phẩm không tồn tại!" });
+    }
+
+    // Kiểm tra xem sản phẩm có trong InvoiceDetail không
+    const isProductInInvoice = await InvoiceDetail.exists({
+      product: req.params.id,
+    });
+
+    if (isProductInInvoice) {
+      return res.status(400).json({
+        success: false,
+        message: "Không thể xóa sản phẩm vì đã có hóa đơn sử dụng!",
+      });
     }
 
     // Xây dựng đường dẫn ảnh
@@ -978,17 +1032,26 @@ const deleteAccountController = async (req, res) => {
       });
     }
 
+    // Kiểm tra xem tài khoản có tồn tại trong TimeSlotBooking hoặc Invoice không
+    const isInTimeSlotBooking = await TimeSlotBooking.exists({ user: id });
+    const isInInvoice = await Invoice.exists({ user: id });
+
+    if (isInTimeSlotBooking || isInInvoice) {
+      return res.status(400).json({
+        success: false,
+        message: "Không thể xóa tài khoản vì đã có lịch đặt sân hoặc hóa đơn!",
+      });
+    }
+
     // Xóa thông tin chi tiết dựa trên vai trò
-    if (user.admin || user.employee || user.customer) {
-      if (user.employee) {
-        await Employee.findOneAndDelete({ user: id });
-      }
-      if (user.admin) {
-        await Admin.findOneAndDelete({ user: id });
-      }
-      if (user.customer) {
-        await Customer.findOneAndDelete({ user: id });
-      }
+    if (user.employee) {
+      await Employee.findOneAndDelete({ user: id });
+    }
+    if (user.admin) {
+      await Admin.findOneAndDelete({ user: id });
+    }
+    if (user.customer) {
+      await Customer.findOneAndDelete({ user: id });
     }
 
     // Xóa tài khoản
