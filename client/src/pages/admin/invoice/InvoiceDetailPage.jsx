@@ -38,7 +38,9 @@ const InvoiceDetailPage = () => {
 
   // Hàm in chỉ in nội dung trong printRef
   const handlePrint = () => {
-    window.print();
+    setTimeout(() => {
+      window.print();
+    }, 500); // Chờ 0.5s để CSS tải xong
   };
 
   if (loading) {
