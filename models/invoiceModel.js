@@ -7,7 +7,7 @@ const InvoiceSchema = new mongoose.Schema(
       ref: "users",
       required: false,
     },
-    staff: {
+    employee: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",
       required: false,

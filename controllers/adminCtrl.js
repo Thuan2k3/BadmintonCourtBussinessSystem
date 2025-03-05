@@ -793,7 +793,6 @@ const createAccountController = async (req, res) => {
       role,
       isBlocked,
       hire_date,
-      salary,
     } = req.body;
 
     if (!full_name || !email || !password || !phone || !address || !role) {
@@ -834,7 +833,6 @@ const createAccountController = async (req, res) => {
       reference = await new Employee({
         user: newUser._id,
         hire_date: hire_date || Date.now(),
-        salary: salary || null, // Cho phép salary trống
       }).save();
       newUser.employee = reference._id;
     } else if (role === "customer") {
@@ -867,7 +865,6 @@ const updateAccountController = async (req, res) => {
       isBlocked,
       password,
       hire_date,
-      salary,
     } = req.body;
 
     let updateData = { full_name, email, phone, address, role, isBlocked };
@@ -877,22 +874,65 @@ const updateAccountController = async (req, res) => {
       updateData.password = await bcrypt.hash(password, 10);
     }
 
-    // Cập nhật tài khoản User
+    // Lấy thông tin user trước khi cập nhật
+    const existingUser = await User.findById(id);
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: "Tài khoản không tồn tại!",
+      });
+    }
+
+    const oldRole = existingUser.role;
+
+    // Cập nhật thông tin user
     const updatedUser = await User.findByIdAndUpdate(id, updateData, {
       new: true,
     });
 
-    if (!updatedUser) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Tài khoản không tồn tại!" });
-    }
+    // Nếu role thay đổi, xử lý cập nhật collection tương ứng
+    if (oldRole !== role) {
+      // Kiểm tra xem user có hóa đơn không
+      const hasInvoices = await Invoice.exists({
+        $or: [{ customer: id }, { employee: id }],
+      });
 
-    // Nếu user là employee, cập nhật thêm hire_date và salary
-    if (updatedUser.role === "employee") {
+      if (!hasInvoices) {
+        // Nếu không có hóa đơn → Xóa collection tương ứng với role cũ
+        if (oldRole === "employee") {
+          await Employee.findOneAndDelete({ user: id });
+        } else if (oldRole === "admin") {
+          await Admin.findOneAndDelete({ user: id });
+        } else if (oldRole === "customer") {
+          await Customer.findOneAndDelete({ user: id });
+        }
+      }
+
+      // Thêm hoặc cập nhật document trong collection role mới
+      if (role === "employee") {
+        await Employee.findOneAndUpdate(
+          { user: id },
+          { hire_date: hire_date || Date.now() },
+          { upsert: true, new: true }
+        );
+      } else if (role === "admin") {
+        await Admin.findOneAndUpdate(
+          { user: id },
+          {},
+          { upsert: true, new: true }
+        );
+      } else if (role === "customer") {
+        await Customer.findOneAndUpdate(
+          { user: id },
+          {},
+          { upsert: true, new: true }
+        );
+      }
+    } else if (role === "employee" && hire_date) {
+      // Nếu user vẫn là employee thì chỉ cập nhật hire_date nếu có
       await Employee.findOneAndUpdate(
         { user: id },
-        { hire_date: hire_date || Date.now(), salary: salary || null },
+        { hire_date: hire_date },
         { new: true }
       );
     }
@@ -903,9 +943,11 @@ const updateAccountController = async (req, res) => {
       user: updatedUser,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ success: false, message: "Lỗi server", error: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server",
+      error: error.message,
+    });
   }
 };
 
@@ -924,11 +966,13 @@ const deleteAccountController = async (req, res) => {
 
     // Xóa thông tin chi tiết dựa trên vai trò
     if (user.admin || user.employee || user.customer) {
-      if (user.role === "employee") {
+      if (user.employee) {
         await Employee.findOneAndDelete({ user: id });
-      } else if (user.role === "admin") {
+      }
+      if (user.admin) {
         await Admin.findOneAndDelete({ user: id });
-      } else if (user.role === "customer") {
+      }
+      if (user.customer) {
         await Customer.findOneAndDelete({ user: id });
       }
     }
@@ -967,7 +1011,7 @@ const getAllInvoicesController = async (req, res) => {
     // Lấy danh sách hóa đơn kèm thông tin chi tiết
     const invoices = await Invoice.find(filter)
       .populate("customer", "full_name email")
-      .populate("staff", "full_name email")
+      .populate("employee", "full_name email")
       .populate("court", "full_name price")
       .populate({
         path: "invoiceDetails",
@@ -989,7 +1033,7 @@ const createInvoiceController = async (req, res) => {
   try {
     const {
       customer,
-      staff,
+      employee,
       court,
       invoiceDetails,
       checkInTime,
@@ -997,7 +1041,7 @@ const createInvoiceController = async (req, res) => {
       duration,
     } = req.body;
 
-    if (!staff) {
+    if (!employee) {
       return res
         .status(400)
         .json({ message: "Nhân viên không được để trống!" });
@@ -1038,7 +1082,7 @@ const createInvoiceController = async (req, res) => {
     // Tạo hóa đơn
     const newInvoice = new Invoice({
       customer: customer || null,
-      staff,
+      employee,
       court: court || null,
       invoiceDetails: createdDetails,
       checkInTime: checkInTime || null,
@@ -1073,7 +1117,7 @@ const getInvoiceDetailController = async (req, res) => {
 
     const invoice = await Invoice.findById(id)
       .populate("customer", "full_name email phone")
-      .populate("staff", "full_name email phone")
+      .populate("employee", "full_name email phone")
       .populate("court", "name price")
       .populate({
         path: "invoiceDetails",

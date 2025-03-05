@@ -80,7 +80,7 @@ const CheckoutButton = ({
     })();
 
     const invoiceData = {
-      staff: user._id,
+      employee: user._id,
       customer: selectedUser?._id || null,
       court: selectedCourt?._id === "guest" ? null : selectedCourt?._id,
       totalAmount: newTotal,

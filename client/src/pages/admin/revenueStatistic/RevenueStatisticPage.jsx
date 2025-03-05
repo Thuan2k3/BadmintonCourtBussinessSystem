@@ -65,7 +65,7 @@ const RevenueStatisticPage = () => {
       render: (record) => {
         if (!record) return "N/A";
         if (type === "day" && record.day && record.month && record.year)
-          return `${record.day}/${record.month}`;
+          return `${record.day}/${record.month}/${record.year}`;
         if (type === "month" && record.month && record.year)
           return `${record.month}/${record.year}`;
         if (type === "year" && record.year) return record.year;

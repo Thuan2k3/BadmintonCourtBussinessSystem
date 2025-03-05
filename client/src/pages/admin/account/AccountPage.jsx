@@ -80,17 +80,22 @@ const AccountPage = () => {
         >
           <MdOutlineAddBox />
         </Link>
-        <Tabs defaultActiveKey="admin">
-          <Tabs.TabPane tab="Admin" key="admin">
-            {renderTable("admin")}
-          </Tabs.TabPane>
-          <Tabs.TabPane tab="Nhân viên" key="employee">
-            {renderTable("employee")}
-          </Tabs.TabPane>
-          <Tabs.TabPane tab="Khách hàng" key="customer">
-            {renderTable("customer")}
-          </Tabs.TabPane>
-        </Tabs>
+        <Tabs
+          defaultActiveKey="admin"
+          items={[
+            { key: "admin", label: "Admin", children: renderTable("admin") },
+            {
+              key: "employee",
+              label: "Nhân viên",
+              children: renderTable("employee"),
+            },
+            {
+              key: "customer",
+              label: "Khách hàng",
+              children: renderTable("customer"),
+            },
+          ]}
+        />
       </div>
     </Layout>
   );

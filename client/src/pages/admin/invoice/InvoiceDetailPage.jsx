@@ -73,7 +73,7 @@ const InvoiceDetailPage = () => {
             {invoice.customer?.full_name || "Khách vãng lai"}
           </p>
           <p>
-            <strong>Nhân Viên:</strong> {invoice.staff?.full_name || "N/A"}
+            <strong>Nhân Viên:</strong> {invoice.employee?.full_name || "N/A"}
           </p>
           <p>
             <strong>Sân Đã Thuê:</strong>{" "}

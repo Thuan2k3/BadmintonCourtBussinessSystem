@@ -675,17 +675,19 @@ const InvoicePage = () => {
               orderItemsCourt={orderItemsCourt}
               selectedCourt={selectedCourt}
             />
-            {(type === "rent" || type === "both") && (
-              <CustomerSelector
-                users={users}
-                selectedUser={selectedUser}
-                setSelectedUser={setSelectedUser}
-                setOrderItemsCourt={setOrderItemsCourt}
-                selectedCourt={selectedCourt}
-                orderItemsCourt={orderItemsCourt}
-              />
-            )}
-            {(type === "product" || type === "both") && (
+            {(type === "rent" || type === "both") &&
+              selectedCourt._id !== "guest" && (
+                <CustomerSelector
+                  users={users}
+                  selectedUser={selectedUser}
+                  setSelectedUser={setSelectedUser}
+                  setOrderItemsCourt={setOrderItemsCourt}
+                  selectedCourt={selectedCourt}
+                  orderItemsCourt={orderItemsCourt}
+                />
+              )}
+            {(type === "product" ||
+              (type === "both" && selectedCourt._id !== "guest")) && (
               <>
                 <ProductSelector
                   products={products}

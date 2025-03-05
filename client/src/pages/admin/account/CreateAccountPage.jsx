@@ -92,14 +92,9 @@ const CreateAccountPage = () => {
             </Select>
           </Form.Item>
           {role === "employee" && (
-            <>
-              <Form.Item label="Ngày nhận việc" name="hire_date">
-                <DatePicker className="w-100" format="DD/MM/YYYY" />
-              </Form.Item>
-              <Form.Item label="Lương" name="salary">
-                <Input type="number" min={0} />
-              </Form.Item>
-            </>
+            <Form.Item label="Ngày nhận việc" name="hire_date">
+              <DatePicker className="w-100" format="DD/MM/YYYY" />
+            </Form.Item>
           )}
           <Form.Item
             label="Trạng thái"

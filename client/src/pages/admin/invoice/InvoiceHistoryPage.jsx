@@ -37,6 +37,7 @@ const InvoiceHistoryPage = () => {
 
   useEffect(() => {
     getInvoices();
+    console.log(invoices)
   }, []); // Chỉ chạy lần đầu
 
   return (
@@ -82,7 +83,7 @@ const InvoiceHistoryPage = () => {
                   <td>{index + 1}</td>
                   <td>{invoice._id}</td>
                   <td>{invoice.customer?.full_name || "Khách vãng lai"}</td>
-                  <td>{invoice.staff?.full_name || "N/A"}</td>
+                  <td>{invoice.employee?.full_name || "N/A"}</td>
                   <td>{new Date(invoice.createdAt).toLocaleString()}</td>
                   <td>{invoice.totalAmount?.toLocaleString()} đ</td>
                   <td>

@@ -11,9 +11,6 @@ const employeeSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
-    salary: {
-      type: Number,
-    },
   },
   { timestamps: true }
 );
