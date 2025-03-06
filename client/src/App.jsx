@@ -35,6 +35,7 @@ import ViewProductPage from "./pages/admin/product/ViewProductPage";
 import GuestHomePage from "./pages/guest/GuestHomePage";
 import GuestViewProductPage from "./pages/guest/GuestViewProductPage";
 import GuestCourtBookingStatusPage from "./pages/guest/GuestCourtBookingStatusPage";
+import RevenuePredictionPage from "./pages/admin/revenuePrediction/RevenuePredictionPage";
 
 function App() {
   const { loading } = useSelector((state) => state.alerts);
@@ -306,6 +307,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <RevenueStatisticPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/revenue-prediction"
+              element={
+                <ProtectedRoute>
+                  <RevenuePredictionPage />
                 </ProtectedRoute>
               }
             />

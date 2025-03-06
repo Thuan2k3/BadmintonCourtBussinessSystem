@@ -103,4 +103,9 @@ export const adminMenu = [
     path: "/admin/revenue",
     icon: "fas fa-chart-bar",
   },
+  {
+    name: "Xem dự đoán doanh thu",
+    path: "/admin/revenue-prediction",
+    icon: "fas fa-chart-bar",
+  },
 ];
