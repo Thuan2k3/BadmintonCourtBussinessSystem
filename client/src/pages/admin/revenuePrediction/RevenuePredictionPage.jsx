@@ -12,7 +12,9 @@ const RevenuePredictionPage = () => {
   useEffect(() => {
     const fetchPrediction = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:5001/predict/week");
+        const response = await axios.get(
+          "http://127.0.0.1:5001/predict/seven_days"
+        );
         setPredictions(response.data);
       } catch (error) {
         setError("Lỗi khi lấy dữ liệu dự đoán.");
@@ -29,9 +31,6 @@ const RevenuePredictionPage = () => {
     data: predictions || [],
     xField: "date",
     yField: "revenue",
-    seriesField: "date",
-    columnWidthRatio: 1, // Điều chỉnh độ rộng cột
-    color: "#1890ff",
     label: {
       position: "top",
       style: { fill: "#000", fontSize: 12 },
