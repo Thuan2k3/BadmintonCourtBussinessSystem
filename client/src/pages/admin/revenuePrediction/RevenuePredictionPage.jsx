@@ -32,10 +32,6 @@ const RevenuePredictionPage = () => {
     data: predictions || [],
     xField: "date",
     yField: "revenue",
-    label: {
-      position: "top",
-      style: { fill: "#000", fontSize: 12 },
-    },
     xAxis: { title: { text: "Ngày" } },
     yAxis: { title: { text: "Doanh thu (VNĐ)" } },
   };
