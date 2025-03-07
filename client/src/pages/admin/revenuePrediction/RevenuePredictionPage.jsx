@@ -3,6 +3,7 @@ import axios from "axios";
 import Layout from "../../../components/Layout";
 import { Spin, Alert } from "antd";
 import { Column } from "@ant-design/charts";
+import { Table } from "antd";
 
 const RevenuePredictionPage = () => {
   const [predictions, setPredictions] = useState(null);
@@ -39,26 +40,41 @@ const RevenuePredictionPage = () => {
     yAxis: { title: { text: "Doanh thu (VNĐ)" } },
   };
 
+  const columns = [
+    {
+      title: "Ngày",
+      dataIndex: "date",
+      key: "date",
+    },
+    {
+      title: "Doanh thu dự đoán (VNĐ)",
+      dataIndex: "revenue",
+      key: "revenue",
+      render: (text) => <strong>{text.toLocaleString()} VNĐ</strong>,
+    },
+  ];
+
   return (
     <Layout>
-      <h2>Dự đoán doanh thu 7 ngày tới</h2>
+      <h2 className="text-center">Dự đoán doanh thu 7 ngày tới</h2>
 
       {loading && <Spin size="large" />}
       {error && <Alert message={error} type="error" showIcon />}
 
       {predictions && (
         <div>
-          <h3>Kết quả:</h3>
-          <ul>
-            {predictions.map((prediction, index) => (
-              <li key={index}>
-                📅 {prediction.date}:{" "}
-                <strong>{prediction.revenue.toLocaleString()} VNĐ</strong>
-              </li>
-            ))}
-          </ul>
+          <Table
+            columns={columns}
+            dataSource={predictions.map((prediction, index) => ({
+              key: index,
+              date: prediction.date,
+              revenue: prediction.revenue,
+            }))}
+            pagination={false} // Ẩn phân trang nếu danh sách ngắn
+            bordered // Hiển thị viền bảng
+          />
 
-          <h3>Biểu đồ doanh thu</h3>
+          <h3 className="text-center">Biểu đồ doanh thu</h3>
           <Column {...config} />
         </div>
       )}
