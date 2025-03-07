@@ -359,29 +359,33 @@ const getCourtsWithBookingsController = async (req, res) => {
             (b) => b.date.toISOString().split("T")[0] === date
           );
 
-          const timeSlotsWithStatus = timeSlots.map((slot) => {
-            const bookedSlot = courtBookings.find(
-              (booking) => booking.time === slot.time
-            );
+          const timeSlotsWithStatus = timeSlots
+            .map((slot) => {
+              const bookedSlot = courtBookings.find(
+                (booking) => booking.time === slot.time
+              );
 
-            return bookedSlot
-              ? {
-                  timeSlotBooking_id: bookedSlot._id,
-                  userId: bookedSlot.user ? bookedSlot.user._id : null,
-                  full_name: bookedSlot.user ? bookedSlot.user.full_name : null,
-                  email: bookedSlot.user ? bookedSlot.user.email : null,
-                  time: bookedSlot.time,
-                  isBooked: true,
-                }
-              : {
-                  timeSlotBooking_id: null,
-                  userId: null,
-                  full_name: null,
-                  email: null,
-                  time: slot.time,
-                  isBooked: false,
-                };
-          });
+              return bookedSlot
+                ? {
+                    timeSlotBooking_id: bookedSlot._id,
+                    userId: bookedSlot.user ? bookedSlot.user._id : null,
+                    full_name: bookedSlot.user
+                      ? bookedSlot.user.full_name
+                      : null,
+                    email: bookedSlot.user ? bookedSlot.user.email : null,
+                    time: bookedSlot.time,
+                    isBooked: true,
+                  }
+                : {
+                    timeSlotBooking_id: null,
+                    userId: null,
+                    full_name: null,
+                    email: null,
+                    time: slot.time,
+                    isBooked: false,
+                  };
+            })
+            .sort((a, b) => a.time.localeCompare(b.time)); // 🛠 Sắp xếp theo giờ tăng dần;
 
           return {
             date,
