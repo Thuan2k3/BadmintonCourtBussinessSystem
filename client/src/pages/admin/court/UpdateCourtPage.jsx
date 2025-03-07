@@ -59,7 +59,10 @@ const UpdateCourtPage = () => {
       ) {
         form.setFieldsValue({ values });
 
-        const updatedValues = form.getFieldsValue();
+        const updatedValues = {
+          ...form.getFieldsValue(),
+          isEmpty: court.isEmpty,
+        };
         console.log("Giá trị form sau khi cập nhật:", updatedValues);
 
         const res = await axios.put(
@@ -225,22 +228,6 @@ const UpdateCourtPage = () => {
               }}
               initImage={`http://localhost:8080${court.image}`} // Dùng backticks để kết hợp biến
             />
-          </Form.Item>
-
-          <Form.Item
-            label="Trạng thái sử dụng sân"
-            name="isEmpty"
-            rules={[
-              {
-                required: true,
-                message: "Vui lòng chọn trạng thái sử dụng sân!",
-              },
-            ]}
-          >
-            <Select>
-              <Select.Option value={true}>Trống</Select.Option>
-              <Select.Option value={false}>Có người</Select.Option>
-            </Select>
           </Form.Item>
 
           <Button
