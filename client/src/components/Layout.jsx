@@ -55,8 +55,14 @@ const Layout = ({ children }) => {
           </div>
           <div className="content">
             <div className="header">
-              <div className="header-content" style={{ cursor: "pointer" }}>
-                <Link to="/profile">{user?.full_name}</Link>
+              <div
+                className="header-content d-flex flex-column align-items-end justify-content-center text-center"
+                style={{ cursor: "pointer", height: "100%" }}
+              >
+                <p className="fw-bold mb-0">{user?.full_name}</p>
+                <p className="text-secondary text-lowercase mb-0">
+                  {user?.role}
+                </p>
               </div>
             </div>
             <div className="body">{children}</div>
