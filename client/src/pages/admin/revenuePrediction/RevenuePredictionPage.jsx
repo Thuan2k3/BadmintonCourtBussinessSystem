@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Layout from "../../../components/Layout";
-import { Spin, Alert } from "antd";
+import { Spin, Alert, Card } from "antd";
 import { Column } from "@ant-design/charts";
 import { Table } from "antd";
 
@@ -50,34 +50,37 @@ const RevenuePredictionPage = () => {
       title: "Doanh thu dự đoán (VNĐ)",
       dataIndex: "revenue",
       key: "revenue",
-      render: (text) => <strong>{text.toLocaleString()} VNĐ</strong>,
+      render: (text) => <span>{text.toLocaleString()} VNĐ</span>,
     },
   ];
 
   return (
     <Layout>
-      <h2 className="text-center">Dự đoán doanh thu 7 ngày tới</h2>
+      <Card>
+        <h2 className="text-center">Dự đoán doanh thu 7 ngày tới</h2>
 
-      {loading && <Spin size="large" />}
-      {error && <Alert message={error} type="error" showIcon />}
+        {loading && <Spin size="large" />}
+        {error && <Alert message={error} type="error" showIcon />}
 
-      {predictions && (
-        <div>
-          <Table
-            columns={columns}
-            dataSource={predictions.map((prediction, index) => ({
-              key: index,
-              date: prediction.date,
-              revenue: prediction.revenue,
-            }))}
-            pagination={false} // Ẩn phân trang nếu danh sách ngắn
-            bordered // Hiển thị viền bảng
-          />
+        {predictions && (
+          <div>
+            <Table
+              columns={columns}
+              dataSource={predictions.map((prediction, index) => ({
+                key: index,
+                date: prediction.date,
+                revenue: prediction.revenue,
+              }))}
+              pagination={false} // Ẩn phân trang nếu danh sách ngắn
+              bordered // Hiển thị viền bảng
+            />
 
-          <h3 className="text-center">Biểu đồ doanh thu</h3>
-          <Column {...config} />
-        </div>
-      )}
+            <Card title="Biểu đồ dự đoán doanh thu">
+              <Column {...config} />
+            </Card>
+          </div>
+        )}
+      </Card>
     </Layout>
   );
 };
