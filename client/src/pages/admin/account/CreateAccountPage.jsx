@@ -10,6 +10,7 @@ const CreateAccountPage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [role, setRole] = useState(null);
+  const [form] = Form.useForm(); // Sử dụng form Ant Design
 
   const onFinishHandler = async (values) => {
     try {
@@ -40,7 +41,15 @@ const CreateAccountPage = () => {
   return (
     <Layout>
       <div className="p-4">
-        <Form layout="vertical" onFinish={onFinishHandler}>
+        <Form
+          layout="vertical"
+          onFinish={onFinishHandler}
+          form={form}
+          initialValues={{
+            role: "customer",
+            isBlocked: false,
+          }}
+        >
           <h3 className="text-center">THÊM TÀI KHOẢN</h3>
           <Form.Item
             label="Họ và tên"
