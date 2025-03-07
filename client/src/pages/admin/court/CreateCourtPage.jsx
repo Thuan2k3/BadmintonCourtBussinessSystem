@@ -49,7 +49,7 @@ const CreateCourtPage = () => {
       form.setFieldsValue({ image: imageUrl });
 
       // Lấy giá trị form sau khi cập nhật
-      const updatedValues = form.getFieldsValue();
+      const updatedValues = { ...form.getFieldsValue(), isEmpty: true };
       console.log("Giá trị form sau khi cập nhật:", updatedValues);
 
       // Kiểm tra lại `updatedValues.image` trước khi gửi API
@@ -126,22 +126,6 @@ const CreateCourtPage = () => {
                 form.setFieldsValue({ image: file.name });
               }}
             />
-          </Form.Item>
-
-          <Form.Item
-            label="Trạng thái sử dụng sân"
-            name="isEmpty"
-            rules={[
-              {
-                required: true,
-                message: "Vui lòng chọn trạng thái sử dụng sân!",
-              },
-            ]}
-          >
-            <Select>
-              <Select.Option value={true}>Trống</Select.Option>
-              <Select.Option value={false}>Có người</Select.Option>
-            </Select>
           </Form.Item>
 
           <Button
