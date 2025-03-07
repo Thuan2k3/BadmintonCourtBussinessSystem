@@ -45,7 +45,7 @@ const UpdateAccountPage = () => {
             phone: accountData.phone,
             address: accountData.address,
             role: accountData.role,
-            isBlocked: accountData.isBlocked ? "blocked" : "active",
+            isBlocked: accountData.isBlocked ? true : false,
           });
         }
 
