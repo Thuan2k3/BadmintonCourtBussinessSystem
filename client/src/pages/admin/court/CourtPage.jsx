@@ -46,7 +46,6 @@ const CourtPage = () => {
               <th>Giá</th>
               <th>Mô tả</th>
               <th>Hình ảnh</th>
-              <th>Trạng thái sử dụng sân</th>
               <th></th>
             </tr>
           </thead>
@@ -68,7 +67,6 @@ const CourtPage = () => {
                     }}
                   />
                 </td>
-                <td>{court.isEmpty ? "Trống" : "Có người"}</td>
                 <td>
                   <div className="d-flex justify-content-center gap-3">
                     <Link to={`/admin/court/update/${court._id}`}>
