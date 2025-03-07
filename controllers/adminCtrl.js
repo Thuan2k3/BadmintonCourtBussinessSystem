@@ -1235,7 +1235,7 @@ const getTimeSlotBooking = async (req, res) => {
   }
 };
 
-// Lấy tổng doanh thu theo ngày, tháng, năm
+//Lấy tổng doanh thu
 const getRevenueController = async (req, res) => {
   try {
     const { type, startDate, endDate } = req.query;
@@ -1263,48 +1263,19 @@ const getRevenueController = async (req, res) => {
       return res.status(400).json({ message: "Loại thống kê không hợp lệ" });
     }
 
-    // Truy vấn hóa đơn để tính tổng doanh thu và số sân đã thuê
+    // Truy vấn hóa đơn để tính tổng doanh thu
     const revenueData = await Invoice.aggregate([
       { $match: { createdAt: { $gte: start, $lte: end } } },
       {
         $group: {
           _id: groupBy,
           totalRevenue: { $sum: "$totalAmount" }, // Tổng doanh thu
-          totalCourtsRented: { $sum: 1 }, // Tổng số sân đã thuê (đếm số hóa đơn)
         },
       },
       { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } },
     ]);
 
-    // Truy vấn chi tiết hóa đơn để lấy tổng số lượng sản phẩm đã bán
-    const productData = await InvoiceDetail.aggregate([
-      {
-        $lookup: {
-          from: "invoices",
-          localField: "invoice",
-          foreignField: "_id",
-          as: "invoiceInfo",
-        },
-      },
-      { $unwind: "$invoiceInfo" },
-      {
-        $match: {
-          "invoiceInfo.createdAt": { $gte: start, $lte: end },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          totalProductsSold: { $sum: "$quantity" }, // Tổng số lượng sản phẩm đã bán
-        },
-      },
-    ]);
-
-    res.json({
-      revenueData,
-      totalProductsSold:
-        productData.length > 0 ? productData[0].totalProductsSold : 0,
-    });
+    res.json({ revenueData });
   } catch (error) {
     console.error("Lỗi khi lấy thống kê:", error);
     res.status(500).json({ message: "Lỗi server" });

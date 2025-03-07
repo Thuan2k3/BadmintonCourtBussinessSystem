@@ -83,7 +83,7 @@ const RevenueStatisticPage = () => {
   const chartData = revenueData.map((item) => ({
     date:
       type === "day"
-        ? `${item._id.day}/${item._id.month}`
+        ? `${item._id.day}/${item._id.month}/${item._id.year}`
         : type === "month"
         ? `${item._id.month}/${item._id.year}`
         : item._id.year,
@@ -94,8 +94,13 @@ const RevenueStatisticPage = () => {
     data: chartData,
     xField: "date",
     yField: "revenue",
-    label: { position: "middle" },
     color: "#1890ff",
+    xAxis: {
+      label: {
+        rotate: type === "day" ? -45 : 0, // Xoay khi theo ngày để tránh trùng
+        style: { fontSize: 12 },
+      },
+    },
   };
 
   const lineConfig = {
@@ -174,24 +179,6 @@ const RevenueStatisticPage = () => {
         </div>
 
         {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
-
-        {/* Hiển thị tổng số lượng sản phẩm đã bán và tổng số lượt thuê sân */}
-        <Row gutter={16} style={{ marginBottom: 16 }}>
-          <Col span={12}>
-            <Card>
-              <h5 className="text-center">
-                Tổng số sản phẩm đã bán: {totalProductsSold}
-              </h5>
-            </Card>
-          </Col>
-          <Col span={12}>
-            <Card>
-              <h5 className="text-center">
-                Tổng số lượt thuê sân: {totalCourtsRented}
-              </h5>
-            </Card>
-          </Col>
-        </Row>
 
         <Table
           columns={columns}
