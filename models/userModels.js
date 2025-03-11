@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
+    _id: mongoose.Schema.Types.ObjectId, // Giữ ID cố định cho bảng con
     full_name: {
       type: String,
       required: true,
@@ -29,20 +30,9 @@ const userSchema = new mongoose.Schema(
       required: true,
       default: "customer",
     },
-    isBlocked: { type: Boolean, default: false },
-
-    // 🔗 Tham chiếu đến bảng cụ thể theo vai trò
-    admin: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "admins",
-    },
-    employee: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "employees",
-    },
-    customer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "customers",
+    isBlocked: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

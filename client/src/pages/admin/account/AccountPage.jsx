@@ -54,9 +54,7 @@ const AccountPage = () => {
               <td>{account.phone}</td>
               <td>{account.address}</td>
               {role === "employee" && (
-                <td>
-                  {new Date(account.employee.hire_date).toLocaleDateString()}
-                </td>
+                <td>{new Date(account?.hire_date).toLocaleDateString()}</td>
               )}
               <td>{account.isBlocked ? "Bị khóa" : "Hoạt động"}</td>
               <td>

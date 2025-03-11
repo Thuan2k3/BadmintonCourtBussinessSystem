@@ -14,6 +14,7 @@ const path = require("path");
 const Invoice = require("../models/invoiceModel");
 const InvoiceDetail = require("../models/invoiceDetailModel");
 const moment = require("moment");
+const mongoose = require("mongoose");
 
 const getAllUsersController = async (req, res) => {
   try {
@@ -808,38 +809,77 @@ const deleteProductController = async (req, res) => {
 // 📌 Lấy danh sách tất cả tài khoản (có populate thông tin chi tiết)
 const getAllAccountController = async (req, res) => {
   try {
-    const users = await User.find()
-      .select("-password") // Ẩn mật khẩu
-      .populate("admin employee customer"); // Lấy thông tin từ bảng liên quan
+    // Lấy danh sách tất cả tài khoản từ `users`, ẩn mật khẩu
+    const users = await User.find().select("-password");
 
-    res.status(200).json({ success: true, data: users });
+    // Chia danh sách theo role
+    const admins = await Admin.find().select("-password");
+    const employees = await Employee.find().select("-password");
+    const customers = await Customer.find().select("-password");
+
+    // Kết hợp tất cả vào một danh sách duy nhất
+    const allAccounts = [...admins, ...employees, ...customers];
+
+    res.status(200).json({
+      success: true,
+      data: allAccounts,
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Lỗi server", error });
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server",
+      error: error.message,
+    });
   }
 };
 
 // 📌 Lấy thông tin một tài khoản (có populate thông tin chi tiết)
 const getAccountController = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id)
-      .select("-password") // Ẩn mật khẩu
-      .populate("admin employee customer"); // Lấy thông tin từ bảng liên quan
+    // Tìm user theo ID (ẩn mật khẩu)
+    const user = await User.findById(req.params.id).select("-password");
 
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Không tìm thấy tài khoản" });
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy tài khoản",
+      });
     }
 
-    res.status(200).json({ success: true, data: user });
+    let userDetails = null;
+
+    // Tìm thông tin chi tiết dựa trên vai trò
+    if (user.role === "admin") {
+      userDetails = await Admin.findById(req.params.id).select("-password");
+    } else if (user.role === "employee") {
+      userDetails = await Employee.findById(req.params.id).select("-password");
+    } else if (user.role === "customer") {
+      userDetails = await Customer.findById(req.params.id).select("-password");
+    }
+
+    // Nếu không có thông tin chi tiết trong bảng tương ứng
+    if (!userDetails) {
+      return res.status(404).json({
+        success: false,
+        message: `Không tìm thấy thông tin chi tiết cho ${user.role}`,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: userDetails,
+    });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, message: "Lỗi server", error });
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server",
+      error: error.message,
+    });
   }
 };
 
-// 📌 Tạo tài khoản mới
 const createAccountController = async (req, res) => {
   try {
     const {
@@ -852,6 +892,7 @@ const createAccountController = async (req, res) => {
       isBlocked,
       hire_date,
     } = req.body;
+    if (!role) role = "customer";
 
     if (!full_name || !email || !password || !phone || !address || !role) {
       return res
@@ -870,8 +911,9 @@ const createAccountController = async (req, res) => {
     // Mã hóa mật khẩu
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Tạo tài khoản mới trong bảng User
+    // Tạo user mới
     const newUser = new User({
+      _id: new mongoose.Types.ObjectId(),
       full_name,
       email,
       password: hashedPassword,
@@ -881,24 +923,22 @@ const createAccountController = async (req, res) => {
       isBlocked: isBlocked || false,
     });
 
-    await newUser.save();
-
     let reference;
     if (role === "admin") {
-      reference = await new Admin({ user: newUser._id }).save();
-      newUser.admin = reference._id;
+      reference = new Admin({ _id: newUser._id, ...newUser.toObject() });
     } else if (role === "employee") {
-      reference = await new Employee({
-        user: newUser._id,
+      reference = new Employee({
+        _id: newUser._id,
+        ...newUser.toObject(),
         hire_date: hire_date || Date.now(),
-      }).save();
-      newUser.employee = reference._id;
-    } else if (role === "customer") {
-      reference = await new Customer({ user: newUser._id }).save();
-      newUser.customer = reference._id;
+      });
+    } else {
+      reference = new Customer({ _id: newUser._id, ...newUser.toObject() });
     }
 
-    await newUser.save(); // Cập nhật ID tham chiếu vào user
+    // Lưu dữ liệu
+    await newUser.save();
+    await reference.save();
 
     res.status(201).json({
       success: true,
@@ -906,7 +946,7 @@ const createAccountController = async (req, res) => {
       user: newUser,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(500).json({ success: false, message: "Lỗi server", error });
   }
 };
@@ -921,14 +961,28 @@ const updateAccountController = async (req, res) => {
       address,
       role,
       isBlocked,
-      password,
       hire_date,
     } = req.body;
+    let { password } = req.body;
 
-    let updateData = { full_name, phone, address, role, isBlocked };
+    let updateData = { full_name, email, phone, address, role, isBlocked };
+
+    // Kiểm tra user có tồn tại không
+    let existingUser = await User.findById(id);
+    if (!existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: "Tài khoản không tồn tại!",
+      });
+    }
+    if (!password) {
+      password = existingUser.password;
+    }
+
+    const oldRole = existingUser.role;
 
     // Nếu có email mới, kiểm tra xem có bị trùng không
-    if (email) {
+    if (email && email !== existingUser.email) {
       const existingEmail = await User.findOne({ email });
       if (existingEmail && existingEmail._id.toString() !== id) {
         return res.status(400).json({
@@ -944,16 +998,8 @@ const updateAccountController = async (req, res) => {
       updateData.password = await bcrypt.hash(password, 10);
     }
 
-    // Kiểm tra user có tồn tại không
-    const existingUser = await User.findById(id);
-    if (!existingUser) {
-      return res.status(404).json({
-        success: false,
-        message: "Tài khoản không tồn tại!",
-      });
-    }
-
-    const oldRole = existingUser.role;
+    // Cập nhật thông tin trong bảng User
+    await User.findByIdAndUpdate(id, updateData, { new: true });
 
     // Nếu role thay đổi, kiểm tra trước khi cập nhật
     if (oldRole !== role) {
@@ -968,53 +1014,45 @@ const updateAccountController = async (req, res) => {
             "Không thể cập nhật vai trò vì tài khoản đã tồn tại trong hóa đơn!",
         });
       }
-    }
 
-    // Cập nhật thông tin user
-    const updatedUser = await User.findByIdAndUpdate(id, updateData, {
-      new: true,
-    });
+      // Xóa tài khoản cũ trước khi tạo mới
+      if (oldRole === "employee") await Employee.findByIdAndDelete(id);
+      if (oldRole === "admin") await Admin.findByIdAndDelete(id);
+      if (oldRole === "customer") await Customer.findByIdAndDelete(id);
 
-    if (!updatedUser) {
-      return res.status(500).json({
-        success: false,
-        message: "Cập nhật tài khoản thất bại!",
-      });
-    }
-
-    // Nếu role thay đổi, xóa thông tin cũ và cập nhật dữ liệu mới
-    if (oldRole !== role) {
-      await Promise.all([
-        oldRole === "employee" && Employee.findOneAndDelete({ user: id }),
-        oldRole === "admin" && Admin.findOneAndDelete({ user: id }),
-        oldRole === "customer" && Customer.findOneAndDelete({ user: id }),
-      ]);
-
+      // Đợi xóa xong rồi mới tạo mới
       if (role === "employee") {
-        await Employee.findOneAndUpdate(
-          { user: id },
-          { hire_date: hire_date || existingUser.hire_date || Date.now() },
-          { upsert: true, new: true }
-        );
+        await Employee.create({
+          _id: id,
+          ...updateData,
+          hire_date: hire_date || Date.now(),
+        });
       } else if (role === "admin") {
-        await Admin.findOneAndUpdate({ user: id }, {}, { upsert: true });
+        await Admin.create({ _id: id, ...updateData });
       } else if (role === "customer") {
-        await Customer.findOneAndUpdate({ user: id }, {}, { upsert: true });
+        await Customer.create({ _id: id, ...updateData });
       }
-    } else if (role === "employee" && hire_date) {
-      await Employee.findOneAndUpdate(
-        { user: id },
-        { hire_date: hire_date },
-        { new: true }
-      );
+    } else {
+      // Nếu role không đổi, cập nhật dữ liệu theo bảng tương ứng
+      if (role === "admin") {
+        await Admin.findByIdAndUpdate(id, updateData, { new: true });
+      } else if (role === "employee") {
+        await Employee.findByIdAndUpdate(
+          id,
+          { ...updateData, hire_date: hire_date || existingUser.hire_date },
+          { new: true }
+        );
+      } else {
+        await Customer.findByIdAndUpdate(id, updateData, { new: true });
+      }
     }
 
     res.status(200).json({
       success: true,
       message: "Cập nhật tài khoản thành công!",
-      user: updatedUser,
     });
   } catch (error) {
+    console.error(error); // Log lỗi chi tiết
     res.status(500).json({
       success: false,
       message: "Lỗi server",
@@ -1027,18 +1065,23 @@ const deleteAccountController = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Kiểm tra xem tài khoản có tồn tại không
-    const user = await User.findById(id);
-    if (!user) {
+    // Kiểm tra xem tài khoản có tồn tại không trong tất cả bảng
+    let existingUser = await User.findById(id);
+
+    if (!existingUser) {
       return res.status(404).json({
         success: false,
         message: "Tài khoản không tồn tại!",
       });
     }
 
-    // Kiểm tra xem tài khoản có tồn tại trong TimeSlotBooking hoặc Invoice không
+    const role = existingUser.role;
+
+    // Kiểm tra xem tài khoản có trong TimeSlotBooking hoặc Invoice không
     const isInTimeSlotBooking = await TimeSlotBooking.exists({ user: id });
-    const isInInvoice = await Invoice.exists({ user: id });
+    const isInInvoice = await Invoice.exists({
+      $or: [{ customer: id }, { employee: id }],
+    });
 
     if (isInTimeSlotBooking || isInInvoice) {
       return res.status(400).json({
@@ -1047,18 +1090,16 @@ const deleteAccountController = async (req, res) => {
       });
     }
 
-    // Xóa thông tin chi tiết dựa trên vai trò
-    if (user.employee) {
-      await Employee.findOneAndDelete({ user: id });
-    }
-    if (user.admin) {
-      await Admin.findOneAndDelete({ user: id });
-    }
-    if (user.customer) {
-      await Customer.findOneAndDelete({ user: id });
+    // Xóa tài khoản từ bảng tương ứng với role
+    if (role === "admin") {
+      await Admin.findByIdAndDelete(id);
+    } else if (role === "employee") {
+      await Employee.findByIdAndDelete(id);
+    } else if (role === "customer") {
+      await Customer.findByIdAndDelete(id);
     }
 
-    // Xóa tài khoản
+    // Xóa tài khoản trong bảng users
     await User.findByIdAndDelete(id);
 
     res.status(200).json({
