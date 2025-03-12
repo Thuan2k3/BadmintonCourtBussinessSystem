@@ -31,7 +31,7 @@ import InvoicePage from "./pages/employee/invoice/InvoicePage";
 import RevenueStatisticPage from "./pages/admin/revenueStatistic/RevenueStatisticPage";
 import InvoiceHistoryPage from "./pages/employee/invoice/InvoiceHistoryPage";
 import InvoiceDetailPage from "./pages/employee/invoice/InvoiceDetailPage";
-import ViewProductPage from "./pages/employee/product/ViewProductPage";
+import ViewProductPage from "./pages/customer/product/ViewProductPage";
 import GuestHomePage from "./pages/guest/GuestHomePage";
 import GuestViewProductPage from "./pages/guest/GuestViewProductPage";
 import GuestCourtBookingStatusPage from "./pages/guest/GuestCourtBookingStatusPage";
