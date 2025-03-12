@@ -71,11 +71,11 @@ export const adminMenu = [
   {
     name: "Xem thống kê doanh thu",
     path: "/admin/revenue",
-    icon: "fas fa-chart-bar",
+    icon: "fas fa-sack-dollar",
   },
   {
     name: "Xem dự đoán doanh thu",
     path: "/admin/revenue-prediction",
-    icon: "fas fa-chart-bar",
+    icon: "fas fa-chart-column",
   },
 ];
