@@ -954,15 +954,8 @@ const createAccountController = async (req, res) => {
 const updateAccountController = async (req, res) => {
   try {
     const { id } = req.params;
-    const {
-      full_name,
-      email,
-      phone,
-      address,
-      role,
-      isBlocked,
-      hire_date,
-    } = req.body;
+    const { full_name, email, phone, address, role, isBlocked, hire_date } =
+      req.body;
     let { password } = req.body;
 
     let updateData = { full_name, email, phone, address, role, isBlocked };
@@ -974,9 +967,6 @@ const updateAccountController = async (req, res) => {
         success: false,
         message: "Tài khoản không tồn tại!",
       });
-    }
-    if (!password) {
-      password = existingUser.password;
     }
 
     const oldRole = existingUser.role;
@@ -996,6 +986,8 @@ const updateAccountController = async (req, res) => {
     // Nếu có mật khẩu mới, mã hóa trước khi cập nhật
     if (password) {
       updateData.password = await bcrypt.hash(password, 10);
+    } else {
+      password = existingUser.password;
     }
 
     // Cập nhật thông tin trong bảng User
