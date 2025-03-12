@@ -10,6 +10,8 @@ import {
   Row,
   Col,
   Card,
+  Radio,
+  Checkbox,
 } from "antd";
 import { DollarCircleOutlined, DeleteOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -626,10 +628,11 @@ const InvoicePage = () => {
     }
   }, [orderItemsCourt]);
   // Khi thay đổi loại hóa đơn
-  const handleTypeChange = (value) => {
-    setType(value);
-    if (value === "product") {
-      setSelectedCourt(defaultCourt); // Nếu chọn mua sản phẩm thì reset sân
+  const handleTypeChange = (checkedValue) => {
+    if (type === checkedValue) {
+      setType("both"); // Nếu bấm vào cái đang chọn thì chuyển lại "both"
+    } else {
+      setType(checkedValue); // Chọn 1 cái thì thành cái đó
     }
   };
 
@@ -638,23 +641,27 @@ const InvoicePage = () => {
       <Title level={3} className="text-center">
         HÓA ĐƠN SÂN CẦU LÔNG
       </Title>
-      <div
-        style={{ marginLeft: "4vh", display: "flex", justifyContent: "center" }}
-      >
-        {/* Chọn loại hóa đơn */}
-        <label style={{ padding: "3px 3px 3px 3px" }}>
+      <div style={{ marginLeft: "4vh", display: "flex", justifyContent: "center" }}>
+        <label style={{ paddingRight: "10px" }}>
           <strong>Chọn loại hóa đơn:</strong>
         </label>
-        <Select
-          value={type}
-          onChange={handleTypeChange}
-          style={{ width: "40vh", padding: "3px 3px 3px 3px" }}
+        <Checkbox
+          checked={type === "rent"}
+          onChange={() => handleTypeChange("rent")}
         >
-          <Select.Option value="rent">Thuê sân</Select.Option>
-          <Select.Option value="product">Mua sản phẩm</Select.Option>
-          <Select.Option value="both">Thuê sân + Mua sản phẩm</Select.Option>
-        </Select>
+          Thuê sân
+        </Checkbox>
+        <Checkbox
+          checked={type === "product"}
+          onChange={() => handleTypeChange("product")}
+        >
+          Mua sản phẩm
+        </Checkbox>
+        <span style={{ marginLeft: "10px", fontWeight: "bold" }}>
+          Loại: {type}
+        </span>
       </div>
+
       <Row gutter={16} style={{ display: "flex", justifyContent: "center" }}>
         {(type === "rent" || type === "both") && (
           <Col span={12}>
