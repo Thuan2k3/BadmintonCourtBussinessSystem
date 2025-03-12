@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Row, Col, Spin, message } from "antd";
 import Layout from "../../../components/Layout";
-import BookingCourt from "../../../components/BookingCourt";
+import EmployeeBookingCourt from "../../../components/EmployeeBookingCourt";
 import axios from "axios";
 
 const EmployeeCourtBookingStatusPage = () => {
@@ -37,7 +37,7 @@ const EmployeeCourtBookingStatusPage = () => {
         <Row gutter={[16, 16]}>
           {courts.map((court) => (
             <Col span={12} key={court.id}>
-              <BookingCourt court={court} />
+              <EmployeeBookingCourt court={court} />
             </Col>
           ))}
         </Row>
