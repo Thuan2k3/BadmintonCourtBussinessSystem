@@ -641,7 +641,9 @@ const InvoicePage = () => {
       <Title level={3} className="text-center">
         HÓA ĐƠN SÂN CẦU LÔNG
       </Title>
-      <div style={{ marginLeft: "4vh", display: "flex", justifyContent: "center" }}>
+      <div
+        style={{ marginLeft: "4vh", display: "flex", justifyContent: "center" }}
+      >
         <label style={{ paddingRight: "10px" }}>
           <strong>Chọn loại hóa đơn:</strong>
         </label>
@@ -658,7 +660,12 @@ const InvoicePage = () => {
           Mua sản phẩm
         </Checkbox>
         <span style={{ marginLeft: "10px", fontWeight: "bold" }}>
-          Loại: {type}
+          Loại:{" "}
+          {type === "rent"
+            ? "Thuê sân"
+            : type === "product"
+            ? "Mua sản phẩm"
+            : "Thuê sân và mua sản phẩm"}
         </span>
       </div>
 

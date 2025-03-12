@@ -30,7 +30,7 @@ const HomePage = () => {
   return (
     <Layout>
       <div className="container mt-4">
-        <h2 id="courts" className="mt-4">
+        <h2 id="courts" className="mt-4 text-center">
           DANH SÁCH CÁC SÂN
         </h2>
         <Row gutter={[16, 16]}>
