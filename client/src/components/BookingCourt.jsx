@@ -296,7 +296,7 @@ const BookingCourt = ({ court }) => {
                         court.bookings[dayIndex].timeSlots[slotIndex]?.full_name
                       }{" "}
                       <br />
-                      {user.role === "admin" || user.role === "employee" ? (
+                      {user.role === "employee" ? (
                         <>
                           Email:{" "}
                           {court.bookings[dayIndex].timeSlots[slotIndex]?.email}
