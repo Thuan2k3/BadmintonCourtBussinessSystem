@@ -30,7 +30,7 @@ export const employeeMenu = [
   },
   {
     name: "Xem tình trạng đặt sân",
-    path: "/customer/court-booking-status",
+    path: "/employee/court-booking-status",
     icon: "fa-solid fa-calendar-days",
   },
   {

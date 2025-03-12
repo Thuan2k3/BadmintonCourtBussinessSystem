@@ -36,6 +36,7 @@ import GuestHomePage from "./pages/guest/GuestHomePage";
 import GuestViewProductPage from "./pages/guest/GuestViewProductPage";
 import GuestCourtBookingStatusPage from "./pages/guest/GuestCourtBookingStatusPage";
 import RevenuePredictionPage from "./pages/admin/revenuePrediction/RevenuePredictionPage";
+import EmployeeCourtBookingStatusPage from "./pages/employee/courtBookingStatus/EmployeeCourtBookingStatusPage";
 
 function App() {
   const { loading } = useSelector((state) => state.alerts);
@@ -171,6 +172,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CourtBookingStatusPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/court-booking-status"
+              element={
+                <ProtectedRoute>
+                  <EmployeeCourtBookingStatusPage />
                 </ProtectedRoute>
               }
             />
