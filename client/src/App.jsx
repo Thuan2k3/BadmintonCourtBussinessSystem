@@ -103,7 +103,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/court"
+              path="/employee/court"
               element={
                 <ProtectedRoute>
                   <CourtPage />
@@ -111,7 +111,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/court/create"
+              path="/employee/court/create"
               element={
                 <ProtectedRoute>
                   <CreateCourtPage />
@@ -119,7 +119,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/court/update/:id"
+              path="/employee/court/update/:id"
               element={
                 <ProtectedRoute>
                   <UpdateCourtPage />
@@ -127,7 +127,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/court/delete/:id"
+              path="/employee/court/delete/:id"
               element={
                 <ProtectedRoute>
                   <DeleteCourtPage />
@@ -167,7 +167,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/court-booking-status"
+              path="/customer/court-booking-status"
               element={
                 <ProtectedRoute>
                   <CourtBookingStatusPage />
@@ -175,7 +175,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/product-category"
+              path="/employee/product-category"
               element={
                 <ProtectedRoute>
                   <ProductCategoryPage />
@@ -183,7 +183,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/product-category/create"
+              path="/employee/product-category/create"
               element={
                 <ProtectedRoute>
                   <CreateProductCategoryPage />
@@ -191,7 +191,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/product-category/update/:id"
+              path="/employee/product-category/update/:id"
               element={
                 <ProtectedRoute>
                   <UpdateProductCategoryPage />
@@ -199,7 +199,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/product-category/delete/:id"
+              path="/employee/product-category/delete/:id"
               element={
                 <ProtectedRoute>
                   <DeleteProductCategoryPage />
@@ -207,7 +207,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/product"
+              path="/employee/product"
               element={
                 <ProtectedRoute>
                   <ProductPage />
@@ -215,7 +215,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/product/create"
+              path="/employee/product/create"
               element={
                 <ProtectedRoute>
                   <CreateProductPage />
@@ -223,7 +223,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/product/update/:id"
+              path="/employee/product/update/:id"
               element={
                 <ProtectedRoute>
                   <UpdateProductPage />
@@ -231,7 +231,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/product/delete/:id"
+              path="/employee/product/delete/:id"
               element={
                 <ProtectedRoute>
                   <DeleteProductPage />
@@ -271,7 +271,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/invoice"
+              path="/employee/invoice"
               element={
                 <ProtectedRoute>
                   <InvoicePage />
@@ -279,7 +279,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/invoice/history"
+              path="/employee/invoice/history"
               element={
                 <ProtectedRoute>
                   <InvoiceHistoryPage />
@@ -287,7 +287,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/invoice/detail/:id"
+              path="/employee/invoice/detail/:id"
               element={
                 <ProtectedRoute>
                   <InvoiceDetailPage />
@@ -295,7 +295,7 @@ function App() {
               }
             />
             <Route
-              path="/admin/invoice/print/:id"
+              path="/employee/invoice/print/:id"
               element={
                 <ProtectedRoute>
                   <InvoiceDetailPage />
