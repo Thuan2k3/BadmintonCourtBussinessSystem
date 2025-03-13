@@ -1153,6 +1153,7 @@ const createInvoiceController = async (req, res) => {
       checkInTime,
       checkOutTime,
       duration,
+      totalAmount,
     } = req.body;
 
     if (!employee) {
@@ -1160,8 +1161,6 @@ const createInvoiceController = async (req, res) => {
         .status(400)
         .json({ message: "Nhân viên không được để trống!" });
     }
-
-    let totalAmount = 0;
     const createdDetails = [];
 
     // Xử lý trường hợp mua sản phẩm
@@ -1174,7 +1173,6 @@ const createInvoiceController = async (req, res) => {
           quantity: detail.quantity,
         });
 
-        totalAmount += newDetail.priceAtTime * newDetail.quantity;
         await newDetail.save();
         createdDetails.push(newDetail._id);
       }
@@ -1187,10 +1185,6 @@ const createInvoiceController = async (req, res) => {
       if (!courtData) {
         return res.status(404).json({ message: "Sân không tồn tại!" });
       }
-
-      // Tính tiền thuê sân
-      courtPrice = courtData.price * (duration || 0);
-      totalAmount += courtPrice;
     }
 
     // Tạo hóa đơn

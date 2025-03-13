@@ -6,6 +6,8 @@ const {
   getAllProductController,
   getAllCourtController,
   getCourtsWithBookingsController,
+  createBookingWithCourtController,
+  cancelBookingWithCourtController,
 } = require("../controllers/userCtrl");
 const authMiddleware = require("../middlewares/authMiddleware");
 
@@ -24,6 +26,14 @@ router.post("/getUserData", authMiddleware, authController);
 
 //Route lay bookings tu court
 router.get("/bookings/court", getCourtsWithBookingsController);
+
+// Route tạo booking mới
+router.post("/bookings", authMiddleware, createBookingWithCourtController);
+router.delete(
+  "/bookings/:bookingId",
+  authMiddleware,
+  cancelBookingWithCourtController
+);
 
 // Lấy danh sách san
 router.get("/court", getAllCourtController);

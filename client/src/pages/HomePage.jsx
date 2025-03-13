@@ -69,11 +69,6 @@ const HomePage = () => {
                     <Text strong>Giá thuê mỗi giờ: </Text>
                     {court.price} VND
                   </Tag>
-                  {court.description && (
-                    <Tag color="green">
-                      <Text ellipsis>{court.description}</Text>
-                    </Tag>
-                  )}
                   <div style={{ marginTop: "10px" }}>
                     <Button type="primary" onClick={() => showModal(court)}>
                       Xem chi tiết

@@ -56,11 +56,14 @@ const InvoicePage = () => {
   const [users, setUsers] = useState([]);
   const getAllCourt = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/v1/employee/court", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const res = await axios.get(
+        "http://localhost:8080/api/v1/employee/court",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       if (res.data.success) {
         setCourts(res.data.data);
       }
@@ -346,7 +349,11 @@ const InvoicePage = () => {
       message.warning("Vui lòng chọn sản phẩm và số lượng hợp lệ!");
       return;
     }
-    if (type === "both" && selectedCourt.isEmpty === true) {
+    if (
+      type === "both" &&
+      selectedCourt.isEmpty === true &&
+      getTotalAmountForCourt(selectedCourt._id) === 0
+    ) {
       message.warning("Vui lòng chọn check in trước khi thêm sản phẩm");
       return;
     }

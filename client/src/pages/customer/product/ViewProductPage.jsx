@@ -15,14 +15,11 @@ const ViewProductPage = () => {
   // Lấy danh sách sản phẩm từ API
   const getAllProduct = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:8080/api/v1/admin/product",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const res = await axios.get("http://localhost:8080/api/v1/user/product", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
       if (res.data.success) {
         setProducts(res.data.data);
         const uniqueCategories = [
@@ -92,9 +89,9 @@ const ViewProductPage = () => {
                             </Text>
                           }
                           description={
-                              <Tag color="blue">
-                                <strong>Giá:</strong> {product.price} VND
-                              </Tag>
+                            <Tag color="blue">
+                              <strong>Giá:</strong> {product.price} VND
+                            </Tag>
                           }
                         />
                         <div style={{ marginTop: "10px" }}>

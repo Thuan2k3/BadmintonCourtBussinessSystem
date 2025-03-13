@@ -170,6 +170,146 @@ const getCourtsWithBookingsController = async (req, res) => {
   }
 };
 
+const createBookingWithCourtController = async (req, res) => {
+  try {
+    const { userId, courtId, date, timeSlot } = req.body;
+
+    if (!userId || !courtId || !date || !timeSlot) {
+      return res.status(400).json({ error: "Dữ liệu không hợp lệ!" });
+    }
+
+    const bookingDate = new Date(date);
+    const today = new Date();
+    today.setHours(7, 0, 0, 0);
+
+    if (bookingDate <= today) {
+      return res
+        .status(400)
+        .json({ error: "Bạn chỉ có thể đặt sân trước ít nhất 1 ngày." });
+    }
+
+    // Kiểm tra xem khung giờ này đã được đặt chưa
+    const existingTimeSlotBooking = await TimeSlotBooking.findOne({
+      court: courtId,
+      date: bookingDate,
+      time: timeSlot,
+    });
+
+    if (existingTimeSlotBooking) {
+      return res
+        .status(400)
+        .json({ error: `Khung giờ ${timeSlot} đã được đặt.` });
+    }
+
+    // Tìm booking đã tồn tại trong ngày đó
+    let booking = await Booking.findOne({ date: bookingDate });
+
+    // Nếu chưa có booking nào trong ngày, tạo mới
+    if (!booking) {
+      booking = new Booking({
+        date: bookingDate,
+        timeSlots: [],
+      });
+      await booking.save();
+    }
+
+    const timeSlotId = await TimeSlot.findOne({ time: timeSlot });
+
+    // Tạo TimeSlotBooking mới
+    const newTimeSlotBooking = new TimeSlotBooking({
+      user: userId,
+      court: courtId,
+      date: bookingDate,
+      time: timeSlot,
+      timeSlot: timeSlotId,
+      isBooked: true,
+      booking_id: booking._id,
+    });
+
+    await newTimeSlotBooking.save();
+
+    // Cập nhật timeSlots trong Booking
+    await Booking.findByIdAndUpdate(booking._id, {
+      $push: { timeSlots: newTimeSlotBooking._id },
+    });
+
+    // Thêm booking_id vào Court nếu chưa có
+    await Court.findByIdAndUpdate(courtId, {
+      $addToSet: { bookings: booking._id }, // Tránh thêm trùng booking_id
+    });
+
+    res.status(200).json({ success: true, message: "Đặt sân thành công!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Lỗi server" });
+  }
+};
+const cancelBookingWithCourtController = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const { timeSlotId } = req.body;
+
+    const today = new Date();
+    today.setHours(7, 0, 0, 0);
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ error: "Không tìm thấy đặt sân." });
+    }
+
+    const bookingDate = new Date(booking.date);
+    if (bookingDate <= today) {
+      return res
+        .status(400)
+        .json({ error: "Bạn chỉ có thể hủy sân trước ít nhất 1 ngày." });
+    }
+
+    // Xóa TimeSlotBooking
+    const deletedBooking = await TimeSlotBooking.findOneAndDelete({
+      _id: timeSlotId,
+    });
+
+    if (!deletedBooking) {
+      return res
+        .status(404)
+        .json({ error: "Không tìm thấy khung giờ đặt hoặc đã bị hủy." });
+    }
+
+    // Cập nhật Booking, xóa timeSlot khỏi danh sách
+    await Booking.findByIdAndUpdate(bookingId, {
+      $pull: { timeSlots: timeSlotId },
+    });
+
+    // Lấy lại danh sách timeSlots sau khi xóa
+    const updatedBooking = await Booking.findById(bookingId);
+
+    // Nếu mảng timeSlots trống, thì xóa booking
+    if (updatedBooking.timeSlots.length === 0) {
+      // Xóa Booking
+      await Booking.findByIdAndDelete(bookingId);
+
+      // Xóa booking khỏi danh sách bookings của sân
+      await Court.updateOne(
+        { bookings: bookingId },
+        { $pull: { bookings: bookingId } }
+      );
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "Hủy đặt sân thành công! Đã xóa booking vì không còn khung giờ nào.",
+      });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Hủy khung giờ thành công!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Lỗi server" });
+  }
+};
+
 //Product
 const getAllProductController = async (req, res) => {
   try {
@@ -209,4 +349,6 @@ module.exports = {
   getAllCourtController,
   getAllProductController,
   getCourtsWithBookingsController,
+  createBookingWithCourtController,
+  cancelBookingWithCourtController,
 };

@@ -4,12 +4,6 @@ import GuestLayout from "../../components/GuestLayout";
 import axios from "axios";
 import GuestBookingCourt from "../../components/GuestBookingCourt";
 
-const courts = [
-  { id: 1, name: "Sân 1", status: "Trống" },
-  { id: 2, name: "Sân 2", status: "Đã đặt" },
-  { id: 3, name: "Sân 3", status: "Trống" },
-];
-
 const GuestCourtBookingStatusPage = () => {
   const [courts, setCourts] = useState([]);
   const [loading, setLoading] = useState(true);

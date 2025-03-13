@@ -79,7 +79,7 @@ const BookingCourt = ({ court }) => {
       for (const slot of selectedSlots) {
         try {
           const response = await axios.post(
-            `http://localhost:8080/api/v1/admin/bookings`,
+            `http://localhost:8080/api/v1/user/bookings`,
             {
               userId: user?._id,
               courtId: slot.courtId,
@@ -140,7 +140,7 @@ const BookingCourt = ({ court }) => {
       for (const slot of selectedSlots) {
         try {
           const response = await axios.delete(
-            `http://localhost:8080/api/v1/admin/bookings/${slot.bookingId}`,
+            `http://localhost:8080/api/v1/user/bookings/${slot.bookingId}`,
             {
               data: { timeSlotId: slot.timeSlotId },
               headers: {
