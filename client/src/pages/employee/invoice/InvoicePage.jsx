@@ -78,7 +78,7 @@ const InvoicePage = () => {
   const getUsers = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/employee/account",
+        "http://localhost:8080/api/v1/employee/customer",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

@@ -834,6 +834,29 @@ const getAllAccountController = async (req, res) => {
   }
 };
 
+// 📌 Lấy danh sách tất cả tài khoản (có populate thông tin chi tiết)
+const getAllCustomerController = async (req, res) => {
+  try {
+    // Lấy danh sách tất cả tài khoản từ `users`, ẩn mật khẩu
+    const users = await User.find().select("-password");
+
+    // Chia danh sách theo role
+    const customers = await Customer.find().select("-password");
+
+    res.status(200).json({
+      success: true,
+      data: customers,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server",
+      error: error.message,
+    });
+  }
+};
+
 // 📌 Lấy thông tin một tài khoản (có populate thông tin chi tiết)
 const getAccountController = async (req, res) => {
   try {
@@ -1339,6 +1362,7 @@ module.exports = {
   updateProductController,
   deleteProductController,
   getAllAccountController,
+  getAllCustomerController,
   getAccountController,
   createAccountController,
   updateAccountController,

@@ -35,6 +35,7 @@ const {
   getInvoiceDetailController,
   getRevenueController,
   getTimeSlotBooking,
+  getAllCustomerController,
 } = require("../controllers/employeeCtrl");
 
 const router = express.Router();
@@ -134,6 +135,9 @@ router.delete("/product/:id", authMiddleware, deleteProductController);
 
 // Lấy danh sách tai khoan
 router.get("/account", authMiddleware, getAllAccountController);
+
+// Lấy danh sách khach hang
+router.get("/customer", authMiddleware, getAllCustomerController);
 
 // Lấy mot tai khoan
 router.get("/account/:id", authMiddleware, getAccountController);
