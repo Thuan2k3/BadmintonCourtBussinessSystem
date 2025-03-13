@@ -16,6 +16,7 @@ const CheckoutButton = ({
   setInvoiceTime,
   defaultCourt,
   setSelectedCourt,
+  type,
 }) => {
   const { user } = useSelector((state) => state.user);
   const handleCheckoutBill = async () => {
@@ -31,6 +32,23 @@ const CheckoutButton = ({
         `Sân ${selectedCourt.name} vẫn đang được sử dụng! Vui lòng check-out trước khi thanh toán.`
       );
       return;
+    }
+
+    if (type === "both") {
+      // Tìm sân đang được chọn trong orderItemsCourt
+      const selectedCourtData = orderItemsCourt.find(
+        (item) => item.court._id === selectedCourt._id
+      );
+
+      // Kiểm tra sân được chọn có sản phẩm không
+      const hasProducts = selectedCourtData?.products.length > 0;
+
+      if (!hasProducts) {
+        message.warning(
+          "Vui lòng chọn ít nhất một sản phẩm hoặc chọn loại thuê sân!"
+        );
+        return;
+      }
     }
 
     // ✅ Lọc danh sách order chỉ lấy dữ liệu của sân được chọn

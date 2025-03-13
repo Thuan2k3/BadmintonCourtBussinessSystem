@@ -737,6 +737,7 @@ const InvoicePage = () => {
               setInvoiceTime={setInvoiceTime}
               defaultCourt={defaultCourt}
               setSelectedCourt={setSelectedCourt}
+              type={type}
             />
             <Button type="primary" className="m-2">
               <Link
