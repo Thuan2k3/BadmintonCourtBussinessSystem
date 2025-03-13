@@ -12,7 +12,7 @@ export const customerMenu = [
   {
     name: "Xem Sản Phẩm",
     path: "/customer/product/view",
-    icon: "fa-solid fa-user-doctor",
+    icon: "fa-solid fa-store",
   },
 ];
 
