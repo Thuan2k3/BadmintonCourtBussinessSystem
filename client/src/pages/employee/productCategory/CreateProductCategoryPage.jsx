@@ -13,7 +13,7 @@ const CreateProductCategoryPage = () => {
     try {
       dispatch(showLoading());
       const res = await axios.post(
-        "http://localhost:8080/api/v1/admin/product-categories",
+        "http://localhost:8080/api/v1/employee/product-categories",
         { name: values.name }, // Lấy giá trị từ form
         {
           headers: {
@@ -24,7 +24,7 @@ const CreateProductCategoryPage = () => {
       dispatch(hideLoading());
       if (res.data.success) {
         message.success("Thêm danh mục sản phẩm thành công");
-        navigate("/admin/product-category");
+        navigate("/employee/product-category");
       } else {
         message.error(res.data.message);
       }
@@ -39,7 +39,13 @@ const CreateProductCategoryPage = () => {
       <div className="p-4">
         <Form layout="vertical" onFinish={onFinishHandler}>
           <h3 className="text-center">THÊM DANH MỤC SẢN PHẨM</h3>
-          <Form.Item label="Tên danh mục" name="name" rules={[{ required: true, message: "Vui lòng nhập tên loại sản phẩm" }]}>
+          <Form.Item
+            label="Tên danh mục"
+            name="name"
+            rules={[
+              { required: true, message: "Vui lòng nhập tên loại sản phẩm" },
+            ]}
+          >
             <Input />
           </Form.Item>
           <button className="btn btn-primary" type="submit">

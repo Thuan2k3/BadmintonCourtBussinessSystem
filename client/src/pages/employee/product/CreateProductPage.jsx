@@ -20,7 +20,7 @@ const CreateProductPage = () => {
   const getProductCategories = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/admin/product-categories",
+        "http://localhost:8080/api/v1/employee/product-categories",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -84,7 +84,7 @@ const CreateProductPage = () => {
 
       // Gửi API tạo sản phẩm
       const res = await axios.post(
-        "http://localhost:8080/api/v1/admin/product",
+        "http://localhost:8080/api/v1/employee/product",
         {
           ...updatedValues,
         },
@@ -100,7 +100,7 @@ const CreateProductPage = () => {
         message.success("Thêm sản phẩm thành công");
         form.resetFields();
         setSelectedFile(null);
-        navigate("/admin/product");
+        navigate("/employee/product");
       } else {
         message.error(res.data.message);
       }

@@ -23,7 +23,7 @@ const UpdateProductPage = () => {
   const getProductCategories = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/admin/product-categories",
+        "http://localhost:8080/api/v1/employee/product-categories",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -42,7 +42,7 @@ const UpdateProductPage = () => {
   const getProduct = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:8080/api/v1/admin/product/${id}`,
+        `http://localhost:8080/api/v1/employee/product/${id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -66,7 +66,7 @@ const UpdateProductPage = () => {
       }
 
       const resProduct = await axios.get(
-        `http://localhost:8080/api/v1/admin/product/${id}`,
+        `http://localhost:8080/api/v1/employee/product/${id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -84,7 +84,7 @@ const UpdateProductPage = () => {
         console.log("Giá trị form sau khi cập nhật:", updatedValues);
 
         const res = await axios.put(
-          `http://localhost:8080/api/v1/admin/product/${id}`,
+          `http://localhost:8080/api/v1/employee/product/${id}`,
           updatedValues,
           {
             headers: {
@@ -97,7 +97,7 @@ const UpdateProductPage = () => {
           message.success("Cập nhật sản phẩm thành công!");
           form.resetFields();
           setSelectedFile(null);
-          navigate("/admin/product");
+          navigate("/employee/product");
         } else {
           message.error(res.data.message);
         }
@@ -128,7 +128,7 @@ const UpdateProductPage = () => {
       console.log("URL ảnh sau khi upload:", imageUrl);
 
       // Cập nhật giá trị ảnh vào form
-      form.setFieldsValue({...values, image: imageUrl });
+      form.setFieldsValue({ ...values, image: imageUrl });
 
       // Lấy giá trị form sau khi cập nhật
       const updatedValues = form.getFieldsValue();
@@ -141,7 +141,7 @@ const UpdateProductPage = () => {
       }
 
       const res = await axios.put(
-        `http://localhost:8080/api/v1/admin/product/${id}`,
+        `http://localhost:8080/api/v1/employee/product/${id}`,
         updatedValues,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -152,7 +152,7 @@ const UpdateProductPage = () => {
         message.success("Cập nhật sản phẩm thành công!");
         form.resetFields();
         setSelectedFile(null);
-        navigate("/admin/product");
+        navigate("/employee/product");
       } else {
         message.error(res.data.message);
       }

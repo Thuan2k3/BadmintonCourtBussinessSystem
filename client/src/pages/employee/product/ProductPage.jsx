@@ -12,7 +12,7 @@ const ProductPage = () => {
   const getAllProduct = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/admin/product",
+        "http://localhost:8080/api/v1/employee/product",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -39,7 +39,7 @@ const ProductPage = () => {
       <div className="p-2">
         <h1 className="d-flex justify-content-center">QUẢN LÝ SẢN PHẨM</h1>
         <Link
-          to="/admin/product/create"
+          to="/employee/product/create"
           className="d-flex justify-content-end fs-1"
         >
           <MdOutlineAddBox></MdOutlineAddBox>
@@ -77,10 +77,10 @@ const ProductPage = () => {
                 </td>
                 <td>
                   <div className="d-flex justify-content-center gap-3">
-                    <Link to={`/admin/product/update/${product._id}`}>
+                    <Link to={`/employee/product/update/${product._id}`}>
                       <AiOutlineEdit className="fs-4 text-warning" />
                     </Link>
-                    <Link to={`/admin/product/delete/${product._id}`}>
+                    <Link to={`/employee/product/delete/${product._id}`}>
                       <MdOutlineDelete className="fs-4 text-danger" />
                     </Link>
                   </div>

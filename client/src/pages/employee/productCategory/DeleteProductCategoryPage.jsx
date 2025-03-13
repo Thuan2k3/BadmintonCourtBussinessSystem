@@ -15,7 +15,7 @@ const DeleteProductCategoryPage = () => {
     dispatch(showLoading()); // Hiển thị loading trước khi gọi API
     try {
       const res = await axios.delete(
-        `http://localhost:8080/api/v1/admin/product-categories/${id}`,
+        `http://localhost:8080/api/v1/employee/product-categories/${id}`,
         {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("token"),
@@ -25,7 +25,7 @@ const DeleteProductCategoryPage = () => {
       dispatch(hideLoading()); // Ẩn loading sau khi API trả về
       message.success("Xoá danh mục sản phẩm thành công");
       // Delay nhẹ để tránh lỗi UI khi chuyển trang quá nhanh
-      setTimeout(() => navigate("/admin/product-category"), 500);
+      setTimeout(() => navigate("/employee/product-category"), 500);
     } catch (error) {
       dispatch(hideLoading()); // Đảm bảo luôn ẩn loading nếu API lỗi
       console.error("Lỗi khi xoá danh mục sản phẩm:", error);
@@ -36,7 +36,7 @@ const DeleteProductCategoryPage = () => {
     }
   };
   const handleCancel = () => {
-    navigate("/admin/product-category");
+    navigate("/employee/product-category");
   };
   return (
     <Layout>

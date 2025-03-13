@@ -11,11 +11,14 @@ const CourtPage = () => {
   //getAllCourt
   const getAllCourt = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/v1/admin/court", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const res = await axios.get(
+        "http://localhost:8080/api/v1/employee/court",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       if (res.data.success) {
         setCourt(res.data.data);
       }
@@ -33,7 +36,7 @@ const CourtPage = () => {
       <div className="p-2">
         <h1 className="d-flex justify-content-center">QUẢN LÝ SÂN</h1>
         <Link
-          to="/admin/court/create"
+          to="/employee/court/create"
           className="d-flex justify-content-end fs-1"
         >
           <MdOutlineAddBox></MdOutlineAddBox>
@@ -69,10 +72,10 @@ const CourtPage = () => {
                 </td>
                 <td>
                   <div className="d-flex justify-content-center gap-3">
-                    <Link to={`/admin/court/update/${court._id}`}>
+                    <Link to={`/employee/court/update/${court._id}`}>
                       <AiOutlineEdit className="fs-4 text-warning" />
                     </Link>
-                    <Link to={`/admin/court/delete/${court._id}`}>
+                    <Link to={`/employee/court/delete/${court._id}`}>
                       <MdOutlineDelete className="fs-4 text-danger" />
                     </Link>
                   </div>

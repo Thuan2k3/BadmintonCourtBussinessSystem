@@ -12,7 +12,7 @@ const ProductCategoryPage = () => {
   const getProductCategories = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/admin/product-categories",
+        "http://localhost:8080/api/v1/employee/product-categories",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -38,7 +38,7 @@ const ProductCategoryPage = () => {
           QUẢN LÝ DANH MỤC SẢN PHẨM
         </h1>
         <Link
-          to="/admin/product-category/create"
+          to="/employee/product-category/create"
           className="d-flex justify-content-end fs-1"
         >
           <MdOutlineAddBox></MdOutlineAddBox>
@@ -62,12 +62,12 @@ const ProductCategoryPage = () => {
                 <td>
                   <div className="d-flex justify-content-center gap-3">
                     <Link
-                      to={`/admin/product-category/update/${productCategory._id}`}
+                      to={`/employee/product-category/update/${productCategory._id}`}
                     >
                       <AiOutlineEdit className="fs-4 text-warning" />
                     </Link>
                     <Link
-                      to={`/admin/product-category/delete/${productCategory._id}`}
+                      to={`/employee/product-category/delete/${productCategory._id}`}
                     >
                       <MdOutlineDelete className="fs-4 text-danger" />
                     </Link>

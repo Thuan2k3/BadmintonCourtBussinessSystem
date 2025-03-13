@@ -22,7 +22,7 @@ const UpdateCourtPage = () => {
   const getCourt = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:8080/api/v1/admin/court/${id}`,
+        `http://localhost:8080/api/v1/employee/court/${id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -46,7 +46,7 @@ const UpdateCourtPage = () => {
       }
 
       const resCourt = await axios.get(
-        `http://localhost:8080/api/v1/admin/court/${id}`,
+        `http://localhost:8080/api/v1/employee/court/${id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -66,7 +66,7 @@ const UpdateCourtPage = () => {
         console.log("Giá trị form sau khi cập nhật:", updatedValues);
 
         const res = await axios.put(
-          `http://localhost:8080/api/v1/admin/court/${id}`,
+          `http://localhost:8080/api/v1/employee/court/${id}`,
           updatedValues,
           {
             headers: {
@@ -79,7 +79,7 @@ const UpdateCourtPage = () => {
           message.success("Cập nhật sản phẩm thành công!");
           form.resetFields();
           setSelectedFile(null);
-          navigate("/admin/court");
+          navigate("/employee/court");
         } else {
           message.error(res.data.message);
         }
@@ -123,7 +123,7 @@ const UpdateCourtPage = () => {
       }
 
       const res = await axios.put(
-        `http://localhost:8080/api/v1/admin/court/${id}`,
+        `http://localhost:8080/api/v1/employee/court/${id}`,
         updatedValues,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -134,7 +134,7 @@ const UpdateCourtPage = () => {
         message.success("Cập nhật sản phẩm thành công!");
         form.resetFields();
         setSelectedFile(null);
-        navigate("/admin/court");
+        navigate("/employee/court");
       } else {
         message.error(res.data.message);
       }

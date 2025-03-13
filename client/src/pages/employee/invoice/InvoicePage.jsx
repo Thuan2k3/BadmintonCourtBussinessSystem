@@ -56,7 +56,7 @@ const InvoicePage = () => {
   const [users, setUsers] = useState([]);
   const getAllCourt = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/v1/admin/court", {
+      const res = await axios.get("http://localhost:8080/api/v1/employee/court", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -75,7 +75,7 @@ const InvoicePage = () => {
   const getUsers = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/admin/account",
+        "http://localhost:8080/api/v1/employee/account",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -97,7 +97,7 @@ const InvoicePage = () => {
   const getAllProduct = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:8080/api/v1/admin/product",
+        "http://localhost:8080/api/v1/employee/product",
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -733,7 +733,7 @@ const InvoicePage = () => {
             />
             <Button type="primary" className="m-2">
               <Link
-                to="/admin/invoice/history"
+                to="/employee/invoice/history"
                 style={{ textDecoration: "none" }}
               >
                 Xem lịch sử hóa đơn

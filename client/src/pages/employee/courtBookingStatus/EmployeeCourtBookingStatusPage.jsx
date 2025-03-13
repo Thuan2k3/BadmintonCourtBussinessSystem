@@ -11,7 +11,8 @@ const EmployeeCourtBookingStatusPage = () => {
   useEffect(() => {
     const fetchCourts = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/api/v1/admin/bookings/court",
+        const response = await axios.get(
+          "http://localhost:8080/api/v1/employee/bookings/court",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

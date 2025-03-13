@@ -60,7 +60,7 @@ const CreateCourtPage = () => {
 
       // Gửi API tạo sản phẩm
       const res = await axios.post(
-        "http://localhost:8080/api/v1/admin/court",
+        "http://localhost:8080/api/v1/employee/court",
         {
           ...updatedValues,
         },
@@ -76,7 +76,7 @@ const CreateCourtPage = () => {
         message.success("Thêm sân thành công");
         form.resetFields();
         setSelectedFile(null);
-        navigate("/admin/court");
+        navigate("/employee/court");
       } else {
         message.error(res.data.message);
       }

@@ -14,7 +14,7 @@ const InvoiceDetailPage = () => {
   const getInvoiceDetail = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:8080/api/v1/admin/invoice/${id}`,
+        `http://localhost:8080/api/v1/employee/invoice/${id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

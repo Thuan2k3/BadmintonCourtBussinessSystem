@@ -19,7 +19,7 @@ const InvoiceHistoryPage = () => {
       }
 
       const res = await axios.get(
-        `http://localhost:8080/api/v1/admin/invoice${query}`,
+        `http://localhost:8080/api/v1/employee/invoice${query}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -88,7 +88,7 @@ const InvoiceHistoryPage = () => {
                   <td>{invoice.totalAmount?.toLocaleString()} đ</td>
                   <td>
                     <Link
-                      to={`/admin/invoice/detail/${invoice._id}`}
+                      to={`/employee/invoice/detail/${invoice._id}`}
                     >
                       <BsInfoCircle size={20} />
                     </Link>

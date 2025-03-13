@@ -18,7 +18,7 @@ const UpdateProductCategoryPage = () => {
     try {
       dispatch(showLoading());
       const res = await axios.put(
-        `http://localhost:8080/api/v1/admin/product-categories/${id}`,
+        `http://localhost:8080/api/v1/employee/product-categories/${id}`,
         { name }, // Gửi dữ liệu từ state
         {
           headers: {
@@ -29,7 +29,7 @@ const UpdateProductCategoryPage = () => {
       dispatch(hideLoading());
       if (res.data.success) {
         message.success("Cập nhật danh mục thành công!");
-        navigate("/admin/product-category");
+        navigate("/employee/product-category");
       } else {
         message.error(res.data.message);
       }
@@ -43,7 +43,7 @@ const UpdateProductCategoryPage = () => {
   const getProductCategoryById = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:8080/api/v1/admin/product-categories/${id}`,
+        `http://localhost:8080/api/v1/employee/product-categories/${id}`,
         {
           headers: {
             Authorization: "Bearer " + localStorage.getItem("token"),
