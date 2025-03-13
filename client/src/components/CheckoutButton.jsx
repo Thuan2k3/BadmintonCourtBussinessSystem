@@ -1,9 +1,10 @@
-import { Button, message } from "antd";
+import { Button, message, Modal } from "antd";
 import { DollarCircleOutlined } from "@ant-design/icons";
 import { ref, remove } from "firebase/database";
 import { database } from "../firebaseConfig";
-import axios from "axios"; // Import axios
+import axios from "axios";
 import { useSelector } from "react-redux";
+import { useState } from "react";
 import moment from "moment";
 
 const CheckoutButton = ({
@@ -19,6 +20,8 @@ const CheckoutButton = ({
   type,
 }) => {
   const { user } = useSelector((state) => state.user);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const handleCheckoutBill = async () => {
     const newTotal = getTotalAmountForCourt(selectedCourt._id);
 
@@ -35,12 +38,10 @@ const CheckoutButton = ({
     }
 
     if (type === "both") {
-      // Tìm sân đang được chọn trong orderItemsCourt
       const selectedCourtData = orderItemsCourt.find(
         (item) => item.court._id === selectedCourt._id
       );
 
-      // Kiểm tra sân được chọn có sản phẩm không
       const hasProducts = selectedCourtData?.products.length > 0;
 
       if (!hasProducts) {
@@ -51,7 +52,6 @@ const CheckoutButton = ({
       }
     }
 
-    // ✅ Lọc danh sách order chỉ lấy dữ liệu của sân được chọn
     const selectedCourtOrders = orderItemsCourt.find(
       (item) => String(item.court?._id) === String(selectedCourt?._id)
     );
@@ -61,22 +61,17 @@ const CheckoutButton = ({
       return;
     }
 
-    // ✅ Duyệt qua danh sách `products` của sân được chọn
     const invoiceDetails = selectedCourtOrders.products.map((product) => ({
       product: product._id,
       priceAtTime: product.price,
       quantity: product.quantity || 1,
     }));
 
-    // Lọc danh sách order chỉ lấy dữ liệu của sân được chọn
     const filteredOrderItems = orderItemsCourt.filter(
       (item) => item.court?._id === selectedCourt?._id
     );
 
-    // Lấy thông tin check-in và check-out từ CourtInvoice
-    const courtInvoice = filteredOrderItems.find(
-      (item) => item.courtInvoice // Giả sử mỗi item có chứa thông tin invoice
-    );
+    const courtInvoice = filteredOrderItems.find((item) => item.courtInvoice);
 
     const checkInTime = courtInvoice?.courtInvoice?.checkInTime || null;
     const checkOutTime = courtInvoice?.courtInvoice?.checkOutTime || null;
@@ -85,7 +80,6 @@ const CheckoutButton = ({
       return moment(dateString, "HH:mm:ss D/M/YYYY").toISOString();
     };
 
-    //Tính tổng số giờ (ít nhất là 1 giờ) và cho phép khách ra trễ không quá 5 phút
     const duration = (() => {
       const durationMinutes =
         (new Date(checkOutTime) - new Date(checkInTime)) / (1000 * 60);
@@ -108,12 +102,8 @@ const CheckoutButton = ({
       invoiceDetails,
     };
 
-    console.log(invoiceData);
-
-    console.log("📜 Hóa đơn gửi lên:", invoiceData); // Debug dữ liệu gửi API
-
     try {
-      const response = await axios.post(
+      await axios.post(
         "http://localhost:8080/api/v1/employee/invoice",
         invoiceData,
         {
@@ -127,7 +117,6 @@ const CheckoutButton = ({
         `Hóa đơn đã lưu! Tổng tiền: ${newTotal.toLocaleString()} VND`
       );
 
-      // ✅ Xóa dữ liệu của sân đã thanh toán
       let updatedOrderItemsCourt = orderItemsCourt.filter(
         (item) => item.court?._id !== selectedCourt?._id
       );
@@ -156,14 +145,35 @@ const CheckoutButton = ({
     }
   };
 
+  const showConfirmModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleConfirmCheckout = async () => {
+    setIsModalOpen(false);
+    await handleCheckoutBill();
+  };
+
   return (
-    <Button
-      type="primary"
-      icon={<DollarCircleOutlined />}
-      onClick={handleCheckoutBill}
-    >
-      Thanh toán
-    </Button>
+    <>
+      <Button
+        type="primary"
+        icon={<DollarCircleOutlined />}
+        onClick={showConfirmModal}
+      >
+        Thanh toán
+      </Button>
+      <Modal
+        title="Xác nhận thanh toán"
+        open={isModalOpen}
+        onOk={handleConfirmCheckout}
+        onCancel={() => setIsModalOpen(false)}
+        okText="Xác nhận"
+        cancelText="Hủy"
+      >
+        <p>Bạn có chắc chắn muốn thanh toán không?</p>
+      </Modal>
+    </>
   );
 };
 
