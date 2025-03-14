@@ -12,6 +12,7 @@ const fs = require("fs");
 const path = require("path");
 const Invoice = require("../models/invoiceModel");
 const InvoiceDetail = require("../models/invoiceDetailModel");
+const Customer = require("../models/customerModel");
 const moment = require("moment");
 
 //register callback
@@ -52,6 +53,17 @@ const loginController = async (req, res) => {
       return res
         .status(200)
         .send({ message: "Tài khoản của bạn đã bị khóa!", success: false });
+    }
+    if (user.role === "customer") {
+      const customer = await Customer.findOne({ email: req.body.email });
+      if (customer.reputation_score < 10) {
+        return res
+          .status(200)
+          .send({
+            message: "Bạn không thể đăng nhập vì điểm uy tín thấp!",
+            success: false,
+          });
+      }
     }
 
     const isMath = await bcrypt.compare(req.body.password, user.password);
