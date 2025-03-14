@@ -6,3 +6,4 @@ cron.schedule("0 1 * * *", async () => {
   console.log("🔔 Đang kiểm tra và cập nhật trạng thái no-show...");
   await updateNoShowAndReputation();
 });
+updateNoShowAndReputation();
