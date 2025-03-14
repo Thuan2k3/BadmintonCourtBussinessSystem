@@ -102,7 +102,7 @@ const CustomerSelector = ({
 
       try {
         const response = await axios.get(
-          `http://localhost:8080/api/v1/admin/court/${selectedCourt._id}/${date}/${time}`,
+          `http://localhost:8080/api/v1/employee/court/${selectedCourt._id}/${date}/${time}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
