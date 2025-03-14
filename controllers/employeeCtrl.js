@@ -15,6 +15,7 @@ const Invoice = require("../models/invoiceModel");
 const InvoiceDetail = require("../models/invoiceDetailModel");
 const moment = require("moment");
 const mongoose = require("mongoose");
+const updateNoShowAndReputation = require("../utils/updateNoShow");
 
 const getAllUsersController = async (req, res) => {
   try {
@@ -1175,7 +1176,6 @@ const createInvoiceController = async (req, res) => {
       invoiceDetails,
       checkInTime,
       checkOutTime,
-      duration,
       totalAmount,
     } = req.body;
 
@@ -1184,6 +1184,7 @@ const createInvoiceController = async (req, res) => {
         .status(400)
         .json({ message: "Nhân viên không được để trống!" });
     }
+
     const createdDetails = [];
 
     // Xử lý trường hợp mua sản phẩm
@@ -1202,7 +1203,6 @@ const createInvoiceController = async (req, res) => {
     }
 
     // Xử lý trường hợp thuê sân
-    let courtPrice = 0;
     if (court) {
       const courtData = await Court.findById(court);
       if (!courtData) {
@@ -1210,7 +1210,7 @@ const createInvoiceController = async (req, res) => {
       }
     }
 
-    // Tạo hóa đơn
+    // Tạo hóa đơn mới
     const newInvoice = new Invoice({
       customer: customer || null,
       employee,
@@ -1228,6 +1228,68 @@ const createInvoiceController = async (req, res) => {
       { _id: { $in: createdDetails } },
       { $set: { invoice: newInvoice._id } }
     );
+
+    // ✅ Hàm làm tròn giờ
+    const roundDownHour = (date) =>
+      `${String(Math.floor(new Date(date).getHours())).padStart(2, "0")}:00`;
+    const roundUpHour = (date) =>
+      `${String(Math.ceil(new Date(date).getHours())).padStart(2, "0")}:00`;
+
+    // ✅ Kiểm tra và cập nhật trạng thái completed
+    if (customer && court && checkInTime && checkOutTime) {
+      // Làm tròn giờ check-in xuống, check-out lên
+      const checkInHour = parseInt(
+        roundDownHour(checkInTime).split(":")[0],
+        10
+      );
+      const checkOutHour = parseInt(
+        roundUpHour(checkOutTime).split(":")[0],
+        10
+      );
+
+      console.log(checkInTime);
+      const now = new Date(); // Khai báo biến now
+      const vietnamOffset = 7 * 60 * 60 * 1000; // +7 giờ (theo mili giây)
+      const bookingDate = new Date(now.getTime() + vietnamOffset);
+      bookingDate.setUTCHours(0, 0, 0, 0);
+      console.log(bookingDate);
+
+      // Lặp qua từng khung giờ từ check-in đến check-out (đã làm tròn)
+      for (let hour = checkInHour; hour <= checkOutHour; hour++) {
+        const timeSlot = `${String(hour).padStart(2, "0")}:00`;
+
+        const booking = await TimeSlotBooking.findOne({
+          user: customer,
+          court: court,
+          date: bookingDate, // So sánh đúng ngày
+          time: timeSlot,
+          status: "pending",
+        });
+        console.log(booking);
+        console.log(bookingDate);
+
+        if (booking) {
+          // ✅ Cập nhật trạng thái thành completed
+          booking.status = "completed";
+          await booking.save();
+
+          // ✅ Cộng 5 điểm uy tín cho mỗi khung giờ nếu chưa đạt 100
+          const customerData = await Customer.findById(customer);
+          if (customerData && customerData.reputation_score < 100) {
+            const newReputation = Math.min(
+              customerData.reputation_score + 5,
+              100
+            );
+            customerData.reputation_score = newReputation;
+            await customerData.save();
+
+            console.log(
+              `🎉 Đã cộng 5 điểm uy tín cho khách: ${customerData.full_name} tại khung giờ ${timeSlot}`
+            );
+          }
+        }
+      }
+    }
 
     res.status(201).json({
       message: "Hóa đơn được tạo thành công!",

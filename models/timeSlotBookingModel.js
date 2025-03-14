@@ -34,6 +34,11 @@ const timeSlotBookingSchema = new mongoose.Schema({
     required: true,
     default: true,
   },
+  status: {
+    type: String,
+    enum: ["pending", "no-show", "completed"],
+    default: "pending", // Trạng thái đặt sân
+  },
 });
 
 const TimeSlotBooking = mongoose.model(

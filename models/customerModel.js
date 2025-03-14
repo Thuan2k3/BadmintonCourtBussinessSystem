@@ -32,6 +32,12 @@ const customerSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    reputation_score: {
+      type: Number,
+      default: 100,
+      min: 0,
+      max: 100, // Giới hạn tối đa là 100 điểm
+    }, // Điểm uy tín
   },
   { timestamps: true }
 );
