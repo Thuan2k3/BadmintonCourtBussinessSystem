@@ -6,6 +6,7 @@ import axios from "axios";
 
 const ReputationPage = () => {
   const [accounts, setAccounts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Lấy danh sách chỉ chứa khách hàng
   const getAccounts = async () => {
@@ -17,12 +18,10 @@ const ReputationPage = () => {
         }
       );
       if (res.data.success) {
-        // Lọc chỉ lấy khách hàng
         const customers = res.data.data.filter(
           (acc) => acc.role === "customer"
         );
         setAccounts(customers);
-        console.log(res.data);
       }
     } catch (error) {
       console.log(error);
@@ -33,10 +32,35 @@ const ReputationPage = () => {
     getAccounts();
   }, []);
 
+  // Hàm loại bỏ dấu tiếng Việt
+  const convertToUnsigned = (str) => {
+    return str
+      .normalize("NFD") // Tách ký tự có dấu thành ký tự gốc + dấu
+      .replace(/[\u0300-\u036f]/g, "") // Xóa các dấu
+      .toLowerCase(); // Chuyển thành chữ thường
+  };
+
+  // Lọc khách hàng theo tên (không phân biệt dấu)
+  const filteredAccounts = accounts.filter((account) =>
+    convertToUnsigned(account.full_name).includes(convertToUnsigned(searchTerm))
+  );
+
   return (
     <Layout>
       <div className="p-2">
         <h1 className="d-flex justify-content-center">QUẢN LÝ ĐIỂM UY TÍN</h1>
+
+        {/* Ô tìm kiếm */}
+        <div className="mb-3">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Nhập tên khách hàng..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
         <table className="table table-bordered table-hover">
           <thead className="table-dark text-center">
             <tr>
@@ -51,7 +75,7 @@ const ReputationPage = () => {
             </tr>
           </thead>
           <tbody>
-            {accounts.map((account, index) => (
+            {filteredAccounts.map((account, index) => (
               <tr key={account._id} className="align-middle text-center">
                 <td>{index + 1}</td>
                 <td>{account.full_name}</td>
@@ -69,6 +93,14 @@ const ReputationPage = () => {
                 </td>
               </tr>
             ))}
+            {/* Hiển thị nếu không tìm thấy khách hàng nào */}
+            {filteredAccounts.length === 0 && (
+              <tr>
+                <td colSpan="8" className="text-center text-danger">
+                  Không tìm thấy khách hàng nào.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

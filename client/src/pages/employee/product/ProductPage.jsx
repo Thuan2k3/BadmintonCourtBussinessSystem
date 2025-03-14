@@ -2,14 +2,15 @@ import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
 import { Link } from "react-router-dom";
 import { AiOutlineEdit } from "react-icons/ai";
-import { BsInfoCircle } from "react-icons/bs";
 import { MdOutlineAddBox, MdOutlineDelete } from "react-icons/md";
 import axios from "axios";
 
 const ProductPage = () => {
-  const [product, setProduct] = useState([]);
-  //getAllProduct
-  const getAllProduct = async () => {
+  const [products, setProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Lấy danh sách sản phẩm từ API
+  const getAllProducts = async () => {
     try {
       const res = await axios.get(
         "http://localhost:8080/api/v1/employee/product",
@@ -20,7 +21,7 @@ const ProductPage = () => {
         }
       );
       if (res.data.success) {
-        setProduct(res.data.data);
+        setProducts(res.data.data);
       }
     } catch (error) {
       console.log(error);
@@ -28,22 +29,45 @@ const ProductPage = () => {
   };
 
   useEffect(() => {
-    getAllProduct();
+    getAllProducts();
   }, []);
-  useEffect(() => {
-    console.log(product);
-  }, [product]);
+
+  // Hàm loại bỏ dấu tiếng Việt
+  const convertToUnsigned = (str) => {
+    return str
+      .normalize("NFD") // Tách các ký tự có dấu thành ký tự gốc + dấu
+      .replace(/[\u0300-\u036f]/g, "") // Xóa các dấu
+      .toLowerCase(); // Chuyển thành chữ thường
+  };
+
+  // Lọc sản phẩm theo tên (không phân biệt dấu)
+  const filteredProducts = products.filter((product) =>
+    convertToUnsigned(product.name).includes(convertToUnsigned(searchTerm))
+  );
 
   return (
     <Layout>
       <div className="p-2">
         <h1 className="d-flex justify-content-center">QUẢN LÝ SẢN PHẨM</h1>
+
+        {/* Ô tìm kiếm */}
+        <div className="mb-3">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Nhập tên sản phẩm..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
         <Link
           to="/employee/product/create"
           className="d-flex justify-content-end fs-1"
         >
-          <MdOutlineAddBox></MdOutlineAddBox>
+          <MdOutlineAddBox />
         </Link>
+
         <table className="table table-bordered table-hover">
           <thead className="table-dark text-center">
             <tr>
@@ -53,11 +77,11 @@ const ProductPage = () => {
               <th>Giá</th>
               <th>Mô tả</th>
               <th>Hình ảnh</th>
-              <th></th>
+              <th>Hành động</th>
             </tr>
           </thead>
           <tbody>
-            {product.map((product, index) => (
+            {filteredProducts.map((product, index) => (
               <tr key={product._id} className="align-middle text-center">
                 <td>{index + 1}</td>
                 <td>{product.name}</td>
@@ -87,6 +111,15 @@ const ProductPage = () => {
                 </td>
               </tr>
             ))}
+
+            {/* Hiển thị nếu không có sản phẩm nào */}
+            {filteredProducts.length === 0 && (
+              <tr>
+                <td colSpan="7" className="text-center text-danger">
+                  Không tìm thấy sản phẩm nào.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
