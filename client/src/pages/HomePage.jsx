@@ -1,14 +1,37 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Layout from "../components/Layout";
-import { Row, Col, Card, Tag, Modal, Button } from "antd";
+import { Row, Col, Card, Tag, Modal, Button, message } from "antd";
 import { Typography } from "antd";
+import { useSelector } from "react-redux";
 const { Text } = Typography;
 
 const HomePage = () => {
   const [courts, setCourts] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false); // Trạng thái hiển thị modal
   const [currentCourt, setCurrentCourt] = useState(null); // Lưu thông tin sân hiện tại
+  const { user } = useSelector((state) => state.user);
+
+  const [customer, setCustomer] = useState();
+
+  const getCustomerById = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:8080/api/v1/admin/customer/${user._id}`,
+        {
+          headers: { Authorization: "Bearer " + localStorage.getItem("token") },
+        }
+      );
+
+      if (res.data.success) {
+        setCustomer(res.data.data);
+      } else {
+        message.error(res.data.message);
+      }
+    } catch (error) {
+      message.error("Lỗi khi lấy thông tin khách hàng!");
+    }
+  };
 
   // Hàm lấy tất cả các sân
   const getAllCourt = async () => {
@@ -41,12 +64,36 @@ const HomePage = () => {
   // Gọi API lấy danh sách sân khi component được render
   useEffect(() => {
     getAllCourt();
+    if (user?.role === "customer") {
+      getCustomerById();
+    }
   }, []);
 
   return (
     <Layout>
       <div className="container mt-4">
         <div className="container-fluid bg-light min-vh-100 p-4">
+          {customer && (
+            <div className="mt-3 text-end">
+              <h5>
+                Điểm uy tín của khách hàng:{" "}
+                <span>
+                  <span
+                    className={`badge ${
+                      customer.reputation_score > 70
+                        ? "bg-success"
+                        : customer.reputation_score > 40
+                        ? "bg-warning"
+                        : "bg-danger"
+                    }`}
+                  >
+                    {customer.reputation_score}
+                  </span>
+                </span>
+              </h5>
+            </div>
+          )}
+
           <h2 id="courts" className="mt-4 text-center">
             DANH SÁCH CÁC SÂN
           </h2>
