@@ -69,6 +69,11 @@ export const adminMenu = [
     icon: "fas fa-users",
   },
   {
+    name: "Quản lý điểm uy tín khách hàng",
+    path: "/admin/reputation",
+    icon: "fas fa-users",
+  },
+  {
     name: "Xem thống kê doanh thu",
     path: "/admin/revenue",
     icon: "fas fa-sack-dollar",

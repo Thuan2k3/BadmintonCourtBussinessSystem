@@ -35,6 +35,9 @@ const {
   getInvoiceDetailController,
   getRevenueController,
   getTimeSlotBooking,
+  getAllCustomerController,
+  getCustomerController,
+  updateReputationController,
 } = require("../controllers/adminCtrl");
 
 const router = express.Router();
@@ -146,6 +149,14 @@ router.put("/account/:id", authMiddleware, updateAccountController);
 
 //Xoa tai khoan
 router.delete("/account/:id", authMiddleware, deleteAccountController);
+// Lấy danh sách khách hàng
+router.get("/customer", authMiddleware, getAllCustomerController);
+
+// Lấy mot khách hàng
+router.get("/customer/:id", authMiddleware, getCustomerController);
+
+// Cập nhật điểm uy tin khách hàng
+router.put("/reputation/:id", authMiddleware, updateReputationController);
 
 // Lấy danh sách hóa đơn
 router.get("/invoice", authMiddleware, getAllInvoicesController);

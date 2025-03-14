@@ -37,6 +37,8 @@ import GuestViewProductPage from "./pages/guest/GuestViewProductPage";
 import GuestCourtBookingStatusPage from "./pages/guest/GuestCourtBookingStatusPage";
 import RevenuePredictionPage from "./pages/admin/revenuePrediction/RevenuePredictionPage";
 import EmployeeCourtBookingStatusPage from "./pages/employee/courtBookingStatus/EmployeeCourtBookingStatusPage";
+import ReputationPage from "./pages/admin/reputation/ReputationPage";
+import UpdateReputationPage from "./pages/admin/reputation/UpdateReputationPage";
 
 function App() {
   const { loading } = useSelector((state) => state.alerts);
@@ -276,6 +278,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DeleteAccountPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/reputation"
+              element={
+                <ProtectedRoute>
+                  <ReputationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/reputation/update/:id"
+              element={
+                <ProtectedRoute>
+                  <UpdateReputationPage />
                 </ProtectedRoute>
               }
             />
