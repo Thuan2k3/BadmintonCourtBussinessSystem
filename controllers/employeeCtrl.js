@@ -1266,15 +1266,21 @@ const getInvoiceDetailController = async (req, res) => {
   }
 };
 
+const formatTime = (time) => {
+  const [hours, minutes] = time.split(":");
+  return `${hours.padStart(2, "0")}:${minutes.padStart(2, "0")}`;
+};
+
 const getTimeSlotBooking = async (req, res) => {
   try {
     const { courtId, date, time } = req.params;
     const selectedDate = new Date(date);
+    const normalizedTime = formatTime(time);
 
     const booking = await TimeSlotBooking.findOne({
       court: courtId,
       date: selectedDate,
-      time: time, // Lọc theo giờ
+      time: normalizedTime, // Lọc theo giờ
       isBooked: true,
     }).populate("user");
 
