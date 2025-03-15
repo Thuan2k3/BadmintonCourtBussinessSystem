@@ -69,7 +69,7 @@ export const adminMenu = [
     icon: "fas fa-users",
   },
   {
-    name: "Quản lý điểm uy tín khách hàng",
+    name: "Xem điểm uy tín khách hàng",
     path: "/admin/reputation",
     icon: "fas fa-star",
   },
