@@ -19,6 +19,9 @@ const formatDate = (date) => {
 };
 
 const GuestBookingCourt = ({ court }) => {
+  // Xác định nếu là mobile (dưới 768px)
+  const isMobile = window.innerWidth <= 768;
+
   return (
     <Card
       title={<h2 style={{ color: "#096dd9" }}>{court.name}</h2>}
@@ -29,58 +32,85 @@ const GuestBookingCourt = ({ court }) => {
         boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
       }}
     >
-      {/* Header: Hiển thị 7 ngày */}
-      <Row style={{ marginBottom: "12px" }} className="text-center">
-        <Col span={3}>
-          <strong>Giờ</strong>
-        </Col>
-        {court.bookings.map((day, dayIndex) => {
-          const { dayMonth, year } = formatDate(day.date);
-          return (
-            <Col key={dayIndex} span={3} style={{ textAlign: "center" }}>
-              <div>{getDayOfWeek(day.date)}</div>
-              <div style={{ fontSize: "12px", color: "#595959" }}>
-                {dayMonth}
-              </div>
-              <div style={{ fontSize: "12px", color: "#8c8c8c" }}>{year}</div>
-            </Col>
-          );
-        })}
-      </Row>
-
-      {/* Body: Hiển thị giờ và trạng thái */}
-      {court.bookings[0]?.timeSlots.map((slot, slotIndex) => (
+      {/* Container cuộn ngang cho mobile */}
+      <div style={isMobile ? { overflowX: "auto", whiteSpace: "nowrap" } : {}}>
+        {/* Header: Hiển thị 7 ngày */}
         <Row
-          key={slotIndex}
-          style={{ marginBottom: "8px", alignItems: "center" }}
+          style={{
+            marginBottom: "12px",
+            textAlign: "center",
+            flexWrap: isMobile ? "nowrap" : "wrap",
+          }}
         >
-          {/* Cột giờ */}
-          <Col span={3} style={{ textAlign: "center", fontWeight: "500" }}>
-            {slot.time}
+          <Col span={3} style={{ minWidth: "35px" }}>
+            <strong>Giờ</strong>
           </Col>
-
-          {/* Các cột trạng thái */}
-          {court.bookings.map((day, dayIndex) => (
-            <Col key={dayIndex} span={3} style={{ textAlign: "center" }}>
-              <Tooltip
-                title={
-                  day.timeSlots[slotIndex].isBooked ? "Đã đặt" : "Chưa đặt"
-                }
+          {court.bookings.map((day, dayIndex) => {
+            const { dayMonth } = formatDate(day.date); // Bỏ year
+            return (
+              <Col
+                key={dayIndex}
+                span={3}
+                style={{ textAlign: "center", minWidth: "35px" }}
               >
-                {day.timeSlots[slotIndex].isBooked ? (
-                  <CheckOutlined
-                    style={{ color: "#52c41a", fontSize: "20px" }}
-                  />
-                ) : (
-                  <CloseOutlined
-                    style={{ color: "#f5222d", fontSize: "20px" }}
-                  />
-                )}
-              </Tooltip>
-            </Col>
-          ))}
+                <div>{getDayOfWeek(day.date)}</div>
+                <div style={{ fontSize: "12px", color: "#595959" }}>
+                  {dayMonth}
+                </div>
+              </Col>
+            );
+          })}
         </Row>
-      ))}
+
+        {/* Body: Hiển thị giờ và trạng thái */}
+        {court.bookings[0]?.timeSlots.map((slot, slotIndex) => (
+          <Row
+            key={slotIndex}
+            style={{
+              marginBottom: "8px",
+              alignItems: "center",
+              flexWrap: isMobile ? "nowrap" : "wrap",
+            }}
+          >
+            {/* Cột giờ */}
+            <Col
+              span={3}
+              style={{
+                textAlign: "center",
+                fontWeight: "500",
+                minWidth: "35px",
+              }}
+            >
+              {slot.time}
+            </Col>
+
+            {/* Các cột trạng thái */}
+            {court.bookings.map((day, dayIndex) => (
+              <Col
+                key={dayIndex}
+                span={3}
+                style={{ textAlign: "center", minWidth: "35px" }}
+              >
+                <Tooltip
+                  title={
+                    day.timeSlots[slotIndex].isBooked ? "Đã đặt" : "Chưa đặt"
+                  }
+                >
+                  {day.timeSlots[slotIndex].isBooked ? (
+                    <CheckOutlined
+                      style={{ color: "#52c41a", fontSize: "20px" }}
+                    />
+                  ) : (
+                    <CloseOutlined
+                      style={{ color: "#f5222d", fontSize: "20px" }}
+                    />
+                  )}
+                </Tooltip>
+              </Col>
+            ))}
+          </Row>
+        ))}
+      </div>
     </Card>
   );
 };

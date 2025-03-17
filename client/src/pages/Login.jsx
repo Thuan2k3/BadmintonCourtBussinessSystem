@@ -42,6 +42,13 @@ const Login = () => {
           layout="vertical"
           onFinish={onFinishHandler}
           className="register-form"
+          style={{
+            padding: "40px",
+            background: "linear-gradient(135deg, #fdfbfb, #ebedee)",
+            borderRadius: "20px",
+            boxShadow: "0 12px 32px rgba(0, 0, 0, 0.15)",
+            animation: "fadeIn 0.8s ease-in-out",
+          }}
         >
           <h3 className="text-center">Đăng nhập</h3>
           <Form.Item label="Email" name="email">

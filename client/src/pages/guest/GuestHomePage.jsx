@@ -123,7 +123,7 @@ const GuestHomePage = () => {
                     borderRadius: "8px",
                   }}
                 >
-                  <Text strong>💰 Giá thuê mỗi giờ: </Text> {court.price} VND
+                  <Text strong>💰 Giá: </Text> {court.price} VNĐ/giờ
                 </Tag>
 
                 {/* Nút "Xem chi tiết" */}

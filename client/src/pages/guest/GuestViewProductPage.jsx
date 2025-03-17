@@ -71,7 +71,7 @@ const GuestViewProductPage = () => {
               tab={
                 <span
                   style={{
-                    background: "linear-gradient(135deg, #1890ff, #85d8ff)",
+                    background: "linear-gradient(135deg, #1890ff,rgb(29, 167, 231))",
                     padding: "8px 16px",
                     borderRadius: "12px",
                     color: "#fff",
@@ -150,7 +150,7 @@ const GuestViewProductPage = () => {
                             borderRadius: "8px",
                           }}
                         >
-                          <Text strong>💰 Giá: </Text> {product.price} VND
+                          <Text strong>💰 Giá: </Text> {product.price} VNĐ
                         </Tag>
 
                         {product.description && (

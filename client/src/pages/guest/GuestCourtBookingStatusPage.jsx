@@ -10,7 +10,6 @@ const GuestCourtBookingStatusPage = () => {
   const [courts, setCourts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Gọi API để lấy dữ liệu sân
   useEffect(() => {
     const fetchCourts = async () => {
       try {
@@ -29,32 +28,29 @@ const GuestCourtBookingStatusPage = () => {
 
   return (
     <GuestLayout>
-      {/* Nền gradient 3 tầng màu */}
       <div
         style={{
-          padding: "40px",
+          padding: "20px",
           background: "linear-gradient(135deg, #fdfbfb, #ebedee)",
           borderRadius: "20px",
           boxShadow: "0 12px 32px rgba(0, 0, 0, 0.15)",
           animation: "fadeIn 0.8s ease-in-out",
+          maxWidth: "100%",
         }}
       >
-        <div style={{ width: "100%", maxWidth: "1400px" }}>
-          {/* Tiêu đề */}
+        <div style={{ width: "100%", maxWidth: "1400px", margin: "0 auto" }}>
           <Title
             level={2}
-            className="text-center"
             style={{
               color: "#2c3e50",
               textTransform: "uppercase",
               fontWeight: "bold",
-              letterSpacing: "1.5px",
+              textAlign: "center",
             }}
           >
             📅 XEM TÌNH TRẠNG ĐẶT SÂN
           </Title>
 
-          {/* Hiển thị trạng thái Loading */}
           {loading ? (
             <div style={{ display: "flex", justifyContent: "center" }}>
               <Spin size="large" />
@@ -62,27 +58,18 @@ const GuestCourtBookingStatusPage = () => {
           ) : courts.length === 0 ? (
             <Empty description="Hiện tại không có sân nào khả dụng." />
           ) : (
-            <Row gutter={[32, 32]} justify="center">
+            <Row gutter={[24, 24]} justify="center">
               {courts.map((court) => (
-                <Col key={court.id} xs={24} sm={24} md={12} lg={8} xl={6}>
-                  <div
-                    style={{
-                      minWidth: "320px",
-                      borderRadius: "20px",
-                      overflow: "hidden",
-                      background: "#ffffff",
-                      boxShadow: "0 12px 24px rgba(0, 0, 0, 0.1)", // Bóng đổ nhẹ
-                      transition: "transform 0.3s ease",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.transform = "scale(1.03)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.transform = "scale(1)")
-                    }
-                  >
-                    <GuestBookingCourt court={court} />
-                  </div>
+                <Col
+                  key={court.id}
+                  xs={24}
+                  sm={24}
+                  md={12}
+                  lg={8}
+                  xl={6}
+                  style={{ display: "flex", justifyContent: "center" }}
+                >
+                  <GuestBookingCourt court={court} />
                 </Col>
               ))}
             </Row>
