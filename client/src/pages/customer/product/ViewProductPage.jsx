@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import Layout from "../../../components/Layout";
+import GuestLayout from "../../../components/GuestLayout";
 import axios from "axios";
 import { Card, Row, Col, Tabs, Tag, Typography, Button, Modal } from "antd";
 
 const { TabPane } = Tabs;
-const { Text } = Typography;
+const { Text, Title } = Typography;
 
 const ViewProductPage = () => {
   const [products, setProducts] = useState([]);
@@ -49,97 +49,190 @@ const ViewProductPage = () => {
   };
 
   return (
-    <Layout>
+    <GuestLayout>
       <div
-        style={{ minHeight: "100vh", background: "#f0f0f0", padding: "20px" }}
+        className="container py-4"
+        style={{
+          padding: "40px",
+          background: "linear-gradient(135deg, #fdfbfb, #ebedee)",
+          borderRadius: "20px",
+          boxShadow: "0 12px 32px rgba(0, 0, 0, 0.15)",
+          animation: "fadeIn 0.8s ease-in-out",
+        }}
       >
-        <h2 className="text-center">DANH SÁCH SẢN PHẨM</h2>
+        {/* Tiêu đề */}
+        <Title
+          level={2}
+          className="text-center"
+          style={{
+            color: "#2c3e50",
+            textTransform: "uppercase",
+            fontWeight: "bold",
+            letterSpacing: "1.5px",
+          }}
+        >
+          🛍️ Xem Sản Phẩm
+        </Title>
 
-        <Tabs defaultActiveKey="0" centered>
+        {/* Tabs Danh Mục */}
+        <Tabs
+          defaultActiveKey="0"
+          centered
+          tabBarStyle={{
+            fontSize: "16px",
+            fontWeight: "bold",
+            marginBottom: "32px",
+          }}
+        >
           {categories.map((category, index) => (
-            <TabPane tab={category} key={index}>
-              <Row gutter={[16, 16]}>
+            <TabPane
+              tab={
+                <span
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #1890ff,rgb(29, 167, 231))",
+                    padding: "8px 16px",
+                    borderRadius: "12px",
+                    color: "#fff",
+                    boxShadow: "0 4px 8px rgba(24, 144, 255, 0.4)",
+                  }}
+                >
+                  {category}
+                </span>
+              }
+              key={index}
+            >
+              <Row gutter={[32, 32]} justify="center">
                 {products
                   .filter((p) => p.category.name === category)
                   .map((product) => (
                     <Col key={product._id} xs={24} sm={12} md={8} lg={6}>
                       <Card
                         hoverable
+                        bordered={false}
                         style={{
-                          backgroundColor: "#ffffff",
-                          borderRadius: "8px",
+                          borderRadius: "20px",
+                          overflow: "hidden",
+                          transition: "transform 0.4s, box-shadow 0.4s",
+                          boxShadow: "0 8px 24px rgba(0, 0, 0, 0.1)",
                         }}
                         cover={
-                          <img
-                            src={`http://localhost:8080${product.image}`}
-                            alt={product.name}
+                          <div
                             style={{
-                              height: "250px",
-                              objectFit: "cover",
-                              borderTopLeftRadius: "8px",
-                              borderTopRightRadius: "8px",
+                              overflow: "hidden",
+                              borderTopLeftRadius: "20px",
+                              borderTopRightRadius: "20px",
                             }}
-                          />
+                          >
+                            <img
+                              src={`http://localhost:8080${product.image}`}
+                              alt={product.name}
+                              style={{
+                                width: "100%",
+                                height: "260px",
+                                objectFit: "cover",
+                                transition: "transform 0.5s ease",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.target.style.transform = "scale(1.1)")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.target.style.transform = "scale(1)")
+                              }
+                            />
+                          </div>
+                        }
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.transform = "translateY(-8px)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.transform = "translateY(0)")
                         }
                       >
-                        <Card.Meta
-                          title={
-                            <Text strong style={{ fontSize: "16px" }}>
-                              {product.name}
-                            </Text>
-                          }
-                          description={
-                            <Tag color="blue">
-                              <strong>Giá:</strong> {product.price} VND
-                            </Tag>
-                          }
-                        />
-                        <div style={{ marginTop: "10px" }}>
-                          <Button
-                            type="primary"
-                            onClick={() => showModal(product)}
+                        <Title
+                          level={4}
+                          style={{
+                            color: "#1890ff",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {product.name}
+                        </Title>
+
+                        <Tag
+                          color="blue"
+                          style={{
+                            fontSize: "14px",
+                            marginBottom: "12px",
+                            borderRadius: "8px",
+                          }}
+                        >
+                          <Text strong>💰 Giá: </Text> {product.price} VNĐ
+                        </Tag>
+
+                        {product.description && (
+                          <Tag
+                            color="green"
+                            style={{
+                              fontSize: "14px",
+                              marginBottom: "12px",
+                              borderRadius: "8px",
+                            }}
                           >
-                            Xem chi tiết
-                          </Button>
-                        </div>
+                            <Text ellipsis>{product.description}</Text>
+                          </Tag>
+                        )}
+
+                        {/* Nút Xem Chi Tiết */}
+                        <Button
+                          type="primary"
+                          shape="round"
+                          block
+                          style={{
+                            marginTop: "12px",
+                            background:
+                              "linear-gradient(135deg, #ff4d4f, #ff7875)",
+                            border: "none",
+                            fontWeight: "bold",
+                            boxShadow: "0 4px 12px rgba(255, 77, 79, 0.5)",
+                            transition: "transform 0.3s",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.target.style.transform = "scale(1.1)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.target.style.transform = "scale(1)")
+                          }
+                        >
+                          🔍 Xem Chi Tiết
+                        </Button>
                       </Card>
                     </Col>
                   ))}
               </Row>
+
+              {/* Nếu không có sản phẩm */}
+              {products.filter((p) => p.category.name === category).length ===
+                0 && (
+                <Text
+                  style={{
+                    display: "block",
+                    textAlign: "center",
+                    marginTop: "40px",
+                    fontSize: "18px",
+                    color: "#888",
+                  }}
+                >
+                  Hiện tại chưa có sản phẩm nào.
+                </Text>
+              )}
             </TabPane>
           ))}
         </Tabs>
-
-        {/* Modal hiển thị chi tiết sản phẩm */}
-        {currentProduct && (
-          <Modal
-            title={currentProduct.name}
-            visible={isModalVisible}
-            onCancel={handleCancel}
-            footer={[
-              <Button key="back" onClick={handleCancel}>
-                Đóng
-              </Button>,
-            ]}
-          >
-            <div>
-              <img
-                src={`http://localhost:8080${currentProduct.image}`}
-                alt="Product"
-                style={{ width: "100%", height: 250, objectFit: "cover" }}
-              />
-              <p>
-                <strong>Giá:</strong> {currentProduct.price} VND
-              </p>
-              <p>
-                <strong>Mô tả:</strong>{" "}
-                {currentProduct.description || "Không có mô tả"}
-              </p>
-            </div>
-          </Modal>
-        )}
       </div>
-    </Layout>
+    </GuestLayout>
   );
 };
 

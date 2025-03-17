@@ -1,28 +1,31 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Layout from "../components/Layout";
-import { Row, Col, Card, Tag, Modal, Button, message } from "antd";
-import { Typography } from "antd";
+import GuestLayout from "../components/GuestLayout";
+import { Row, Col, Card, Tag, Modal, Button, message, Typography } from "antd";
 import { useSelector } from "react-redux";
-const { Text } = Typography;
+
+const { Text, Title } = Typography;
 
 const HomePage = () => {
   const [courts, setCourts] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false); // Trạng thái hiển thị modal
-  const [currentCourt, setCurrentCourt] = useState(null); // Lưu thông tin sân hiện tại
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [currentCourt, setCurrentCourt] = useState(null);
+  const [customer, setCustomer] = useState();
   const { user } = useSelector((state) => state.user);
 
-  const [customer, setCustomer] = useState();
+  // Xác định Layout dựa trên vai trò người dùng
+  const CurrentLayout = user?.role === "customer" ? GuestLayout : Layout;
 
+  // Lấy thông tin khách hàng
   const getCustomerById = async () => {
     try {
       const res = await axios.get(
         `http://localhost:8080/api/v1/admin/customer/${user._id}`,
         {
-          headers: { Authorization: "Bearer " + localStorage.getItem("token") },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-
       if (res.data.success) {
         setCustomer(res.data.data);
       } else {
@@ -33,23 +36,21 @@ const HomePage = () => {
     }
   };
 
-  // Hàm lấy tất cả các sân
+  // Lấy danh sách sân
   const getAllCourt = async () => {
     try {
       const res = await axios.get("http://localhost:8080/api/v1/admin/court", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       if (res.data.success) {
-        setCourts(res.data.data); // Cập nhật danh sách sân
+        setCourts(res.data.data);
       }
     } catch (error) {
-      console.log("Lỗi khi lấy dữ liệu sân: ", error);
+      console.error("Lỗi khi lấy dữ liệu sân: ", error);
     }
   };
 
-  // Mở modal và hiển thị thông tin chi tiết sân
+  // Hiện modal chi tiết sân
   const showModal = (court) => {
     setCurrentCourt(court);
     setIsModalVisible(true);
@@ -61,102 +62,185 @@ const HomePage = () => {
     setCurrentCourt(null);
   };
 
-  // Gọi API lấy danh sách sân khi component được render
   useEffect(() => {
     getAllCourt();
     if (user?.role === "customer") {
       getCustomerById();
     }
-  }, []);
+  }, [user]);
 
   return (
-    <Layout>
-      <div className="container mt-4">
-        <div className="container-fluid bg-light min-vh-100 p-4">
-          {customer && (
-            <div className="mt-3 text-end">
-              <h5>
-                Điểm uy tín của khách hàng:{" "}
-                <span>
-                  <span
-                    className={`badge ${
-                      customer.reputation_score > 70
-                        ? "bg-success"
-                        : customer.reputation_score > 40
-                        ? "bg-warning"
-                        : "bg-danger"
-                    }`}
-                  >
-                    {customer.reputation_score}
-                  </span>
-                </span>
-              </h5>
-            </div>
-          )}
+    <CurrentLayout>
+      <div
+        className="container mt-4"
+        style={{
+          padding: "40px",
+          background: "linear-gradient(135deg, #fdfbfb, #ebedee)",
+          borderRadius: "20px",
+          boxShadow: "0 12px 32px rgba(0, 0, 0, 0.15)",
+          animation: "fadeIn 0.8s ease-in-out",
+        }}
+      >
+        {/* Tiêu đề */}
+        <Title
+          level={2}
+          className="text-center"
+          style={{
+            color: "#2c3e50",
+            textTransform: "uppercase",
+            fontWeight: "bold",
+            letterSpacing: "1.5px",
+          }}
+        >
+          🏸 Danh Sách Sân Cầu Lông
+        </Title>
 
-          <h2 id="courts" className="mt-4 text-center">
-            DANH SÁCH CÁC SÂN
-          </h2>
-          <Row gutter={[16, 16]}>
-            {courts.map((court) => (
-              <Col xs={24} sm={12} md={8} key={court.id}>
-                <Card
-                  title={court.name}
-                  bordered
-                  hoverable
-                  cover={
+        {/* Danh sách sân */}
+        <Row gutter={[32, 32]} justify="center">
+          {courts.map((court) => (
+            <Col xs={24} sm={12} md={8} lg={6} key={court.id}>
+              <Card
+                hoverable
+                bordered={false}
+                style={{
+                  borderRadius: "20px",
+                  overflow: "hidden",
+                  transition: "transform 0.4s, box-shadow 0.4s",
+                  boxShadow: "0 8px 24px rgba(0, 0, 0, 0.1)",
+                  cursor: "pointer",
+                }}
+                cover={
+                  <div
+                    style={{
+                      overflow: "hidden",
+                      borderTopLeftRadius: "20px",
+                      borderTopRightRadius: "20px",
+                    }}
+                  >
                     <img
                       src={`http://localhost:8080${court.image}`}
-                      alt="Court"
-                      style={{ height: 250, objectFit: "cover" }}
+                      alt={court.name}
+                      style={{
+                        width: "100%",
+                        height: "260px",
+                        objectFit: "cover",
+                        transition: "transform 0.5s ease",
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.target.style.transform = "scale(1.1)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.target.style.transform = "scale(1)")
+                      }
                     />
-                  }
-                >
-                  <Tag color="blue">
-                    <Text strong>Giá thuê mỗi giờ: </Text>
-                    {court.price} VND
-                  </Tag>
-                  <div style={{ marginTop: "10px" }}>
-                    <Button type="primary" onClick={() => showModal(court)}>
-                      Xem chi tiết
-                    </Button>
                   </div>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+                }
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.transform = "translateY(-8px)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.transform = "translateY(0)")
+                }
+              >
+                <Title level={4} style={{ color: "#1890ff" }}>
+                  {court.name}
+                </Title>
 
-          {/* Modal hiển thị chi tiết sân */}
-          {currentCourt && (
-            <Modal
-              title={currentCourt.name}
-              visible={isModalVisible}
-              onCancel={handleCancel}
-              footer={[
-                <Button key="back" onClick={handleCancel}>
-                  Đóng
-                </Button>,
-              ]}
-            >
-              <div>
-                <img
-                  src={`http://localhost:8080${currentCourt.image}`}
-                  alt="Court"
-                  style={{ width: "100%", height: 250, objectFit: "cover" }}
-                />
-                <p>
-                  <strong>Giá thuê mỗi giờ:</strong> {currentCourt.price} VND
-                </p>
-                <p>
-                  <strong>Mô tả:</strong>{" "}
-                  {currentCourt.description || "Không có mô tả"}
-                </p>
-              </div>
-            </Modal>
-          )}
-        </div>
+                <Tag
+                  color="blue"
+                  style={{
+                    fontSize: "14px",
+                    marginBottom: "12px",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <Text strong>💰 Giá: </Text> {court.price} VNĐ/giờ
+                </Tag>
+
+                {/* Nút "Xem chi tiết" */}
+                <Button
+                  type="primary"
+                  shape="round"
+                  block
+                  style={{
+                    marginTop: "12px",
+                    background: "linear-gradient(135deg, #ff4d4f, #ff7875)",
+                    border: "none",
+                    fontWeight: "bold",
+                    boxShadow: "0 4px 12px rgba(255, 77, 79, 0.5)",
+                    transition: "transform 0.3s",
+                  }}
+                  onClick={() => showModal(court)}
+                  onMouseEnter={(e) =>
+                    (e.target.style.transform = "scale(1.1)")
+                  }
+                  onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+                >
+                  🔍 Xem Chi Tiết
+                </Button>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+
+        {/* Modal chi tiết sân */}
+        {currentCourt && (
+          <Modal
+            title={
+              <Title level={3} style={{ marginBottom: 0 }}>
+                {currentCourt.name}
+              </Title>
+            }
+            visible={isModalVisible}
+            onCancel={handleCancel}
+            footer={[
+              <Button key="back" onClick={handleCancel}>
+                Đóng
+              </Button>,
+            ]}
+            bodyStyle={{
+              borderRadius: "16px",
+              padding: "24px",
+              background: "#fafafa",
+            }}
+          >
+            <img
+              src={`http://localhost:8080${currentCourt.image}`}
+              alt={currentCourt.name}
+              style={{
+                width: "100%",
+                height: "300px",
+                objectFit: "cover",
+                borderRadius: "16px",
+                marginBottom: "24px",
+              }}
+            />
+            <p>
+              <strong>💰 Giá thuê mỗi giờ:</strong> {currentCourt.price} VND
+            </p>
+            <p>
+              <strong>📋 Mô tả:</strong>{" "}
+              {currentCourt.description || "Không có mô tả."}
+            </p>
+          </Modal>
+        )}
+
+        {/* Nếu không có sân */}
+        {courts.length === 0 && (
+          <Text
+            style={{
+              display: "block",
+              textAlign: "center",
+              marginTop: "40px",
+              fontSize: "18px",
+              color: "#888",
+            }}
+          >
+            🚧 Hiện tại chưa có sân nào.
+          </Text>
+        )}
       </div>
-    </Layout>
+    </CurrentLayout>
   );
 };
 

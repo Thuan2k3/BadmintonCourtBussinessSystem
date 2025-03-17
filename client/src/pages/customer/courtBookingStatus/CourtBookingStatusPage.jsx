@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Row, Col, Spin, message } from "antd";
-import Layout from "../../../components/Layout";
+import GuestLayout from "../../../components/GuestLayout";
 import BookingCourt from "../../../components/BookingCourt";
 import axios from "axios";
 
@@ -30,7 +30,7 @@ const CourtBookingStatusPage = () => {
   }, []);
 
   return (
-    <Layout style={{ padding: "20px" }}>
+    <GuestLayout style={{ padding: "20px" }}>
       {loading ? (
         <Spin size="large" style={{ display: "block", margin: "auto" }} />
       ) : (
@@ -42,7 +42,7 @@ const CourtBookingStatusPage = () => {
           ))}
         </Row>
       )}
-    </Layout>
+    </GuestLayout>
   );
 };
 

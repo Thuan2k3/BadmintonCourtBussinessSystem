@@ -15,6 +15,23 @@ export const customerMenu = [
     icon: "fa-solid fa-store",
   },
 ];
+export const guestMenu = [
+  {
+    name: "Home",
+    path: "/home",
+    icon: "fa-solid fa-house",
+  },
+  {
+    name: "Xem tình trạng đặt sân",
+    path: "/court-booking-status",
+    icon: "fa-solid fa-calendar-days",
+  },
+  {
+    name: "Xem Sản Phẩm",
+    path: "/product",
+    icon: "fa-solid fa-store",
+  },
+];
 
 // =================Employee Menu================
 export const employeeMenu = [

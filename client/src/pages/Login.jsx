@@ -50,7 +50,7 @@ const Login = () => {
             animation: "fadeIn 0.8s ease-in-out",
           }}
         >
-          <h3 className="text-center">Đăng nhập</h3>
+          <h3 className="text-center text-primary">ĐĂNG NHẬP</h3>
           <Form.Item label="Email" name="email">
             <Input type="email" required />
           </Form.Item>

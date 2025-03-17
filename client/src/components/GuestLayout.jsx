@@ -1,13 +1,28 @@
-import { Button, Layout, Menu, Dropdown } from "antd";
-import { Link, useLocation } from "react-router-dom";
+import { Button, Layout, Menu, Dropdown, message } from "antd";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { MenuOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { customerMenu } from "../data/data";
+import { guestMenu } from "../data/data";
 
 const { Header, Content } = Layout;
 
 const GuestHomePage = ({ children }) => {
   const location = useLocation();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const { user } = useSelector((state) => state.user);
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    localStorage.clear();
+    message.success("Logout successfully");
+    navigate("/login");
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  };
+  //rendering menu list
+  const SidebarMenu = user?.role === "customer" ? customerMenu : guestMenu;
 
   // Theo dõi kích thước màn hình
   useEffect(() => {
@@ -20,33 +35,35 @@ const GuestHomePage = ({ children }) => {
 
   // Xác định menu item đang active
   const getSelectedKey = () => {
-    switch (location.pathname) {
-      case "/home":
-        return "1";
-      case "/product":
-        return "2";
-      case "/court-booking-status":
-        return "3";
-      default:
-        return "1";
-    }
+    const currentPath = location.pathname;
+    const matchedItem = SidebarMenu.find((item) => item.path === currentPath);
+    return matchedItem ? matchedItem.path : "/";
   };
 
   // Menu cho chế độ mobile
   const mobileMenu = (
     <Menu selectedKeys={[getSelectedKey()]}>
-      <Menu.Item key="1">
-        <Link to="/home">🏠 Trang chủ</Link>
-      </Menu.Item>
-      <Menu.Item key="2">
-        <Link to="/product">🛍️ Xem sản phẩm</Link>
-      </Menu.Item>
-      <Menu.Item key="3">
-        <Link to="/court-booking-status">🏸 Tình trạng đặt sân</Link>
-      </Menu.Item>
-      <Menu.Item key="4">
-        <Link to="/login">🔑 Đăng nhập</Link>
-      </Menu.Item>
+      {SidebarMenu.map((item) => (
+        <Menu.Item key={item.path}>
+          <Link to={item.path}>
+            <i className={item.icon} style={{ marginRight: "8px" }}></i>
+            {item.name}
+          </Link>
+        </Menu.Item>
+      ))}
+      {user ? (
+        <Menu.Item key="logout" onClick={handleLogout}>
+          <i
+            className="fa-solid fa-sign-out-alt"
+            style={{ marginRight: "8px" }}
+          ></i>
+          Đăng xuất
+        </Menu.Item>
+      ) : (
+        <Menu.Item key="login">
+          <Link to="/login">Đăng nhập</Link>
+        </Menu.Item>
+      )}
     </Menu>
   );
 
@@ -105,80 +122,71 @@ const GuestHomePage = ({ children }) => {
               borderBottom: "none",
             }}
           >
-            <Menu.Item key="1" style={{ margin: "0 20px" }}>
-              <Link
-                to="/home"
-                style={{
-                  color: location.pathname === "/home" ? "#ffeb3b" : "#fff",
-                  fontSize: "18px",
-                  transition: "color 0.3s",
-                  textDecoration: "none",
-                }}
-              >
-                Trang chủ
-              </Link>
-            </Menu.Item>
-
-            <Menu.Item key="2" style={{ margin: "0 20px" }}>
-              <Link
-                to="/product"
-                style={{
-                  color: location.pathname === "/product" ? "#ffeb3b" : "#fff",
-                  fontSize: "18px",
-                  transition: "color 0.3s",
-                  textDecoration: "none",
-                }}
-              >
-                Xem sản phẩm
-              </Link>
-            </Menu.Item>
-
-            <Menu.Item key="3" style={{ margin: "0 20px" }}>
-              <Link
-                to="/court-booking-status"
-                style={{
-                  color:
-                    location.pathname === "/court-booking-status"
-                      ? "#ffeb3b"
-                      : "#fff",
-                  fontSize: "18px",
-                  transition: "color 0.3s",
-                  textDecoration: "none",
-                }}
-              >
-                Tình trạng đặt sân
-              </Link>
-            </Menu.Item>
+            {SidebarMenu.map((item) => (
+              <Menu.Item key={item.path} style={{ margin: "0 20px" }}>
+                <Link
+                  to={item.path}
+                  style={{
+                    color: location.pathname === item.path ? "#ffeb3b" : "#fff",
+                    fontSize: "18px",
+                    transition: "color 0.3s",
+                    textDecoration: "none",
+                  }}
+                >
+                  <i className={item.icon} style={{ marginRight: "8px" }}></i>
+                  {item.name}
+                </Link>
+              </Menu.Item>
+            ))}
           </Menu>
         )}
 
-        {/* Nút đăng nhập */}
-        {!isMobile && (
-          <Button
-            type="primary"
-            size="large"
-            shape="round"
-            style={{
-              background: "#ff4d4f",
-              border: "none",
-              fontWeight: "bold",
-              boxShadow: "0 4px 10px rgba(255, 77, 79, 0.5)",
-              transition: "transform 0.3s",
-            }}
-            onMouseEnter={(e) => (e.target.style.transform = "scale(1.1)")}
-            onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
-          >
-            <Link
-              to="/login"
+        {/* Nút Đăng nhập / Đăng xuất */}
+        {!isMobile &&
+          (user ? (
+            <Button
+              type="primary"
+              size="large"
+              shape="round"
               style={{
-                color: "#fff",
-                textDecoration: "none",
+                background: "#ff4d4f",
+                border: "none",
+                fontWeight: "bold",
+                boxShadow: "0 4px 10px rgba(255, 77, 79, 0.5)",
+                transition: "transform 0.3s",
               }}
+              onMouseEnter={(e) => (e.target.style.transform = "scale(1.1)")}
+              onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+              onClick={handleLogout} // Hàm xử lý đăng xuất
             >
-              Đăng nhập
-            </Link>
-          </Button>
-        )}
+              Đăng xuất
+            </Button>
+          ) : (
+            <Button
+              type="primary"
+              size="large"
+              shape="round"
+              style={{
+                background: "#ff4d4f",
+                border: "none",
+                fontWeight: "bold",
+                boxShadow: "0 4px 10px rgba(255, 77, 79, 0.5)",
+                transition: "transform 0.3s",
+              }}
+              onMouseEnter={(e) => (e.target.style.transform = "scale(1.1)")}
+              onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+            >
+              <Link
+                to="/login"
+                style={{
+                  color: "#fff",
+                  textDecoration: "none",
+                }}
+              >
+                Đăng nhập
+              </Link>
+            </Button>
+          ))}
       </Header>
 
       {/* Nội dung */}

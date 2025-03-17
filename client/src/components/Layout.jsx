@@ -17,6 +17,9 @@ const Layout = ({ children }) => {
     localStorage.clear();
     message.success("Logout successfully");
     navigate("/login");
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   };
 
   //rendering menu list
