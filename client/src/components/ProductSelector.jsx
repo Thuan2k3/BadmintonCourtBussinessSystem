@@ -11,6 +11,15 @@ import {
 import { DeleteOutlined, DollarCircleOutlined } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
+
+// Hàm loại bỏ dấu tiếng Việt
+const removeVietnameseTones = (str) => {
+  return str
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+};
+
 const ProductSelector = ({
   products,
   setSelectedProduct,
@@ -31,6 +40,12 @@ const ProductSelector = ({
           value: product._id,
           label: `${product.name} - ${product.price.toLocaleString()} VND`,
         }))}
+        // Tìm kiếm không phân biệt dấu
+        filterOption={(input, option) =>
+          removeVietnameseTones(option.label).includes(
+            removeVietnameseTones(input)
+          )
+        }
       />
       <InputNumber
         min={1}

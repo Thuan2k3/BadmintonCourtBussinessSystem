@@ -143,6 +143,11 @@ const CustomerSelector = ({
               label: `${user.full_name} - ${user.email}`,
             })),
           ]}
+          filterOption={(input, option) =>
+            removeVietnameseTones(option.label).includes(
+              removeVietnameseTones(input)
+            )
+          }
         />
         <Button onClick={handleConfirm}>Xác nhận</Button>
       </div>
