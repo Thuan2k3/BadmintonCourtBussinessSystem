@@ -1,9 +1,15 @@
-import { Button, Card, Typography, Modal } from "antd";
+import { Button, Card, Typography, Modal, message } from "antd";
 import { useState } from "react";
 
 const { Text } = Typography;
 
-const CourtDetails = ({ selectedCourt, onCheckIn, onCheckOut }) => {
+const CourtDetails = ({
+  selectedCourt,
+  orderItemsCourt,
+  onCheckIn,
+  onCheckOut,
+  getTotalAmountForCourt,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [actionType, setActionType] = useState(null); // Xác định hành động (check-in/check-out)
 
@@ -11,6 +17,51 @@ const CourtDetails = ({ selectedCourt, onCheckIn, onCheckOut }) => {
 
   // Xử lý hiển thị Modal
   const showConfirmModal = (type) => {
+    if (type === "checkIn") {
+      if (!selectedCourt || selectedCourt._id === "guest") {
+        message.warning("Vui lòng chọn sân trước khi check-in!");
+        return;
+      }
+
+      if (getTotalAmountForCourt(selectedCourt._id) > 0) {
+        message.warning(
+          "Vui lòng thanh toán hóa đơn của sân trước khi check-in!"
+        );
+        return;
+      }
+
+      if (!selectedCourt?.isEmpty) {
+        message.warning("Sân này đã có người!");
+        return;
+      }
+    } else {
+      if (!selectedCourt) {
+        message.warning("Vui lòng chọn sân trước khi check-out!");
+        return;
+      }
+
+      if (selectedCourt.isEmpty) {
+        message.warning("Sân này chưa được check-in!");
+        return;
+      }
+
+      const invoice = orderItemsCourt.find(
+        (item) => item.court?._id === selectedCourt._id && item.courtInvoice
+      );
+
+      if (invoice) {
+        message.warning("Vui lòng thanh toán hóa đơn trước khi check-out!");
+        return;
+      }
+
+      const checkInTime = selectedCourt.checkInTime;
+
+      if (!checkInTime) {
+        message.error("Lỗi: Không tìm thấy thời gian check-in!");
+        return;
+      }
+    }
+
     setActionType(type);
     setIsModalOpen(true);
   };

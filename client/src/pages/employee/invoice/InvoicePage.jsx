@@ -683,8 +683,10 @@ const InvoicePage = () => {
               <CourtList courts={courts} onSelectCourt={handleSelectedCourt} />
               <CourtDetails
                 selectedCourt={selectedCourt}
+                orderItemsCourt={orderItemsCourt}
                 onCheckIn={handleCheckIn}
                 onCheckOut={handleCheckOut}
+                getTotalAmountForCourt={getTotalAmountForCourt}
               />
             </div>
           </Col>
