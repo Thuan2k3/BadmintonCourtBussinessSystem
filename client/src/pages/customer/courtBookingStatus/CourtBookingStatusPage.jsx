@@ -63,7 +63,7 @@ const CourtBookingStatusPage = () => {
           ) : courts.length === 0 ? (
             <Empty description="Hiện tại không có sân nào khả dụng." />
           ) : (
-            <Row gutter={[24, 24]} justify="center">
+            <Row gutter={[24, 24]} justify="start">
               {courts.map((court) => (
                 <Col
                   key={court.id}
@@ -71,7 +71,7 @@ const CourtBookingStatusPage = () => {
                   sm={24}
                   md={12}
                   lg={8}
-                  xl={6}
+                  xl={8}
                   style={{ display: "flex", justifyContent: "center" }}
                 >
                   <BookingCourt court={court} />
