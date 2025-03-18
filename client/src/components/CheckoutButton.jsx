@@ -51,6 +51,20 @@ const CheckoutButton = ({
         return;
       }
     }
+    if (type === "rent") {
+      const selectedCourtData = orderItemsCourt.find(
+        (item) => item.court._id === selectedCourt._id
+      );
+
+      const hasProducts = selectedCourtData?.products.length > 0;
+
+      if (hasProducts) {
+        message.warning(
+          "Đang có sản phẩm. Vui lòng chọn loại Thuê sân và mua sản phẩm!"
+        );
+        return;
+      }
+    }
 
     const selectedCourtOrders = orderItemsCourt.find(
       (item) => String(item.court?._id) === String(selectedCourt?._id)
@@ -146,6 +160,57 @@ const CheckoutButton = ({
   };
 
   const showConfirmModal = () => {
+    const newTotal = getTotalAmountForCourt(selectedCourt._id);
+
+    if (!orderItemsCourt || newTotal <= 0) {
+      message.warning("Không có hóa đơn nào để thanh toán!");
+      return;
+    }
+
+    if (selectedCourt && !selectedCourt.isEmpty) {
+      message.warning(
+        `Sân ${selectedCourt.name} vẫn đang được sử dụng! Vui lòng check-out trước khi thanh toán.`
+      );
+      return;
+    }
+
+    if (type === "both") {
+      const selectedCourtData = orderItemsCourt.find(
+        (item) => item.court._id === selectedCourt._id
+      );
+
+      const hasProducts = selectedCourtData?.products.length > 0;
+
+      if (!hasProducts) {
+        message.warning(
+          "Vui lòng chọn ít nhất một sản phẩm hoặc chọn loại thuê sân!"
+        );
+        return;
+      }
+    }
+    if (type === "rent") {
+      const selectedCourtData = orderItemsCourt.find(
+        (item) => item.court._id === selectedCourt._id
+      );
+
+      const hasProducts = selectedCourtData?.products.length > 0;
+
+      if (hasProducts) {
+        message.warning(
+          "Đang có sản phẩm. Vui lòng chọn loại Thuê sân và mua sản phẩm!"
+        );
+        return;
+      }
+    }
+
+    const selectedCourtOrders = orderItemsCourt.find(
+      (item) => String(item.court?._id) === String(selectedCourt?._id)
+    );
+
+    if (!selectedCourtOrders) {
+      message.warning("Không có sản phẩm nào để thanh toán!");
+      return;
+    }
     setIsModalOpen(true);
   };
 
