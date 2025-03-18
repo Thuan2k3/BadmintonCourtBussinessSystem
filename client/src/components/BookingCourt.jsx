@@ -14,20 +14,24 @@ const { confirm } = Modal;
 
 // Hàm chuyển ngày thành thứ trong tuần
 const getDayOfWeek = (date) => {
-  const daysOfWeek = [
-    "Chủ nhật",
-    "Thứ 2",
-    "Thứ 3",
-    "Thứ 4",
-    "Thứ 5",
-    "Thứ 6",
-    "Thứ 7",
-  ];
+  const daysOfWeek = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
   const day = new Date(date).getDay(); // Lấy thứ trong tuần (0: Chủ nhật, 1: Thứ 2, ..., 6: Thứ 7)
   return daysOfWeek[day];
 };
 
+// Hàm định dạng ngày thành [dd/MM, yyyy]
+const formatDate = (date) => {
+  const d = new Date(date);
+  const dayMonth = `${String(d.getDate()).padStart(2, "0")}/${String(
+    d.getMonth() + 1
+  ).padStart(2, "0")}`;
+  const year = d.getFullYear();
+  return { dayMonth, year };
+};
+
 const BookingCourt = ({ court }) => {
+  // Xác định nếu là mobile (dưới 768px)
+  const isMobile = window.innerWidth <= 768;
   const { user } = useSelector((state) => state.user);
 
   const [bookingState, setBookingState] = useState(
@@ -219,162 +223,178 @@ const BookingCourt = ({ court }) => {
 
   return (
     <Card
-      title={court.name}
-      bordered={true}
+      title={<h2 style={{ color: "#096dd9" }}>{court.name}</h2>}
+      bordered={false}
       style={{
-        width: "38rem",
-        backgroundColor: "#f6ffed",
+        width: "100%",
+        borderRadius: "16px",
+        boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
       }}
     >
-      {/* Hiển thị thứ trong tuần */}
-      <Row
-        gutter={8}
-        style={{
-          display: "flex",
-          justifyContent: "flex-start",
-        }}
-      >
-        <Col span={3} style={{ textAlign: "center", fontSize: "14px" }}>
-          {/* Cột giờ */}
-        </Col>
-        {court.bookings.map((day, dayIndex) => (
-          <Col
-            span={Math.floor(24 / court.bookings.length)}
-            key={dayIndex}
-            style={{
-              textAlign: "center",
-              fontSize: "14px",
-            }}
-          >
-            {getDayOfWeek(day.date)} {/* Hiển thị thứ trong tuần */}
-            {day.date}
-          </Col>
-        ))}
-      </Row>
-
-      {/* Hiển thị giờ và các nút đặt */}
-      {court.bookings[0].timeSlots.map((slot, slotIndex) => (
+      {/* Container cuộn ngang cho mobile */}
+      <div style={isMobile ? { overflowX: "auto", whiteSpace: "nowrap" } : {}}>
+        {/* Hiển thị thứ trong tuần */}
         <Row
-          gutter={8}
-          key={slotIndex}
           style={{
-            display: "flex",
-            justifyContent: "flex-start", // Canh các phần tử bên trái
-            alignItems: "center", // Căn giữa theo chiều dọc
+            marginBottom: "12px",
+            textAlign: "center",
+            flexWrap: isMobile ? "nowrap" : "wrap",
           }}
         >
-          {/* Cột giờ bên trái */}
-          <Col
-            span={3} // Dành 1 cột cho giờ
+          <Col span={3} style={{ minWidth: "35px" }}>
+            <strong>Giờ</strong>
+          </Col>
+          {court.bookings.map((day, dayIndex) => {
+            const { dayMonth } = formatDate(day.date); // Bỏ year
+            return (
+              <Col
+                key={dayIndex}
+                span={3}
+                style={{ textAlign: "center", minWidth: "35px" }}
+              >
+                <div>{getDayOfWeek(day.date)}</div>
+                <div style={{ fontSize: "12px", color: "#595959" }}>
+                  {dayMonth}
+                </div>
+              </Col>
+            );
+          })}
+        </Row>
+
+        {/* Hiển thị giờ và các nút đặt */}
+        {court.bookings[0].timeSlots.map((slot, slotIndex) => (
+          <Row
+            key={slotIndex}
             style={{
-              padding: "4px",
-              textAlign: "center",
-              fontSize: "14px",
+              marginBottom: "8px",
+              alignItems: "center",
+              flexWrap: isMobile ? "nowrap" : "wrap",
             }}
           >
-            {slot.time}
-          </Col>
-
-          {/* Các cột nút bên phải */}
-          {court.bookings.map((day, dayIndex) => (
+            {/* Cột giờ bên trái */}
             <Col
-              span={Math.floor(24 / court.bookings.length)}
-              key={dayIndex}
+              span={3}
               style={{
-                padding: "4px",
+                textAlign: "center",
+                fontWeight: "500",
+                minWidth: "35px",
               }}
             >
-              <Tooltip
-                title={
-                  bookingState[dayIndex][slotIndex] === "booked" ? (
-                    <>
-                      ID:{" "}
-                      {court.bookings[dayIndex].timeSlots[slotIndex]?.userId}{" "}
-                      <br />
-                      Full name:{" "}
-                      {
-                        court.bookings[dayIndex].timeSlots[slotIndex]?.full_name
-                      }{" "}
-                      <br />
-                      {user.role === "employee" ? (
-                        <>
-                          Email:{" "}
-                          {court.bookings[dayIndex].timeSlots[slotIndex]?.email}
-                        </>
-                      ) : null}
-                    </>
-                  ) : (
-                    ""
-                  )
-                }
+              {slot.time}
+            </Col>
+
+            {/* Các cột nút bên phải */}
+            {court.bookings.map((day, dayIndex) => (
+              <Col
+                key={dayIndex}
+                span={3}
+                style={{ textAlign: "center", minWidth: "35px" }}
               >
-                <Button
-                  size="small"
-                  className={`booking-btn ${bookingState[dayIndex][slotIndex]}`}
-                  icon={
+                <Tooltip
+                  title={
                     bookingState[dayIndex][slotIndex] === "booked" ? (
-                      <CheckOutlined />
-                    ) : bookingState[dayIndex][slotIndex] === "selected" ? (
-                      <CheckSquareOutlined />
-                    ) : bookingState[dayIndex][slotIndex] ===
-                      "selectunbooked" ? (
-                      <CloseSquareOutlined />
+                      <>
+                        ID:{" "}
+                        {court.bookings[dayIndex].timeSlots[slotIndex]?.userId}{" "}
+                        <br />
+                        Full name:{" "}
+                        {
+                          court.bookings[dayIndex].timeSlots[slotIndex]
+                            ?.full_name
+                        }{" "}
+                        <br />
+                        {user.role === "employee" ? (
+                          <>
+                            Email:{" "}
+                            {
+                              court.bookings[dayIndex].timeSlots[slotIndex]
+                                ?.email
+                            }
+                          </>
+                        ) : null}
+                      </>
                     ) : (
-                      <CloseOutlined />
+                      ""
                     )
                   }
-                  onClick={() => handleBooking(dayIndex, slotIndex)}
-                  disabled={
-                    bookingState[dayIndex][slotIndex] === "booked" &&
-                    user?._id !==
-                      court.bookings[dayIndex].timeSlots[slotIndex]?.userId
-                  }
-                  style={{
-                    width: "100%", // Button chiếm toàn bộ chiều rộng cột
-                    height: "40px",
-                    fontSize: "14px",
-                  }}
                 >
-                  {/* Nội dung Button (giờ) */}
-                </Button>
-              </Tooltip>
-            </Col>
-          ))}
-        </Row>
-      ))}
+                  <Button
+                    size="small"
+                    className={`booking-btn ${bookingState[dayIndex][slotIndex]}`}
+                    icon={
+                      bookingState[dayIndex][slotIndex] === "booked" ? (
+                        <CheckOutlined
+                          style={{ color: "#52c41a", fontSize: "20px" }}
+                        />
+                      ) : bookingState[dayIndex][slotIndex] === "selected" ? (
+                        <CheckSquareOutlined />
+                      ) : bookingState[dayIndex][slotIndex] ===
+                        "selectunbooked" ? (
+                        <CloseSquareOutlined />
+                      ) : (
+                        <CloseOutlined
+                          style={{ color: "#f5222d", fontSize: "20px" }}
+                        />
+                      )
+                    }
+                    onClick={() => handleBooking(dayIndex, slotIndex)}
+                    disabled={
+                      bookingState[dayIndex][slotIndex] === "booked" &&
+                      user?._id !==
+                        court.bookings[dayIndex].timeSlots[slotIndex]?.userId
+                    }
+                    style={{
+                      width: "100%", // Button chiếm toàn bộ chiều rộng cột
+                      height: "40px",
+                      fontSize: "14px",
+                      border: "none"
+                    }}
+                  >
+                    {/* Nội dung Button (giờ) */}
+                  </Button>
+                </Tooltip>
+              </Col>
+            ))}
+          </Row>
+        ))}
 
-      {/* Thêm 2 nút dưới */}
-      <Row
-        gutter={8}
-        style={{ marginTop: "20px", display: "flex", justifyContent: "center" }}
-      >
-        <Col span={10}>
-          <Button
-            block
-            type="primary"
-            onClick={showConfirmBooking}
-            style={{
-              fontSize: "16px",
-              height: "40px",
-            }}
-          >
-            Đặt sân
-          </Button>
-        </Col>
-        <Col span={10}>
-          <Button
-            block
-            type="default"
-            onClick={showConfirmCancel}
-            style={{
-              fontSize: "16px",
-              height: "40px",
-            }}
-          >
-            Hủy đặt sân
-          </Button>
-        </Col>
-      </Row>
+        {/* Thêm 2 nút dưới */}
+        <Row
+          gutter={8}
+          style={{
+            marginTop: "20px",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <Col span={10}>
+            <Button
+              block
+              type="primary"
+              onClick={showConfirmBooking}
+              style={{
+                fontSize: "16px",
+                height: "40px",
+              }}
+            >
+              Đặt sân
+            </Button>
+          </Col>
+          <Col span={10}>
+            <Button
+              block
+              type="default"
+              onClick={showConfirmCancel}
+              style={{
+                fontSize: "16px",
+                height: "40px",
+              }}
+            >
+              Hủy đặt sân
+            </Button>
+          </Col>
+        </Row>
+      </div>
     </Card>
   );
 };
