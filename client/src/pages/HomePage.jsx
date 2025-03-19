@@ -71,6 +71,32 @@ const HomePage = () => {
 
   return (
     <CurrentLayout>
+      {user?.role === "customer" && (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              background: "#FFD700",
+              padding: "4px 8px",
+              borderRadius: "20px",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <span style={{ marginLeft: "4px" }}>Điểm Uy Tín: </span>
+            <span style={{ fontWeight: "bold", marginLeft: "4px" }}>
+              {customer?.reputation_score}
+            </span>
+          </div>
+        </div>
+      )}
+
       <div
         className="container mt-4"
         style={{
