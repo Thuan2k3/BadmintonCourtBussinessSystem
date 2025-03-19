@@ -57,28 +57,31 @@ const loginController = async (req, res) => {
     if (user.role === "customer") {
       const customer = await Customer.findOne({ email: req.body.email });
       if (customer.reputation_score < 10) {
-        return res
-          .status(200)
-          .send({
-            message: "Bạn không thể đăng nhập vì điểm uy tín thấp!",
-            success: false,
-          });
+        return res.status(200).send({
+          message: "Bạn không thể đăng nhập vì điểm uy tín thấp!",
+          success: false,
+        });
       }
     }
 
     const isMath = await bcrypt.compare(req.body.password, user.password);
     if (!isMath) {
-      return res
-        .status(200)
-        .send({ message: "Invalid Email or Password", success: false });
+      return res.status(200).send({
+        message: "Email hoặc mật khẩu không chính xác!",
+        success: false,
+      });
     }
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
-    res.status(200).send({ message: "Login Success", success: true, token });
+    res
+      .status(200)
+      .send({ message: "Đăng nhập thành công", success: true, token });
   } catch (error) {
     console.log(error);
-    res.status(500).send({ message: `Error in Login CTRL ${error.message}` });
+    res
+      .status(500)
+      .send({ message: `Lỗi trong Login Controller ${error.message}` });
   }
 };
 
