@@ -147,9 +147,16 @@ const CheckoutButton = ({
 
       if (courtId === "guest") {
         localStorage.removeItem("guest_order");
+        console.log("✅ Đã xóa đơn hàng của khách vãng lai khỏi localStorage.");
       } else {
-        const orderRef = ref(database, `orders/${courtId}`);
-        await remove(orderRef);
+        try {
+          const orderRef = ref(database, `orders/${courtId}`);
+          await remove(orderRef);
+          console.log(`✅ Đã xóa sân: ${courtId} khỏi Firebase.`);
+        } catch (error) {
+          console.error("❌ Lỗi khi xóa sân khỏi Firebase:", error);
+          message.error("Lỗi khi cập nhật trạng thái sân! Vui lòng thử lại.");
+        }
       }
     } catch (error) {
       console.error("Lỗi khi lưu hóa đơn:", error);
