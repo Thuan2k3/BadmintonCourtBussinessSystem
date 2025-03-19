@@ -17,7 +17,7 @@ const Layout = ({ children }) => {
   const handleLogout = () => {
     localStorage.clear();
     dispatch(setUser(null));
-    message.success("Đăng xuất thành công");
+    message.success("Đăng xuất thành công!");
   };
 
   //rendering menu list

@@ -15,38 +15,35 @@ const ViewProductPage = () => {
   // Lấy danh sách sản phẩm từ API
   const getAllProduct = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/v1/user/product", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const res = await axios.get("http://localhost:8080/api/v1/user/product");
       if (res.data.success) {
         setProducts(res.data.data);
+        // Lấy danh mục duy nhất
         const uniqueCategories = [
           ...new Set(res.data.data.map((p) => p.category.name)),
         ];
         setCategories(uniqueCategories);
       }
     } catch (error) {
-      console.log("Lỗi khi lấy dữ liệu sản phẩm: ", error);
+      console.error("Lỗi khi lấy sản phẩm:", error);
     }
+  };
+
+  // Hiện Modal chi tiết sản phẩm
+  const showProductDetail = (product) => {
+    setCurrentProduct(product);
+    setIsModalVisible(true);
+  };
+
+  // Đóng Modal chi tiết sản phẩm
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+    setCurrentProduct(null);
   };
 
   useEffect(() => {
     getAllProduct();
   }, []);
-
-  // Hiển thị modal chi tiết sản phẩm
-  const showModal = (product) => {
-    setCurrentProduct(product);
-    setIsModalVisible(true);
-  };
-
-  // Đóng modal
-  const handleCancel = () => {
-    setIsModalVisible(false);
-    setCurrentProduct(null);
-  };
 
   return (
     <GuestLayout>
@@ -90,7 +87,7 @@ const ViewProductPage = () => {
                 <span
                   style={{
                     background:
-                      "linear-gradient(135deg, #1890ff,rgb(29, 167, 231))",
+                      "linear-gradient(135deg, #1890ff, rgb(29, 167, 231))",
                     padding: "8px 16px",
                     borderRadius: "12px",
                     color: "#fff",
@@ -172,19 +169,6 @@ const ViewProductPage = () => {
                           <Text strong>💰 Giá: </Text> {product.price} VNĐ
                         </Tag>
 
-                        {product.description && (
-                          <Tag
-                            color="green"
-                            style={{
-                              fontSize: "14px",
-                              marginBottom: "12px",
-                              borderRadius: "8px",
-                            }}
-                          >
-                            <Text ellipsis>{product.description}</Text>
-                          </Tag>
-                        )}
-
                         {/* Nút Xem Chi Tiết */}
                         <Button
                           type="primary"
@@ -199,6 +183,7 @@ const ViewProductPage = () => {
                             boxShadow: "0 4px 12px rgba(255, 77, 79, 0.5)",
                             transition: "transform 0.3s",
                           }}
+                          onClick={() => showProductDetail(product)}
                           onMouseEnter={(e) =>
                             (e.target.style.transform = "scale(1.1)")
                           }
@@ -231,6 +216,48 @@ const ViewProductPage = () => {
             </TabPane>
           ))}
         </Tabs>
+
+        {/* Modal chi tiết sản phẩm */}
+        {currentProduct && (
+          <Modal
+            title={
+              <Title level={3} style={{ marginBottom: 0 }}>
+                {currentProduct.name}
+              </Title>
+            }
+            open={isModalVisible}
+            onCancel={handleCloseModal}
+            footer={[
+              <Button key="close" onClick={handleCloseModal}>
+                Đóng
+              </Button>,
+            ]}
+            bodyStyle={{
+              padding: "24px",
+              borderRadius: "16px",
+              background: "#fafafa",
+            }}
+          >
+            <img
+              src={`http://localhost:8080${currentProduct.image}`}
+              alt={currentProduct.name}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                borderRadius: "16px",
+                marginBottom: "24px",
+              }}
+            />
+            <p>
+              <strong>💰 Giá:</strong> {currentProduct.price} VNĐ
+            </p>
+            <p>
+              <strong>📋 Mô tả:</strong>{" "}
+              {currentProduct.description || "Không có mô tả."}
+            </p>
+          </Modal>
+        )}
       </div>
     </GuestLayout>
   );

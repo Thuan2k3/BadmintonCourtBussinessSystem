@@ -17,7 +17,7 @@ const GuestHomePage = ({ children }) => {
   const handleLogout = () => {
     localStorage.clear();
     dispatch(setUser(null));
-    message.success("Đăng xuất thành công");
+    message.success("Đăng xuất thành công!");
   };
   //rendering menu list
   const SidebarMenu = user?.role === "customer" ? customerMenu : guestMenu;

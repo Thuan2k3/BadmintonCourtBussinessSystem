@@ -23,7 +23,7 @@ const Login = () => {
       dispatch(hideLoading());
       if (res.data.success) {
         localStorage.setItem("token", res.data.token);
-        message.success("Đăng nhập thành công");
+        message.success("Đăng nhập thành công!");
         navigate("/");
       } else {
         message.error(res.data.message);

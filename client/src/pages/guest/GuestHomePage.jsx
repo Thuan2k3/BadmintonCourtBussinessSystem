@@ -178,8 +178,8 @@ const GuestHomePage = () => {
               alt={currentCourt.name}
               style={{
                 width: "100%",
-                height: "300px",
-                objectFit: "cover",
+                height: "100%",
+                objectFit: "contain",
                 borderRadius: "16px",
                 marginBottom: "24px",
               }}
