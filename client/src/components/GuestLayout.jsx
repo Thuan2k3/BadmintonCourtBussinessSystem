@@ -144,23 +144,51 @@ const GuestHomePage = ({ children }) => {
         {/* Nút Đăng nhập / Đăng xuất */}
         {!isMobile &&
           (user ? (
-            <Button
-              type="primary"
-              size="large"
-              shape="round"
-              style={{
-                background: "#ff4d4f",
-                border: "none",
-                fontWeight: "bold",
-                boxShadow: "0 4px 10px rgba(255, 77, 79, 0.5)",
-                transition: "transform 0.3s",
-              }}
-              onMouseEnter={(e) => (e.target.style.transform = "scale(1.1)")}
-              onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
-              onClick={handleLogout} // Hàm xử lý đăng xuất
-            >
-              Đăng xuất
-            </Button>
+            <>
+              <div
+                className="header-content d-flex flex-column align-items-end justify-content-center text-center"
+                style={{ cursor: "pointer", height: "100%" }}
+              >
+                <p
+                  className="fw-bold mb-0"
+                  style={{ lineHeight: "1.2", color: "#FEFF9F" }}
+                >
+                  {user?.full_name}
+                </p>
+                <p
+                  className="mb-0"
+                  style={{
+                    lineHeight: "1.2",
+                    color: "#F8ED8C",
+                    textTransform: "none",
+                    fontSize: "15px",
+                  }}
+                >
+                  {user?.role === "employee"
+                    ? "Nhân viên"
+                    : user?.role === "customer"
+                    ? "Khách hàng"
+                    : user?.role}
+                </p>
+              </div>
+              <Button
+                type="primary"
+                size="large"
+                shape="round"
+                style={{
+                  background: "#ff4d4f",
+                  border: "none",
+                  fontWeight: "bold",
+                  boxShadow: "0 4px 10px rgba(255, 77, 79, 0.5)",
+                  transition: "transform 0.3s",
+                }}
+                onMouseEnter={(e) => (e.target.style.transform = "scale(1.1)")}
+                onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+                onClick={handleLogout} // Hàm xử lý đăng xuất
+              >
+                Đăng xuất
+              </Button>
+            </>
           ) : (
             <Button
               type="primary"
