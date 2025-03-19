@@ -2,9 +2,10 @@ import { Button, Layout, Menu, Dropdown, message } from "antd";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { MenuOutlined } from "@ant-design/icons";
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { customerMenu } from "../data/data";
 import { guestMenu } from "../data/data";
+import { setUser } from "../redux/features/userSlice";
 
 const { Header, Content } = Layout;
 
@@ -12,14 +13,11 @@ const GuestHomePage = ({ children }) => {
   const location = useLocation();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const { user } = useSelector((state) => state.user);
-  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const handleLogout = () => {
     localStorage.clear();
-    message.success("Logout successfully");
-    navigate("/login");
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
+    dispatch(setUser(null));
+    message.success("Đăng xuất thành công");
   };
   //rendering menu list
   const SidebarMenu = user?.role === "customer" ? customerMenu : guestMenu;

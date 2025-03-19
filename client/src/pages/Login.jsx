@@ -1,15 +1,17 @@
 import React from "react";
 import "../styles/LoginStyle.css";
 import { Form, Input, message } from "antd";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { showLoading, hideLoading } from "../redux/features/alertSlice";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import GuestLayout from "../components/GuestLayout";
+import { setUser } from "../redux/features/userSlice";
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.user);
   //form handler
   const onFinishHandler = async (values) => {
     try {
@@ -21,14 +23,12 @@ const Login = () => {
       dispatch(hideLoading());
       if (res.data.success) {
         localStorage.setItem("token", res.data.token);
-        message.success("Login successfully");
+        message.success("Đăng nhập thành công");
         navigate("/");
       } else {
         message.error(res.data.message);
       }
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      dispatch(setUser(user));
     } catch (error) {
       dispatch(hideLoading());
       console.log(error);
