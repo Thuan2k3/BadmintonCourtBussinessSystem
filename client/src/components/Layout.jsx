@@ -63,8 +63,19 @@ const Layout = ({ children }) => {
                 style={{ cursor: "pointer", height: "100%" }}
               >
                 <p className="fw-bold mb-0">{user?.full_name}</p>
-                <p className="text-secondary text-lowercase mb-0">
-                  {user?.role}
+                <p
+                  className="text-secondary mb-0"
+                  style={{
+                    lineHeight: "1.2",
+                    textTransform: "none",
+                    fontSize: "15px",
+                  }}
+                >
+                  {user?.role === "employee"
+                    ? "Nhân viên"
+                    : user?.role === "customer"
+                    ? "Khách hàng"
+                    : user?.role}
                 </p>
               </div>
             </div>
