@@ -113,10 +113,6 @@ const InvoiceDetailPage = () => {
                 </p>
                 <p>
                   <strong>Đơn Giá Thuê Sân:</strong>{" "}
-                  {invoice.court.price.toLocaleString()} đ/giờ
-                </p>
-                <p>
-                  <strong>Tổng Tiền Thuê Sân:</strong>{" "}
                   {(() => {
                     const checkInTime = new Date(invoice.checkInTime).getTime();
                     const checkOutTime = new Date(
@@ -130,9 +126,43 @@ const InvoiceDetailPage = () => {
                       1,
                       extraMinutes <= 5 ? fullHours : fullHours + 1
                     );
-                    return (
-                      totalHours * (invoice.court?.price || 0)
-                    ).toLocaleString();
+
+                    // Tính tổng tiền sản phẩm đã mua
+                    const totalProductCost =
+                      invoice.invoiceDetails?.reduce((sum, detail) => {
+                        return (
+                          sum +
+                          (detail.quantity || 1) * (detail.product?.price || 0)
+                        );
+                      }, 0) || 0;
+
+                    // Tính đơn giá thuê sân
+                    const rentalPricePerHour =
+                      totalHours > 0
+                        ? (invoice.totalAmount - totalProductCost) / totalHours
+                        : 0;
+
+                    return rentalPricePerHour.toLocaleString();
+                  })()}{" "}
+                  đ/giờ
+                </p>
+                <p>
+                  <strong>Tổng Tiền Thuê Sân:</strong>{" "}
+                  {(() => {
+                    // Tính tổng tiền sản phẩm đã mua
+                    const totalProductCost =
+                      invoice.invoiceDetails?.reduce((sum, detail) => {
+                        return (
+                          sum +
+                          (detail.quantity || 1) * (detail.product?.price || 0)
+                        );
+                      }, 0) || 0;
+
+                    // Tổng tiền thuê sân = Tổng hóa đơn - tổng tiền sản phẩm
+                    const totalRentalCost =
+                      invoice.totalAmount - totalProductCost;
+
+                    return totalRentalCost.toLocaleString();
                   })()}{" "}
                   đ
                 </p>
@@ -173,6 +203,24 @@ const InvoiceDetailPage = () => {
                     </tr>
                   ))}
                 </tbody>
+                {/* Dòng tổng tiền sản phẩm */}
+                <tfoot>
+                  <tr>
+                    <td colSpan="8" className="text-end">
+                      <strong>Tổng Tiền Mua Sản Phẩm: </strong>
+                      {invoice.invoiceDetails
+                        .reduce((sum, detail) => {
+                          return (
+                            sum +
+                            (detail.quantity || 1) *
+                              (detail.product?.price || 0)
+                          );
+                        }, 0)
+                        .toLocaleString()}{" "}
+                      đ
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
             </>
           ) : (
