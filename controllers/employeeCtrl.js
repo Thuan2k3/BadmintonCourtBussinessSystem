@@ -1233,7 +1233,9 @@ const createInvoiceController = async (req, res) => {
     const roundDownHour = (date) =>
       `${String(Math.floor(new Date(date).getHours())).padStart(2, "0")}:00`;
     const roundUpHour = (date) =>
-      `${String(Math.ceil(new Date(date).getHours())).padStart(2, "0")}:00`;
+      new Date(date).getMinutes() > 0
+        ? `${String(new Date(date).getHours() + 1).padStart(2, "0")}:00`
+        : `${String(new Date(date).getHours()).padStart(2, "0")}:00`;
 
     // ✅ Kiểm tra và cập nhật trạng thái completed
     if (customer && court && checkInTime && checkOutTime) {
@@ -1247,7 +1249,8 @@ const createInvoiceController = async (req, res) => {
         10
       );
 
-      console.log(checkInTime);
+      console.log(checkInHour);
+      console.log(checkOutHour);
       const now = new Date(); // Khai báo biến now
       const vietnamOffset = 7 * 60 * 60 * 1000; // +7 giờ (theo mili giây)
       const bookingDate = new Date(now.getTime() + vietnamOffset);
@@ -1255,7 +1258,7 @@ const createInvoiceController = async (req, res) => {
       console.log(bookingDate);
 
       // Lặp qua từng khung giờ từ check-in đến check-out (đã làm tròn)
-      for (let hour = checkInHour; hour <= checkOutHour; hour++) {
+      for (let hour = checkInHour; hour < checkOutHour; hour++) {
         const timeSlot = `${String(hour).padStart(2, "0")}:00`;
 
         const booking = await TimeSlotBooking.findOne({
