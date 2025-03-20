@@ -39,7 +39,7 @@ const HomePage = () => {
   // Lấy danh sách sân
   const getAllCourt = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/v1/admin/court", {
+      const res = await axios.get("http://localhost:8080/api/v1/user/court", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       if (res.data.success) {

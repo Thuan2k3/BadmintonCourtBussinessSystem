@@ -60,7 +60,9 @@ const createCourtController = async (req, res) => {
 
 const getAllCourtController = async (req, res) => {
   try {
-    const courts = await Court.find(); // Lấy tất cả sản phẩm từ DB
+    const courts = await Court.find()
+      .sort({ name: 1 })
+      .collation({ locale: "en", strength: 1 }); // Sắp xếp theo tên sân (A → Z)
 
     res.status(200).json({
       success: true,
@@ -330,7 +332,11 @@ const deleteTimeSlotController = async (req, res) => {
 //Lay san voi bookings
 const getCourtsWithBookingsController = async (req, res) => {
   try {
-    const courts = await Court.find().populate("bookings").lean();
+    const courts = await Court.find()
+      .populate("bookings")
+      .sort({ name: 1 })
+      .collation({ locale: "en", strength: 1 })
+      .lean();
     const timeSlots = await TimeSlot.find().lean();
     const timeSlotBookings = await TimeSlotBooking.find()
       .populate("user", "full_name email")
@@ -687,7 +693,11 @@ const createProductController = async (req, res) => {
 
 const getAllProductController = async (req, res) => {
   try {
-    const products = await Product.find().populate("category").exec(); // Lấy tất cả sản phẩm từ DB
+    const products = await Product.find()
+      .populate("category")
+      .sort({ name: 1 }) // Sắp xếp theo tên sản phẩm (A → Z)
+      .collation({ locale: "en", strength: 1 })
+      .exec();
 
     res.status(200).json({
       success: true,

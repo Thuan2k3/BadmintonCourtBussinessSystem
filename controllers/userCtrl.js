@@ -113,7 +113,11 @@ const authController = async (req, res) => {
 //Lay san voi bookings
 const getCourtsWithBookingsController = async (req, res) => {
   try {
-    const courts = await Court.find().populate("bookings").lean();
+    const courts = await Court.find()
+      .populate("bookings")
+      .sort({ name: 1 })
+      .collation({ locale: "en", strength: 1 })
+      .lean();
     const timeSlots = await TimeSlot.find().lean();
     const timeSlotBookings = await TimeSlotBooking.find()
       .populate("user", "full_name email")
@@ -328,7 +332,11 @@ const cancelBookingWithCourtController = async (req, res) => {
 //Product
 const getAllProductController = async (req, res) => {
   try {
-    const products = await Product.find().populate("category").exec(); // Lấy tất cả sản phẩm từ DB
+    const products = await Product.find()
+      .populate("category")
+      .sort({ name: 1 })
+      .collation({ locale: "en", strength: 1 })
+      .exec(); // Lấy tất cả sản phẩm từ DB
 
     res.status(200).json({
       success: true,
@@ -344,7 +352,9 @@ const getAllProductController = async (req, res) => {
 //Court
 const getAllCourtController = async (req, res) => {
   try {
-    const courts = await Court.find(); // Lấy tất cả sản phẩm từ DB
+    const courts = await Court.find()
+      .sort({ name: 1 })
+      .collation({ locale: "en", strength: 1 }); // Lấy tất cả sản phẩm từ DB
 
     res.status(200).json({
       success: true,
