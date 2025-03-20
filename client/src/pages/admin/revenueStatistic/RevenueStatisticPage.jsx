@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Table, DatePicker, Button, Card, Select, Col, Row } from "antd";
+import { Table, DatePicker, Button, Card, Select, Row, Col } from "antd";
 import { Column, Line } from "@ant-design/charts";
 import axios from "axios";
 import dayjs from "dayjs";
+import {
+  BarChartOutlined,
+  LineChartOutlined,
+  FilterOutlined,
+} from "@ant-design/icons";
 import Layout from "../../../components/Layout";
 
 const { RangePicker } = DatePicker;
@@ -59,36 +64,62 @@ const RevenueStatisticPage = () => {
 
   const columns = [
     {
-      title: type === "day" ? "Ngày" : type === "month" ? "Tháng" : "Năm",
+      title:
+        type === "day" ? "📅 Ngày" : type === "month" ? "📅 Tháng" : "📅 Năm",
       dataIndex: "_id",
       key: "date",
+      align: "center",
       render: (record) => {
         if (!record) return "N/A";
-        if (type === "day" && record.day && record.month && record.year)
-          return `${record.day}/${record.month}/${record.year}`;
-        if (type === "month" && record.month && record.year)
-          return `${record.month}/${record.year}`;
-        if (type === "year" && record.year) return record.year;
+
+        const { day, month, year } = record;
+        const date = dayjs(`${year}-${month || 1}-${day || 1}`);
+
+        if (type === "day")
+          return (
+            <span style={{ fontWeight: "600" }}>
+              {date.format("DD/MM/YYYY")}
+            </span>
+          );
+        if (type === "month")
+          return (
+            <span style={{ fontWeight: "600" }}>{date.format("MM/YYYY")}</span>
+          );
+        if (type === "year")
+          return (
+            <span style={{ fontWeight: "600" }}>{date.format("YYYY")}</span>
+          );
+
         return "N/A";
       },
     },
     {
-      title: "Tổng Doanh Thu (VND)",
+      title: "💰 Tổng Doanh Thu (VNĐ)",
       dataIndex: "totalRevenue",
       key: "totalRevenue",
-      render: (text) => text.toLocaleString() + " VND",
+      align: "center",
+      render: (text) => (
+        <span style={{ color: "#16a34a", fontWeight: "bold" }}>
+          {text.toLocaleString()} VNĐ
+        </span>
+      ),
     },
   ];
 
-  const chartData = revenueData.map((item) => ({
-    date:
-      type === "day"
-        ? `${item._id.day}/${item._id.month}/${item._id.year}`
-        : type === "month"
-        ? `${item._id.month}/${item._id.year}`
-        : item._id.year,
-    revenue: item.totalRevenue,
-  }));
+  const chartData = revenueData.map((item) => {
+    const { day, month, year } = item._id;
+    const date = dayjs(`${year}-${month || 1}-${day || 1}`);
+
+    return {
+      date:
+        type === "day"
+          ? date.format("DD/MM/YYYY")
+          : type === "month"
+          ? date.format("MM/YYYY")
+          : date.format("YYYY"),
+      revenue: item.totalRevenue,
+    };
+  });
 
   const columnConfig = {
     data: chartData,
@@ -97,7 +128,7 @@ const RevenueStatisticPage = () => {
     color: "#1890ff",
     xAxis: {
       label: {
-        rotate: type === "day" ? -45 : 0, // Xoay khi theo ngày để tránh trùng
+        rotate: type === "day" ? -45 : 0,
         style: { fontSize: 12 },
       },
     },
@@ -114,88 +145,128 @@ const RevenueStatisticPage = () => {
   return (
     <Layout>
       <Card>
-        <h1 className="text-center">Thống Kê Doanh Thu</h1>
-        <div className="mb-3 d-flex justify-content-center align-items-center gap-3">
-          <RangePicker
-            value={dates}
-            onChange={(newDates) => {
-              if (newDates) {
-                let [start, end] = newDates;
+        <h1 style={{ textAlign: "center", marginBottom: "20px" }}>
+          📊 Thống Kê Doanh Thu
+        </h1>
 
-                if (type === "month") {
-                  start = start.startOf("month");
-                  end = end.endOf("month");
-                } else if (type === "year") {
-                  start = start.startOf("year");
-                  end = end.endOf("year");
+        {/* Bộ lọc */}
+        <Row
+          gutter={[16, 16]}
+          justify="center"
+          align="middle"
+          style={{ marginBottom: "20px" }}
+        >
+          <Col>
+            <RangePicker
+              value={dates}
+              onChange={(newDates) => {
+                if (newDates) {
+                  let [start, end] = newDates;
+
+                  if (type === "month") {
+                    start = start.startOf("month");
+                    end = end.endOf("month");
+                  } else if (type === "year") {
+                    start = start.startOf("year");
+                    end = end.endOf("year");
+                  }
+
+                  setDates([start, end]);
+                } else {
+                  setDates([dayjs(), dayjs()]);
                 }
-
-                setDates([start, end]);
-              } else {
-                setDates([dayjs(), dayjs()]);
+              }}
+              picker={type}
+              format={
+                type === "day"
+                  ? "DD/MM/YYYY"
+                  : type === "month"
+                  ? "MM/YYYY"
+                  : "YYYY"
               }
-            }}
-            picker={type}
-            format={
-              type === "day"
-                ? "DD/MM/YYYY"
-                : type === "month"
-                ? "MM/YYYY"
-                : "YYYY"
-            }
-          />
+            />
+          </Col>
 
-          <Select
-            value={type}
-            onChange={(newType) => {
-              setType(newType);
-              setRevenueData([]);
-              setTotalProductsSold(0);
-              setTotalCourtsRented(0);
+          <Col>
+            <Select
+              value={type}
+              onChange={(newType) => {
+                setType(newType);
+                setRevenueData([]);
+                setTotalProductsSold(0);
+                setTotalCourtsRented(0);
+                let newStart, newEnd;
+                if (newType === "day") {
+                  newStart = dayjs().startOf("month");
+                  newEnd = dayjs();
+                } else if (newType === "month") {
+                  newStart = dayjs().startOf("year");
+                  newEnd = dayjs().endOf("year");
+                } else if (newType === "year") {
+                  newStart = dayjs().subtract(4, "year").startOf("year");
+                  newEnd = dayjs().endOf("year");
+                }
+                setDates([newStart, newEnd]);
+              }}
+              style={{ width: 150 }}
+            >
+              <Option value="day">Theo Ngày</Option>
+              <Option value="month">Theo Tháng</Option>
+              <Option value="year">Theo Năm</Option>
+            </Select>
+          </Col>
 
-              let newStart, newEnd;
-              if (newType === "day") {
-                newStart = dayjs().startOf("month");
-                newEnd = dayjs();
-              } else if (newType === "month") {
-                newStart = dayjs().startOf("year");
-                newEnd = dayjs().endOf("year");
-              } else if (newType === "year") {
-                newStart = dayjs().subtract(4, "year").startOf("year"); // Lấy 5 năm gần nhất
-                newEnd = dayjs().endOf("year");
-              }
-
-              setDates([newStart, newEnd]);
-            }}
-            style={{ width: 120 }}
-          >
-            <Option value="day">Theo Ngày</Option>
-            <Option value="month">Theo Tháng</Option>
-            <Option value="year">Theo Năm</Option>
-          </Select>
-          <Button type="primary" onClick={fetchRevenue} loading={loading}>
-            Lọc
-          </Button>
-        </div>
+          <Col>
+            <Button
+              type="primary"
+              icon={<FilterOutlined />}
+              onClick={fetchRevenue}
+              loading={loading}
+            >
+              Lọc
+            </Button>
+          </Col>
+        </Row>
 
         {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
 
+        {/* Bảng thống kê */}
         <Table
           columns={columns}
           dataSource={revenueData}
-          pagination={{ pageSize: 5 }}
+          pagination={{
+            pageSize: 5,
+            position: ["bottomCenter"], // Căn giữa phân trang ở phía dưới
+          }}
           loading={loading}
         />
 
-        <Card title="Biểu Đồ Doanh Thu">
-          <div className="d-flex justify-content-center mb-3">
+        {/* Biểu đồ */}
+        <Card
+          title={
+            <h3 style={{ margin: 0, color: "#2c3e50" }}>
+              📈 Biểu Đồ Doanh Thu
+            </h3>
+          }
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginBottom: 20,
+            }}
+          >
             <Select
               value={chartType}
               onChange={setChartType}
-              style={{ width: 150 }}
+              style={{ width: 200, marginBottom: 20 }}
             >
-              <Option value="column">Biểu đồ Cột</Option>
-              <Option value="line">Biểu đồ Đường</Option>
+              <Option value="column">
+                <BarChartOutlined /> Biểu đồ Cột
+              </Option>
+              <Option value="line">
+                <LineChartOutlined /> Biểu đồ Đường
+              </Option>
             </Select>
           </div>
           {chartType === "column" ? (

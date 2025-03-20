@@ -3,6 +3,7 @@ import axios from "axios";
 import Layout from "../components/Layout";
 import GuestLayout from "../components/GuestLayout";
 import { Row, Col, Card, Tag, Modal, Button, message, Typography } from "antd";
+import { Pagination } from "antd";
 import { useSelector } from "react-redux";
 
 const { Text, Title } = Typography;
@@ -13,6 +14,8 @@ const HomePage = () => {
   const [currentCourt, setCurrentCourt] = useState(null);
   const [customer, setCustomer] = useState();
   const { user } = useSelector((state) => state.user);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 4; // Cố định số lượng sân hiển thị mỗi trang
 
   // Xác định Layout dựa trên vai trò người dùng
   const CurrentLayout = user?.role === "customer" ? GuestLayout : Layout;
@@ -69,6 +72,12 @@ const HomePage = () => {
     }
   }, [user]);
 
+  // Tính toán danh sách sân hiển thị theo trang hiện tại
+  const filteredCourts = courts.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
   return (
     <CurrentLayout>
       {user?.role === "customer" && (
@@ -123,7 +132,7 @@ const HomePage = () => {
 
         {/* Danh sách sân */}
         <Row gutter={[32, 32]} justify="center">
-          {courts.map((court) => (
+          {filteredCourts.map((court) => (
             <Col xs={24} sm={12} md={8} lg={6} key={court.id}>
               <Card
                 hoverable
@@ -249,6 +258,17 @@ const HomePage = () => {
               {currentCourt.description || "Không có mô tả."}
             </p>
           </Modal>
+        )}
+        {/* Phân trang */}
+        {courts.length > pageSize && (
+          <div className="d-flex justify-content-center mt-4">
+            <Pagination
+              current={currentPage}
+              pageSize={pageSize}
+              total={courts.length}
+              onChange={(page) => setCurrentPage(page)}
+            />
+          </div>
         )}
 
         {/* Nếu không có sân */}

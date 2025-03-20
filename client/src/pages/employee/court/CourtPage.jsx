@@ -3,11 +3,14 @@ import Layout from "../../../components/Layout";
 import { Link } from "react-router-dom";
 import { AiOutlineEdit, AiOutlineSearch } from "react-icons/ai";
 import { MdOutlineAddBox, MdOutlineDelete } from "react-icons/md";
+import { Pagination } from "antd";
 import axios from "axios";
 
 const CourtPage = () => {
   const [courts, setCourts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 5; // Cố định số lượng sân hiển thị mỗi trang
 
   // Lấy danh sách sân
   const getAllCourts = async () => {
@@ -165,6 +168,17 @@ const CourtPage = () => {
             </tbody>
           </table>
         </div>
+        {/* Phân trang */}
+        {filteredCourts.length > pageSize && (
+        <div className="d-flex justify-content-center mt-4">
+          <Pagination
+            current={currentPage}
+            pageSize={pageSize}
+            total={filteredCourts.length}
+            onChange={(page) => setCurrentPage(page)}
+          />
+        </div>
+        )}
       </div>
     </Layout>
   );

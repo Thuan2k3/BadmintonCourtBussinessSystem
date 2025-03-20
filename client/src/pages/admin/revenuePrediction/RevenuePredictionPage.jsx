@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Layout from "../../../components/Layout";
-import { Spin, Alert, Card } from "antd";
+import { Spin, Alert, Card, Table } from "antd";
 import { Column } from "@ant-design/charts";
-import { Table } from "antd";
+import dayjs from "dayjs";
 
 const RevenuePredictionPage = () => {
   const [predictions, setPredictions] = useState(null);
@@ -18,7 +18,7 @@ const RevenuePredictionPage = () => {
         );
         setPredictions(response.data);
       } catch (error) {
-        setError("Lỗi khi lấy dữ liệu dự đoán.");
+        setError("❌ Lỗi khi lấy dữ liệu dự đoán.");
         console.error(error);
       }
       setLoading(false);
@@ -27,56 +27,127 @@ const RevenuePredictionPage = () => {
     fetchPrediction();
   }, []);
 
-  // Cấu hình biểu đồ cột dọc
+  const formattedPredictions = predictions
+    ? predictions.map((item) => ({
+        ...item,
+        date: dayjs(item.date).format("DD/MM/YYYY"),
+      }))
+    : [];
+
+  // ✅ Cấu hình biểu đồ cột dọc
   const config = {
-    data: predictions || [],
+    data: formattedPredictions,
     xField: "date",
     yField: "revenue",
-    xAxis: { title: { text: "Ngày" } },
-    yAxis: { title: { text: "Doanh thu (VNĐ)" } },
+    xAxis: { title: { text: "📅 Ngày" } },
+    yAxis: { title: { text: "💰 Doanh thu (VNĐ)" } },
+    color: "#3b82f6",
+    meta: {
+      date: { alias: "Ngày" },
+      revenue: { alias: "Doanh thu (VNĐ)" },
+    },
+    label: {
+      position: "top",
+      style: { fill: "#2c3e50", fontWeight: "bold" },
+    },
   };
 
+  // ✅ Cấu hình cột bảng
   const columns = [
     {
-      title: "Ngày",
+      title: "📅 Ngày",
       dataIndex: "date",
       key: "date",
+      align: "center",
+      render: (text) => (
+        <span style={{ fontWeight: "600" }}>
+          {dayjs(text).format("DD/MM/YYYY")}
+        </span>
+      ),
     },
     {
-      title: "Doanh thu dự đoán (VNĐ)",
+      title: "💰 Doanh thu dự đoán (VNĐ)",
       dataIndex: "revenue",
       key: "revenue",
-      render: (text) => <span>{text.toLocaleString()} VNĐ</span>,
+      align: "center",
+      render: (text) => (
+        <span style={{ color: "#16a34a", fontWeight: "bold" }}>
+          {text.toLocaleString()} VNĐ
+        </span>
+      ),
     },
   ];
 
   return (
     <Layout>
-      <Card>
-        <h2 className="text-center">Dự đoán doanh thu 7 ngày tới</h2>
+      <div
+        className="p-4"
+        style={{
+          backgroundColor: "#f9f9f9",
+          minHeight: "100vh",
+          borderRadius: "12px",
+        }}
+      >
+        <h1
+          className="text-center mb-5"
+          style={{ color: "#2c3e50", fontWeight: "700" }}
+        >
+          📊 DỰ ĐOÁN DOANH THU 7 NGÀY TỚI
+        </h1>
 
-        {loading && <Spin size="large" />}
+        {/* ✅ Trạng thái tải dữ liệu */}
+        {loading && (
+          <div className="d-flex justify-content-center">
+            <Spin size="large" />
+          </div>
+        )}
         {error && <Alert message={error} type="error" showIcon />}
 
+        {/* ✅ Hiển thị bảng và biểu đồ */}
         {predictions && (
           <div>
-            <Table
-              columns={columns}
-              dataSource={predictions.map((prediction, index) => ({
-                key: index,
-                date: prediction.date,
-                revenue: prediction.revenue,
-              }))}
-              pagination={false} // Ẩn phân trang nếu danh sách ngắn
-              bordered // Hiển thị viền bảng
-            />
+            <Card
+              title={
+                <h3 style={{ margin: 0, color: "#2c3e50" }}>
+                  📅 Chi tiết dự đoán doanh thu
+                </h3>
+              }
+              bordered={false}
+              style={{
+                marginBottom: "30px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                borderRadius: "12px",
+              }}
+            >
+              <Table
+                columns={columns}
+                dataSource={predictions.map((prediction, index) => ({
+                  key: index,
+                  date: prediction.date,
+                  revenue: prediction.revenue,
+                }))}
+                pagination={false}
+                bordered
+              />
+            </Card>
 
-            <Card title="Biểu đồ dự đoán doanh thu">
+            <Card
+              title={
+                <h3 style={{ margin: 0, color: "#2c3e50" }}>
+                  📊 Biểu đồ dự đoán doanh thu
+                </h3>
+              }
+              bordered={false}
+              style={{
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                borderRadius: "12px",
+              }}
+            >
               <Column {...config} />
             </Card>
           </div>
         )}
-      </Card>
+      </div>
     </Layout>
   );
 };
