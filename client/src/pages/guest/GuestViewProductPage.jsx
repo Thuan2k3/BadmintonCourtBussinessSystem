@@ -73,7 +73,7 @@ const GuestViewProductPage = () => {
 
         {/* Tabs Danh Mục */}
         <Tabs
-          defaultActiveKey="0"
+          defaultActiveKey="all"
           centered
           tabBarStyle={{
             fontSize: "16px",
@@ -81,6 +81,134 @@ const GuestViewProductPage = () => {
             marginBottom: "32px",
           }}
         >
+          {/* Tab "Tất cả" */}
+          <TabPane
+            tab={
+              <span
+                style={{
+                  background: "linear-gradient(135deg, #52c41a, #73d13d)",
+                  padding: "8px 16px",
+                  borderRadius: "12px",
+                  color: "#fff",
+                  boxShadow: "0 4px 8px rgba(82, 196, 26, 0.5)",
+                }}
+              >
+                Tất cả
+              </span>
+            }
+            key="all"
+          >
+            <Row gutter={[32, 32]} justify="center">
+              {products.map((product) => (
+                <Col key={product._id} xs={24} sm={12} md={8} lg={6}>
+                  <Card
+                    hoverable
+                    bordered={false}
+                    style={{
+                      borderRadius: "20px",
+                      overflow: "hidden",
+                      transition: "transform 0.4s, box-shadow 0.4s",
+                      boxShadow: "0 8px 24px rgba(0, 0, 0, 0.1)",
+                    }}
+                    cover={
+                      <div
+                        style={{
+                          overflow: "hidden",
+                          borderTopLeftRadius: "20px",
+                          borderTopRightRadius: "20px",
+                        }}
+                      >
+                        <img
+                          src={`http://localhost:8080${product.image}`}
+                          alt={product.name}
+                          style={{
+                            width: "100%",
+                            height: "260px",
+                            objectFit: "cover",
+                            transition: "transform 0.5s ease",
+                          }}
+                          onMouseEnter={(e) =>
+                            (e.target.style.transform = "scale(1.1)")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.target.style.transform = "scale(1)")
+                          }
+                        />
+                      </div>
+                    }
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.transform = "translateY(-8px)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.transform = "translateY(0)")
+                    }
+                  >
+                    <Title
+                      level={4}
+                      style={{
+                        color: "#1890ff",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {product.name}
+                    </Title>
+
+                    <Tag
+                      color="blue"
+                      style={{
+                        fontSize: "14px",
+                        marginBottom: "12px",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      <Text strong>💰 Giá: </Text> {product.price} VNĐ
+                    </Tag>
+
+                    {/* Nút Xem Chi Tiết */}
+                    <Button
+                      type="primary"
+                      shape="round"
+                      block
+                      style={{
+                        marginTop: "12px",
+                        background: "linear-gradient(135deg, #ff4d4f, #ff7875)",
+                        border: "none",
+                        fontWeight: "bold",
+                        boxShadow: "0 4px 12px rgba(255, 77, 79, 0.5)",
+                        transition: "transform 0.3s",
+                      }}
+                      onClick={() => showProductDetail(product)}
+                      onMouseEnter={(e) =>
+                        (e.target.style.transform = "scale(1.1)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.target.style.transform = "scale(1)")
+                      }
+                    >
+                      🔍 Xem Chi Tiết
+                    </Button>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+            {products.length === 0 && (
+              <Text
+                style={{
+                  display: "block",
+                  textAlign: "center",
+                  marginTop: "40px",
+                  fontSize: "18px",
+                  color: "#888",
+                }}
+              >
+                Hiện tại chưa có sản phẩm nào.
+              </Text>
+            )}
+          </TabPane>
+
+          {/* Các tab theo danh mục */}
           {categories.map((category, index) => (
             <TabPane
               tab={
@@ -139,12 +267,6 @@ const GuestViewProductPage = () => {
                             />
                           </div>
                         }
-                        onMouseEnter={(e) =>
-                          (e.currentTarget.style.transform = "translateY(-8px)")
-                        }
-                        onMouseLeave={(e) =>
-                          (e.currentTarget.style.transform = "translateY(0)")
-                        }
                       >
                         <Title
                           level={4}
@@ -158,38 +280,13 @@ const GuestViewProductPage = () => {
                           {product.name}
                         </Title>
 
-                        <Tag
-                          color="blue"
-                          style={{
-                            fontSize: "14px",
-                            marginBottom: "12px",
-                            borderRadius: "8px",
-                          }}
-                        >
-                          <Text strong>💰 Giá: </Text> {product.price} VNĐ
-                        </Tag>
+                        <Tag color="blue">💰 Giá: {product.price} VNĐ</Tag>
 
-                        {/* Nút Xem Chi Tiết */}
                         <Button
                           type="primary"
                           shape="round"
                           block
-                          style={{
-                            marginTop: "12px",
-                            background:
-                              "linear-gradient(135deg, #ff4d4f, #ff7875)",
-                            border: "none",
-                            fontWeight: "bold",
-                            boxShadow: "0 4px 12px rgba(255, 77, 79, 0.5)",
-                            transition: "transform 0.3s",
-                          }}
                           onClick={() => showProductDetail(product)}
-                          onMouseEnter={(e) =>
-                            (e.target.style.transform = "scale(1.1)")
-                          }
-                          onMouseLeave={(e) =>
-                            (e.target.style.transform = "scale(1)")
-                          }
                         >
                           🔍 Xem Chi Tiết
                         </Button>
@@ -198,7 +295,6 @@ const GuestViewProductPage = () => {
                   ))}
               </Row>
 
-              {/* Nếu không có sản phẩm */}
               {products.filter((p) => p.category.name === category).length ===
                 0 && (
                 <Text
