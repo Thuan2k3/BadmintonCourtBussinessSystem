@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Spin, message, Empty, Typography } from "antd";
+import { Row, Col, Spin, message, Empty, Typography, Pagination } from "antd";
 import GuestLayout from "../../../components/GuestLayout";
 import BookingCourt from "../../../components/BookingCourt";
 import axios from "axios";
@@ -8,6 +8,8 @@ const { Title } = Typography;
 const CourtBookingStatusPage = () => {
   const [courts, setCourts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 3; // Số sân trên mỗi trang
 
   useEffect(() => {
     const fetchCourts = async () => {
@@ -30,6 +32,11 @@ const CourtBookingStatusPage = () => {
 
     fetchCourts();
   }, []);
+
+  const paginatedCourts = courts.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   return (
     <GuestLayout>
@@ -63,21 +70,41 @@ const CourtBookingStatusPage = () => {
           ) : courts.length === 0 ? (
             <Empty description="Hiện tại không có sân nào khả dụng." />
           ) : (
-            <Row gutter={[24, 24]} justify="start">
-              {courts.map((court) => (
-                <Col
-                  key={court.id}
-                  xs={24}
-                  sm={24}
-                  md={12}
-                  lg={8}
-                  xl={8}
-                  style={{ display: "flex", justifyContent: "center" }}
+            <>
+              <Row gutter={[24, 24]} justify="start">
+                {paginatedCourts.map((court) => (
+                  <Col
+                    key={court._id}
+                    xs={24}
+                    sm={24}
+                    md={12}
+                    lg={8}
+                    xl={8}
+                    style={{ display: "flex", justifyContent: "center" }}
+                  >
+                    <BookingCourt court={court} />
+                  </Col>
+                ))}
+              </Row>
+              {/* Thêm Pagination */}
+              {courts.length > pageSize && (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    marginTop: "20px",
+                  }}
                 >
-                  <BookingCourt court={court} />
-                </Col>
-              ))}
-            </Row>
+                  <Pagination
+                    current={currentPage}
+                    pageSize={pageSize}
+                    total={courts.length}
+                    onChange={(page) => setCurrentPage(page)}
+                    showQuickJumper
+                  />
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
