@@ -142,10 +142,6 @@ const InvoicePage = () => {
         court,
         products: [],
         courtInvoice: null,
-        customer: {
-          id: selectedUser?.id || "unknown",
-          name: selectedUser?.full_name || "Không xác định",
-        },
       };
 
       await set(orderItemRef, newOrderItem);

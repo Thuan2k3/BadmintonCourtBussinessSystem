@@ -1,11 +1,12 @@
-import React, { useEffect } from "react";
-import { ref, update } from "firebase/database";
+import React, { useEffect, useState } from "react";
+import { ref, update, remove, onValue } from "firebase/database";
 import { Select, Button, Typography, message } from "antd";
-import { database } from "../firebaseConfig"; // Import Firebase
+import { database } from "../firebaseConfig";
 import axios from "axios";
 
 const { Text } = Typography;
 
+// Hàm loại bỏ dấu tiếng Việt
 const removeVietnameseTones = (str) => {
   return str
     .normalize("NFD")
@@ -21,25 +22,53 @@ const CustomerSelector = ({
   selectedCourt,
   setOrderItemsCourt,
 }) => {
+  const [tempSelectedUser, setTempSelectedUser] = useState(null); // Khách hàng tạm thời
+  const [initialUser, setInitialUser] = useState(null); // Lưu khách hàng từ API
+
+  // Lấy ngày giờ hiện tại (định dạng YYYY-MM-DD và HH:00)
   const getCurrentDateTime = () => {
     const now = new Date();
-    const date = now.toISOString().split("T")[0]; // YYYY-MM-DD
-    const time = now.getHours() + ":00"; // Lấy giờ hiện tại, làm tròn về dạng "HH:00"
-    return { date, time };
+    return {
+      date: now.toISOString().split("T")[0],
+      time: `${now.getHours()}:00`,
+    };
   };
 
+  // Lấy thông tin khách hàng từ Firebase
+  useEffect(() => {
+    if (!selectedCourt?._id || selectedCourt._id === "guest") return;
+
+    const orderRef = ref(database, `orders/${selectedCourt._id}/customer`);
+
+    // Lắng nghe dữ liệu theo thời gian thực
+    const unsubscribe = onValue(orderRef, (snapshot) => {
+      const customerData = snapshot.val();
+      if (customerData) {
+        setSelectedUser(customerData); // Cập nhật selectedUser từ Firebase
+        setTempSelectedUser(customerData); // Hiển thị sẵn trong Select
+      } else {
+        setSelectedUser(null);
+        setTempSelectedUser(null);
+      }
+    });
+
+    // Hủy lắng nghe khi component unmount
+    return () => unsubscribe();
+  }, [selectedCourt, setSelectedUser]);
+
+  // Xử lý khi nhấn "Xác nhận"
   const handleConfirm = async () => {
     if (!selectedCourt || !selectedCourt._id) {
       message.error("Vui lòng chọn sân trước khi gán khách hàng!");
       return;
     }
 
-    console.log("🏸 Sân được chọn:", selectedCourt);
-    console.log("👤 Khách hàng được chọn:", selectedUser);
+    // Cập nhật khách hàng chính thức
+    setSelectedUser(tempSelectedUser);
 
+    // Cập nhật trạng thái sân và khách trong orderItemsCourt
     setOrderItemsCourt((prev) => {
-      let updatedItems = [...prev];
-
+      const updatedItems = [...prev];
       const courtKey = selectedCourt._id;
       const index = updatedItems.findIndex(
         (item) => item.court?._id === courtKey
@@ -48,20 +77,17 @@ const CustomerSelector = ({
       if (index !== -1) {
         updatedItems[index] = {
           ...updatedItems[index],
-          customer: selectedUser || null,
+          customer: tempSelectedUser || null,
         };
-      } else if (selectedUser) {
+      } else if (tempSelectedUser) {
         updatedItems.push({
           court: selectedCourt,
-          customer: selectedUser,
+          customer: tempSelectedUser,
           products: [],
           courtInvoice: null,
         });
       }
 
-      console.log("📝 Cập nhật danh sách orderItemsCourt:", updatedItems);
-
-      // Nếu là sân "guest", lưu vào localStorage
       if (courtKey === "guest") {
         localStorage.setItem("guest_order", JSON.stringify(updatedItems));
       }
@@ -69,21 +95,22 @@ const CustomerSelector = ({
       return updatedItems;
     });
 
+    // Chỉ cập nhật Firebase nếu sân không phải là "guest"
     if (selectedCourt._id !== "guest") {
       const orderRef = ref(database, `orders/${selectedCourt._id}/customer`);
 
       try {
-        if (selectedUser) {
+        if (tempSelectedUser) {
           await update(orderRef, {
-            id: selectedUser._id,
-            full_name: selectedUser.full_name,
-            email: selectedUser.email,
+            _id: tempSelectedUser._id,
+            full_name: tempSelectedUser.full_name,
+            email: tempSelectedUser.email,
           });
           message.success(
-            `Khách hàng đã được cập nhật: ${selectedUser.full_name}`
+            `Khách hàng đã được cập nhật: ${tempSelectedUser.full_name}`
           );
         } else {
-          await update(orderRef, null);
+          await remove(orderRef); // Xóa khách hàng nếu không chọn
           message.success("Đã bỏ chọn khách hàng.");
         }
       } catch (error) {
@@ -91,6 +118,8 @@ const CustomerSelector = ({
       }
     }
   };
+
+  // Lấy thông tin khách hàng đã đặt sân từ API
   useEffect(() => {
     const fetchBookedCustomer = async () => {
       if (!selectedCourt?._id) return;
@@ -109,12 +138,41 @@ const CustomerSelector = ({
             },
           }
         );
-        if (response.data) {
-          setSelectedUser(response.data.user);
+
+        const user = response.data?.user;
+
+        // Tìm sân hiện tại trong orderItemsCourt
+        const currentCourt = orderItemsCourt.find(
+          (item) => item.court?._id === selectedCourt._id
+        );
+
+        if (user && user._id) {
+          // Nếu user hợp lệ, cập nhật cả state và Firebase
+          setInitialUser(user);
+          setTempSelectedUser(user);
+
+          // Lưu vào Firebase (nếu không phải sân khách lẻ "guest")
+          if (selectedCourt._id !== "guest" && !currentCourt.customer) {
+            const orderRef = ref(
+              database,
+              `orders/${selectedCourt._id}/customer`
+            );
+            await update(orderRef, {
+              _id: user._id,
+              full_name: user.full_name,
+              email: user.email,
+            });
+            message.success(`Tự động gán khách: ${user.full_name}`);
+          }
+        } else {
+          // Không có khách đặt, reset trạng thái
+          setInitialUser(null);
+          setTempSelectedUser(null);
         }
       } catch (error) {
-        console.error("Không tìm thấy khách hàng đặt sân:", error);
-        setSelectedUser(null);
+        console.error("Không tìm thấy khách đặt sân:", error);
+        setInitialUser(null);
+        setTempSelectedUser(null);
       }
     };
 
@@ -128,13 +186,15 @@ const CustomerSelector = ({
         <Select
           showSearch
           allowClear
-          placeholder="Chọn khách hàng:"
+          placeholder="Chọn khách hàng"
           style={{ width: 250 }}
           className="me-2"
           optionFilterProp="label"
-          value={selectedUser?._id || null}
+          value={tempSelectedUser?._id || null}
           onChange={(value) => {
-            setSelectedUser(value ? users.find((u) => u._id === value) : null);
+            setTempSelectedUser(
+              value ? users.find((u) => u._id === value) : null
+            );
           }}
           options={[
             { value: null, label: "Không chọn khách hàng" },
@@ -151,9 +211,10 @@ const CustomerSelector = ({
         />
         <Button onClick={handleConfirm}>Xác nhận</Button>
       </div>
+
       {selectedUser && (
         <p>
-          <strong>Khách hàng đặt sân:</strong> {selectedUser.full_name} -{" "}
+          <strong>Khách hàng đã đặt sân:</strong> {selectedUser.full_name} -{" "}
           {selectedUser.email}
         </p>
       )}
