@@ -1236,7 +1236,7 @@ const createInvoiceController = async (req, res) => {
       totalAmount,
     });
 
-    await newInvoice.save();
+    const invoice = await newInvoice.save();
 
     // Cập nhật invoice ID vào invoiceDetails
     await InvoiceDetail.updateMany(
@@ -1313,6 +1313,7 @@ const createInvoiceController = async (req, res) => {
       message: "Hóa đơn được tạo thành công!",
       invoice: {
         ...newInvoice._doc,
+        _id: invoice._id,
         createdAt: newInvoice.createdAt,
       },
     });

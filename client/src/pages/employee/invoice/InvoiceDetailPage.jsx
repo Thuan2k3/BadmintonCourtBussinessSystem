@@ -1,16 +1,20 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Layout from "../../../components/Layout";
 import axios from "axios";
 import { Button } from "antd";
 import "../../../styles/InvoiceDetailPage.css"; // Thêm file CSS để xử lý in
 import dayjs from "dayjs";
+import { useSearchParams } from "react-router-dom";
 
 const InvoiceDetailPage = () => {
   const { id } = useParams();
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
   const printRef = useRef(); // Tham chiếu đến nội dung cần in
+  const [searchParams] = useSearchParams();
+  const autoPrint = searchParams.get("autoPrint");
+  const navigate = useNavigate();
 
   const getInvoiceDetail = async () => {
     try {
@@ -36,6 +40,15 @@ const InvoiceDetailPage = () => {
   useEffect(() => {
     getInvoiceDetail();
   }, [id]);
+
+  useEffect(() => {
+    if (autoPrint === "true") {
+      setTimeout(() => {
+        window.print();
+        navigate("/employee/invoice");
+      }, 500); // Chờ 0.5s để CSS tải xong
+    }
+  }, [autoPrint]);
 
   // Hàm in chỉ in nội dung trong printRef
   const handlePrint = () => {

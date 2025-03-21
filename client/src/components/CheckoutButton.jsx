@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { useState } from "react";
 import moment from "moment";
 import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
 
 const CheckoutButton = ({
   getTotalAmountForCourt,
@@ -22,6 +23,7 @@ const CheckoutButton = ({
 }) => {
   const { user } = useSelector((state) => state.user);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleCheckoutBill = async () => {
     const newTotal = getTotalAmountForCourt(selectedCourt._id);
@@ -116,7 +118,7 @@ const CheckoutButton = ({
     };
 
     try {
-      await axios.post(
+      const response = await axios.post(
         "http://localhost:8080/api/v1/employee/invoice",
         invoiceData,
         {
@@ -125,6 +127,8 @@ const CheckoutButton = ({
           },
         }
       );
+
+      navigate(`/employee/invoice/detail/${response.data.invoice._id}?autoPrint=true`);
 
       message.success(
         `Hóa đơn đã lưu! Tổng tiền: ${newTotal.toLocaleString()} VND`
