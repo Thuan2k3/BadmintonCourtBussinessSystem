@@ -97,13 +97,33 @@ const CheckoutButton = ({
       return moment(dateString, "HH:mm:ss D/M/YYYY").toISOString();
     };
 
-    const duration = (() => {
-      // Làm tròn check-in xuống giờ gần nhất, check-out lên giờ gần nhất
-      const roundedCheckIn = dayjs(checkInTime).startOf("hour");
-      const roundedCheckOut = dayjs(checkOutTime).endOf("hour");
+    // ✅ Hàm làm tròn giờ
+    const roundDownHour = (date) => {
+      const d = new Date(date);
+      return `${String(d.getHours()).padStart(2, "0")}:00`;
+    };
 
-      // Tính tổng số giờ, đảm bảo tối thiểu 1 giờ
-      return Math.max(1, roundedCheckOut.diff(roundedCheckIn, "hour"));
+    const roundUpHour = (date) => {
+      const d = new Date(date);
+      return d.getMinutes() > 0
+        ? `${String(d.getHours() + 1).padStart(2, "0")}:00`
+        : `${String(d.getHours()).padStart(2, "0")}:00`;
+    };
+
+    // Tính tổng số giờ theo TimeSlot (làm tròn theo giờ)
+    const duration = (() => {
+      // Làm tròn giờ check-in xuống, check-out lên
+      const checkInHour = parseInt(
+        roundDownHour(checkInTime).split(":")[0],
+        10
+      );
+      const checkOutHour = parseInt(
+        roundUpHour(checkOutTime).split(":")[0],
+        10
+      );
+
+      const hours = checkOutHour - checkInHour;
+      return Math.max(1, hours); // Tối thiểu 1 giờ
     })();
 
     const invoiceData = {
@@ -128,7 +148,9 @@ const CheckoutButton = ({
         }
       );
 
-      navigate(`/employee/invoice/detail/${response.data.invoice._id}?autoPrint=true`);
+      navigate(
+        `/employee/invoice/detail/${response.data.invoice._id}?autoPrint=true`
+      );
 
       message.success(
         `Hóa đơn đã lưu! Tổng tiền: ${newTotal.toLocaleString()} VND`

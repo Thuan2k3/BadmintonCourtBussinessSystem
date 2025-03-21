@@ -110,14 +110,35 @@ const InvoiceDetailPage = () => {
                 <p>
                   <strong>Tổng số giờ thuê:</strong>{" "}
                   {(() => {
-                    const checkInTime = dayjs(invoice.checkInTime).startOf(
-                      "hour"
-                    ); // Làm tròn xuống
-                    const checkOutTime = dayjs(invoice.checkOutTime).endOf(
-                      "hour"
-                    ); // Làm tròn lên
-                    const totalHours = checkOutTime.diff(checkInTime, "hour");
-                    return Math.max(1, totalHours); // Tối thiểu 1 giờ
+                    // ✅ Hàm làm tròn giờ
+                    const roundDownHour = (date) => {
+                      const d = new Date(date);
+                      return `${String(d.getHours()).padStart(2, "0")}:00`;
+                    };
+
+                    const roundUpHour = (date) => {
+                      const d = new Date(date);
+                      return d.getMinutes() > 0
+                        ? `${String(d.getHours() + 1).padStart(2, "0")}:00`
+                        : `${String(d.getHours()).padStart(2, "0")}:00`;
+                    };
+
+                    // Tính tổng số giờ theo TimeSlot (làm tròn theo giờ)
+                    const duration = (() => {
+                      // Làm tròn giờ check-in xuống, check-out lên
+                      const checkInHour = parseInt(
+                        roundDownHour(invoice.checkInTime).split(":")[0],
+                        10
+                      );
+                      const checkOutHour = parseInt(
+                        roundUpHour(invoice.checkOutTime).split(":")[0],
+                        10
+                      );
+
+                      const hours = checkOutHour - checkInHour;
+                      return Math.max(1, hours); // Tối thiểu 1 giờ
+                    })();
+                    return duration;
                   })()}{" "}
                   giờ
                 </p>
@@ -125,18 +146,34 @@ const InvoiceDetailPage = () => {
                 <p>
                   <strong>Đơn Giá Thuê Sân:</strong>{" "}
                   {(() => {
-                    const checkInTime = dayjs(invoice.checkInTime).startOf(
-                      "hour"
-                    ); // Làm tròn xuống
-                    const checkOutTime = dayjs(invoice.checkOutTime).endOf(
-                      "hour"
-                    ); // Làm tròn lên
+                    // ✅ Hàm làm tròn giờ
+                    const roundDownHour = (date) => {
+                      const d = new Date(date);
+                      return `${String(d.getHours()).padStart(2, "0")}:00`;
+                    };
 
-                    // Tính tổng số giờ thuê (tối thiểu 1 giờ)
-                    const totalHours = Math.max(
-                      1,
-                      checkOutTime.diff(checkInTime, "hour")
-                    );
+                    const roundUpHour = (date) => {
+                      const d = new Date(date);
+                      return d.getMinutes() > 0
+                        ? `${String(d.getHours() + 1).padStart(2, "0")}:00`
+                        : `${String(d.getHours()).padStart(2, "0")}:00`;
+                    };
+
+                    // Tính tổng số giờ theo TimeSlot (làm tròn theo giờ)
+                    const totalHours = (() => {
+                      // Làm tròn giờ check-in xuống, check-out lên
+                      const checkInHour = parseInt(
+                        roundDownHour(invoice.checkInTime).split(":")[0],
+                        10
+                      );
+                      const checkOutHour = parseInt(
+                        roundUpHour(invoice.checkOutTime).split(":")[0],
+                        10
+                      );
+
+                      const hours = checkOutHour - checkInHour;
+                      return Math.max(1, hours); // Tối thiểu 1 giờ
+                    })();
 
                     // Tính tổng tiền sản phẩm đã mua
                     const totalProductCost =

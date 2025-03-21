@@ -254,12 +254,32 @@ const InvoicePage = () => {
       return;
     }
 
+    // ✅ Hàm làm tròn giờ
+    const roundDownHour = (date) => {
+      const d = new Date(date);
+      return `${String(d.getHours()).padStart(2, "0")}:00`;
+    };
+
+    const roundUpHour = (date) => {
+      const d = new Date(date);
+      return d.getMinutes() > 0
+        ? `${String(d.getHours() + 1).padStart(2, "0")}:00`
+        : `${String(d.getHours()).padStart(2, "0")}:00`;
+    };
+
     // Tính tổng số giờ theo TimeSlot (làm tròn theo giờ)
     const duration = (() => {
-      const roundedCheckIn = dayjs(checkInTime).startOf("hour"); // Làm tròn xuống
-      const roundedCheckOut = dayjs(checkOutTime).endOf("hour"); // Làm tròn lên
+      // Làm tròn giờ check-in xuống, check-out lên
+      const checkInHour = parseInt(
+        roundDownHour(checkInTime).split(":")[0],
+        10
+      );
+      const checkOutHour = parseInt(
+        roundUpHour(checkOutTime).split(":")[0],
+        10
+      );
 
-      const hours = roundedCheckOut.diff(roundedCheckIn, "hour");
+      const hours = checkOutHour - checkInHour;
       return Math.max(1, hours); // Tối thiểu 1 giờ
     })();
 
