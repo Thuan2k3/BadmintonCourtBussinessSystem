@@ -7,7 +7,7 @@ import { customerMenu } from "../data/data";
 import { guestMenu } from "../data/data";
 import { setUser } from "../redux/features/userSlice";
 
-const { Header, Content } = Layout;
+const { Header, Content, Footer } = Layout;
 
 const GuestHomePage = ({ children }) => {
   const location = useLocation();
@@ -225,6 +225,17 @@ const GuestHomePage = ({ children }) => {
       >
         {children}
       </Content>
+      <Footer
+        style={{
+          textAlign: "center",
+          background: "#0A2540",
+          color: "#FFFFFF",
+          padding: "20px 0",
+          borderTop: "3px solid #1E90FF",
+        }}
+      >
+        © 2025 Badminton App. All Rights Reserved.
+      </Footer>
     </Layout>
   );
 };
