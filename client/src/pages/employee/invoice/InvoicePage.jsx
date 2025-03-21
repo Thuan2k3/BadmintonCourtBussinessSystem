@@ -254,13 +254,13 @@ const InvoicePage = () => {
       return;
     }
 
-    //Tính tổng số giờ (ít nhất là 1 giờ) và cho phép khách ra trễ không quá 5 phút
+    // Tính tổng số giờ theo TimeSlot (làm tròn theo giờ)
     const duration = (() => {
-      const durationMinutes = (checkOutTime - checkInTime) / (1000 * 60);
-      const fullHours = Math.floor(durationMinutes / 60);
-      const extraMinutes = durationMinutes % 60;
+      const roundedCheckIn = dayjs(checkInTime).startOf("hour"); // Làm tròn xuống
+      const roundedCheckOut = dayjs(checkOutTime).endOf("hour"); // Làm tròn lên
 
-      return Math.max(1, extraMinutes <= 5 ? fullHours : fullHours + 1);
+      const hours = roundedCheckOut.diff(roundedCheckIn, "hour");
+      return Math.max(1, hours); // Tối thiểu 1 giờ
     })();
 
     const totalCost = duration * selectedCourt.price;

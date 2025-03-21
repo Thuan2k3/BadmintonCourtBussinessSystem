@@ -6,6 +6,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import { useState } from "react";
 import moment from "moment";
+import dayjs from "dayjs";
 
 const CheckoutButton = ({
   getTotalAmountForCourt,
@@ -95,14 +96,12 @@ const CheckoutButton = ({
     };
 
     const duration = (() => {
-      const durationMinutes =
-        (new Date(checkOutTime) - new Date(checkInTime)) / (1000 * 60);
-      const fullHours = Math.floor(durationMinutes / 60);
-      const extraMinutes = durationMinutes % 60;
+      // Làm tròn check-in xuống giờ gần nhất, check-out lên giờ gần nhất
+      const roundedCheckIn = dayjs(checkInTime).startOf("hour");
+      const roundedCheckOut = dayjs(checkOutTime).endOf("hour");
 
-      return checkInTime && checkOutTime
-        ? Math.max(1, extraMinutes <= 5 ? fullHours : fullHours + 1)
-        : 0;
+      // Tính tổng số giờ, đảm bảo tối thiểu 1 giờ
+      return Math.max(1, roundedCheckOut.diff(roundedCheckIn, "hour"));
     })();
 
     const invoiceData = {

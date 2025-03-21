@@ -4,6 +4,7 @@ import Layout from "../../../components/Layout";
 import axios from "axios";
 import { Button } from "antd";
 import "../../../styles/InvoiceDetailPage.css"; // Thêm file CSS để xử lý in
+import dayjs from "dayjs";
 
 const InvoiceDetailPage = () => {
   const { id } = useParams();
@@ -96,35 +97,32 @@ const InvoiceDetailPage = () => {
                 <p>
                   <strong>Tổng số giờ thuê:</strong>{" "}
                   {(() => {
-                    const checkInTime = new Date(invoice.checkInTime).getTime();
-                    const checkOutTime = new Date(
-                      invoice.checkOutTime
-                    ).getTime();
-                    const durationMinutes =
-                      (checkOutTime - checkInTime) / (1000 * 60);
-                    const fullHours = Math.floor(durationMinutes / 60);
-                    const extraMinutes = durationMinutes % 60;
-                    return Math.max(
-                      1,
-                      extraMinutes <= 5 ? fullHours : fullHours + 1
-                    );
+                    const checkInTime = dayjs(invoice.checkInTime).startOf(
+                      "hour"
+                    ); // Làm tròn xuống
+                    const checkOutTime = dayjs(invoice.checkOutTime).endOf(
+                      "hour"
+                    ); // Làm tròn lên
+                    const totalHours = checkOutTime.diff(checkInTime, "hour");
+                    return Math.max(1, totalHours); // Tối thiểu 1 giờ
                   })()}{" "}
                   giờ
                 </p>
+
                 <p>
                   <strong>Đơn Giá Thuê Sân:</strong>{" "}
                   {(() => {
-                    const checkInTime = new Date(invoice.checkInTime).getTime();
-                    const checkOutTime = new Date(
-                      invoice.checkOutTime
-                    ).getTime();
-                    const durationMinutes =
-                      (checkOutTime - checkInTime) / (1000 * 60);
-                    const fullHours = Math.floor(durationMinutes / 60);
-                    const extraMinutes = durationMinutes % 60;
+                    const checkInTime = dayjs(invoice.checkInTime).startOf(
+                      "hour"
+                    ); // Làm tròn xuống
+                    const checkOutTime = dayjs(invoice.checkOutTime).endOf(
+                      "hour"
+                    ); // Làm tròn lên
+
+                    // Tính tổng số giờ thuê (tối thiểu 1 giờ)
                     const totalHours = Math.max(
                       1,
-                      extraMinutes <= 5 ? fullHours : fullHours + 1
+                      checkOutTime.diff(checkInTime, "hour")
                     );
 
                     // Tính tổng tiền sản phẩm đã mua
@@ -136,7 +134,7 @@ const InvoiceDetailPage = () => {
                         );
                       }, 0) || 0;
 
-                    // Tính đơn giá thuê sân
+                    // Tính đơn giá thuê sân (chia theo tổng số giờ)
                     const rentalPricePerHour =
                       totalHours > 0
                         ? (invoice.totalAmount - totalProductCost) / totalHours
