@@ -232,9 +232,16 @@ const GuestHomePage = ({ children }) => {
           color: "#FFFFFF",
           padding: "20px 0",
           borderTop: "3px solid #1E90FF",
+          lineHeight: "1.8",
         }}
       >
-        © 2025 Badminton App. All Rights Reserved.
+        <div>© 2025 Badminton Business. All rights reserved.</div>
+        <div>
+          Địa chỉ: Khu II, đường 3/2, phường Xuân Khánh, quận Ninh Kiều, thành
+          phố Cần Thơ, Việt Nam.
+        </div>
+        <div>Hotline: 0123-456-789</div>
+        <div>Powered by Badminton Management System.</div>
       </Footer>
     </Layout>
   );
