@@ -93,7 +93,7 @@ const GuestHomePage = ({ children }) => {
               letterSpacing: "1.5px",
             }}
           >
-            🏸 BADMINTON APP
+            🏸 BADMINTON WEB
           </Link>
         </h1>
 
@@ -235,13 +235,13 @@ const GuestHomePage = ({ children }) => {
           lineHeight: "1.8",
         }}
       >
-        <div>© 2025 Badminton Business. All rights reserved.</div>
+        <div>© 2025 Badminton Court Business System. All rights reserved.</div>
         <div>
           Địa chỉ: Khu II, đường 3/2, phường Xuân Khánh, quận Ninh Kiều, thành
           phố Cần Thơ, Việt Nam.
         </div>
         <div>Hotline: 0123-456-789</div>
-        <div>Powered by Badminton Management System.</div>
+        <div>Powered by Badminton Court Business System.</div>
       </Footer>
     </Layout>
   );
