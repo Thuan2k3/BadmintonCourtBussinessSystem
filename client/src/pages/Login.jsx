@@ -41,7 +41,7 @@ const Login = () => {
         <Form
           layout="vertical"
           onFinish={onFinishHandler}
-          className="register-form"
+          className="login-form"
           style={{
             padding: "40px",
             background: "linear-gradient(135deg, #fdfbfb, #ebedee)",
