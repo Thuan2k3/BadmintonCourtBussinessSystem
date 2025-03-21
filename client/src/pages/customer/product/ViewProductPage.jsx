@@ -124,7 +124,8 @@ const ViewProductPage = () => {
             borderRadius: "8px",
           }}
         >
-          <Text strong>💰 Giá: </Text> {product.price} VNĐ
+          <Text strong>💰 Giá: </Text> {product.price.toLocaleString("vi-VN")}{" "}
+          VNĐ
         </Tag>
         <Button
           type="primary"
@@ -298,7 +299,8 @@ const ViewProductPage = () => {
               }}
             />
             <p>
-              <strong>💰 Giá:</strong> {currentProduct.price} VNĐ
+              <strong>💰 Giá:</strong>{" "}
+              {currentProduct.price.toLocaleString("vi-VN")} VNĐ
             </p>
             <p>
               <strong>📋 Mô tả:</strong>{" "}
