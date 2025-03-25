@@ -16,7 +16,7 @@ import {
 import { DollarCircleOutlined, DeleteOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import Layout from "../../../components/Layout";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import CourtList from "../../../components/CourtList";
 import CourtDetails from "../../../components/CourtDetails";
@@ -29,6 +29,7 @@ import { ref, get, set, update, onValue, off, remove } from "firebase/database";
 import { database } from "../../../firebaseConfig"; // Import Firebase Realtime Database
 import isEqual from "lodash/isEqual";
 import { Link } from "react-router-dom";
+import { hideLoading, showLoading } from "../../../redux/features/alertSlice";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -52,6 +53,7 @@ const InvoicePage = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [products, setProducts] = useState([]);
   const [type, setType] = useState("both"); // Mặc định hiển thị cả 2
+  const dispatch = useDispatch();
 
   const [users, setUsers] = useState([]);
   const getAllCourt = async () => {
@@ -73,7 +75,9 @@ const InvoicePage = () => {
   };
 
   useEffect(() => {
+    dispatch(showLoading());
     getAllCourt();
+    dispatch(hideLoading());
   }, []);
   const getUsers = async () => {
     try {
