@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ref, update, remove, onValue } from "firebase/database";
-import { Select, Button, Typography, message } from "antd";
+import { Select, Button, Typography, message, Tooltip } from "antd";
 import { database } from "../firebaseConfig";
 import axios from "axios";
 
@@ -180,14 +180,14 @@ const CustomerSelector = ({
   }, [selectedCourt]);
 
   return (
-    <div className="mb-3">
+    <div className="mb-1">
       <Text strong>Chọn khách hàng:</Text>
       <div className="d-flex align-items-center">
         <Select
           showSearch
           allowClear
           placeholder="Chọn khách hàng"
-          style={{ width: 250 }}
+          style={{ width: "100%", height: 40 }} // Cho nó dài hết khung chứa
           className="me-2"
           optionFilterProp="label"
           value={tempSelectedUser?._id || null}
@@ -200,7 +200,22 @@ const CustomerSelector = ({
             { value: null, label: "Không chọn khách hàng" },
             ...users.map((user) => ({
               value: user._id,
-              label: `${user.full_name} - ${user.email}`,
+              label: (
+                <Tooltip title={`${user.full_name} - ${user.email}`}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      lineHeight: "1.5",
+                    }}
+                  >
+                    <strong>{user.full_name}</strong>
+                    <span style={{ fontSize: "12px", color: "#888" }}>
+                      {user.email}
+                    </span>
+                  </div>
+                </Tooltip>
+              ),
             })),
           ]}
           filterOption={(input, option) =>
@@ -209,14 +224,16 @@ const CustomerSelector = ({
             )
           }
         />
-        <Button onClick={handleConfirm}>Xác nhận</Button>
+        <Button style={{ height: 40 }} onClick={handleConfirm}>
+          Xác nhận
+        </Button>
       </div>
 
       {selectedUser && (
-        <p>
-          <strong>Khách hàng đã đặt sân:</strong> {selectedUser.full_name} -{" "}
-          {selectedUser.email}
-        </p>
+        <div>
+          <b>Họ và tên:</b> {selectedUser.full_name} <br />
+          <b>Email:</b> {selectedUser.email}
+        </div>
       )}
     </div>
   );
