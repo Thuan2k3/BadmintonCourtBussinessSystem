@@ -241,11 +241,14 @@ const HomePage = () => {
                     block
                     style={{
                       marginTop: "12px",
-                      background: "linear-gradient(135deg, #ff4d4f, #ff7875)",
+                      background: "linear-gradient(135deg, #1890ff, #40a9ff)", // ✅ Xanh gradient nổi bật
                       border: "none",
                       fontWeight: "bold",
-                      boxShadow: "0 4px 12px rgba(255, 77, 79, 0.5)",
-                      transition: "transform 0.3s",
+                      color: "#fff",
+                      letterSpacing: "0.5px",
+                      textTransform: "uppercase", // ✅ Chữ in hoa cho chuyên nghiệp
+                      boxShadow: "0 4px 12px rgba(24, 144, 255, 0.5)", // ✅ Bóng màu xanh
+                      transition: "all 0.3s ease-in-out",
                     }}
                     onClick={() => showBookingModal(court)}
                     onMouseEnter={(e) =>
@@ -255,7 +258,7 @@ const HomePage = () => {
                       (e.target.style.transform = "scale(1)")
                     }
                   >
-                    {user.role==="customer"?"Đặt sân":"Xem đặt sân"}
+                    {user.role === "customer" ? "Đặt sân" : "Xem tình trạng đặt sân"}
                   </Button>
                 )}
               </Card>
@@ -321,7 +324,11 @@ const HomePage = () => {
               background: "#fafafa",
             }}
           >
-            {user.role==="customer"?<BookingCourt court={currentBookingCourt} />: <EmployeeBookingCourt court={currentBookingCourt} />}
+            {user.role === "customer" ? (
+              <BookingCourt court={currentBookingCourt} />
+            ) : (
+              <EmployeeBookingCourt court={currentBookingCourt} />
+            )}
           </Modal>
         )}
         {/* Phân trang */}
