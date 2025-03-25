@@ -62,8 +62,22 @@ const CheckoutButton = ({
       const hasProducts = selectedCourtData?.products.length > 0;
 
       if (hasProducts) {
+        if (selectedCourt._id === "guest") {
+          message.warning(
+            "Đang có sản phẩm. Vui lòng chọn loại hóa đơn Mua sản phẩm"
+          );
+        } else {
+          message.warning(
+            "Đang có sản phẩm. Vui lòng chọn loại hóa đơn Thuê sân và mua sản phẩm!"
+          );
+        }
+        return;
+      }
+    }
+    if (type === "both") {
+      if (selectedCourt._id === "guest") {
         message.warning(
-          "Đang có sản phẩm. Vui lòng chọn loại Thuê sân và mua sản phẩm!"
+          "Đang có sản phẩm. Vui lòng chọn loại hóa đơn Mua sản phẩm!"
         );
         return;
       }
@@ -228,8 +242,22 @@ const CheckoutButton = ({
       const hasProducts = selectedCourtData?.products.length > 0;
 
       if (hasProducts) {
+        if (selectedCourt._id === "guest") {
+          message.warning(
+            "Đang có sản phẩm. Vui lòng chọn loại hóa đơn Mua sản phẩm"
+          );
+        } else {
+          message.warning(
+            "Đang có sản phẩm. Vui lòng chọn loại hóa đơn Thuê sân và mua sản phẩm!"
+          );
+        }
+        return;
+      }
+    }
+    if (type === "both") {
+      if (selectedCourt._id === "guest") {
         message.warning(
-          "Đang có sản phẩm. Vui lòng chọn loại Thuê sân và mua sản phẩm!"
+          "Đang có sản phẩm. Vui lòng chọn loại hóa đơn Mua sản phẩm!"
         );
         return;
       }
