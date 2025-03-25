@@ -5,6 +5,7 @@ import GuestLayout from "../components/GuestLayout";
 import { Row, Col, Card, Tag, Modal, Button, message, Typography } from "antd";
 import { Pagination } from "antd";
 import { useSelector } from "react-redux";
+import BookingCourt from "../components/BookingCourt";
 
 const { Text, Title } = Typography;
 
@@ -12,6 +13,8 @@ const HomePage = () => {
   const [courts, setCourts] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentCourt, setCurrentCourt] = useState(null);
+  const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
+  const [currentBookingCourt, setCurrentBookingCourt] = useState(null);
   const [customer, setCustomer] = useState();
   const { user } = useSelector((state) => state.user);
   const [currentPage, setCurrentPage] = useState(1);
@@ -42,14 +45,17 @@ const HomePage = () => {
   // Lấy danh sách sân
   const getAllCourt = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/v1/user/court", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-      if (res.data.success) {
-        setCourts(res.data.data);
-      }
+      const response = await axios.get(
+        "http://localhost:8080/api/v1/user/bookings/court",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      ); // Cập nhật URL API của bạn
+      setCourts(response.data);
     } catch (error) {
-      console.error("Lỗi khi lấy dữ liệu sân: ", error);
+      message.error("Không thể tải dữ liệu sân.");
     }
   };
 
@@ -63,6 +69,18 @@ const HomePage = () => {
   const handleCancel = () => {
     setIsModalVisible(false);
     setCurrentCourt(null);
+  };
+
+  // Hiện modal chi tiết sân
+  const showBookingModal = (court) => {
+    setCurrentBookingCourt(court);
+    setIsBookingModalVisible(true);
+  };
+
+  // Đóng modal
+  const handleBookingCancel = () => {
+    setIsBookingModalVisible(false);
+    setCurrentBookingCourt(null);
   };
 
   useEffect(() => {
@@ -214,6 +232,27 @@ const HomePage = () => {
                 >
                   🔍 Xem Chi Tiết
                 </Button>
+                {/* Nút "Đặt sân" */}
+                <Button
+                  type="primary"
+                  shape="round"
+                  block
+                  style={{
+                    marginTop: "12px",
+                    background: "linear-gradient(135deg, #ff4d4f, #ff7875)",
+                    border: "none",
+                    fontWeight: "bold",
+                    boxShadow: "0 4px 12px rgba(255, 77, 79, 0.5)",
+                    transition: "transform 0.3s",
+                  }}
+                  onClick={() => showBookingModal(court)}
+                  onMouseEnter={(e) =>
+                    (e.target.style.transform = "scale(1.1)")
+                  }
+                  onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+                >
+                  Đặt sân
+                </Button>
               </Card>
             </Col>
           ))}
@@ -259,6 +298,25 @@ const HomePage = () => {
               <strong>📋 Mô tả:</strong>{" "}
               {currentCourt.description || "Không có mô tả."}
             </p>
+          </Modal>
+        )}
+        {/* Modal Đặt sân */}
+        {currentBookingCourt && (
+          <Modal
+            visible={isBookingModalVisible}
+            onCancel={handleBookingCancel}
+            footer={[
+              <Button key="back" onClick={handleBookingCancel}>
+                Đóng
+              </Button>,
+            ]}
+            bodyStyle={{
+              borderRadius: "16px",
+              padding: "24px",
+              background: "#fafafa",
+            }}
+          >
+            <BookingCourt court={currentBookingCourt} />
           </Modal>
         )}
         {/* Phân trang */}
