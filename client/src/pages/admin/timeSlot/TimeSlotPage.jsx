@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Layout from "../../../components/Layout";
 import { Link } from "react-router-dom";
 import { AiOutlineEdit, AiOutlineSearch } from "react-icons/ai";
-import { MdOutlineAddBox } from "react-icons/md";
+import { MdOutlineAddBox, MdOutlineDelete } from "react-icons/md";
 import axios from "axios";
 import { Pagination } from "antd";
 
@@ -134,6 +134,9 @@ const TimeSlotPage = () => {
                         className="text-warning me-3"
                       >
                         <AiOutlineEdit className="fs-4" />
+                      </Link>
+                      <Link to={`/admin/time-slot/delete/${timeSlot._id}`}>
+                        <MdOutlineDelete className="fs-4 text-danger" />
                       </Link>
                     </td>
                   </tr>
