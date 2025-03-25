@@ -72,7 +72,7 @@ const HomePage = () => {
     setCurrentCourt(null);
   };
 
-  // Hiện modal chi tiết sân
+  // Hiện modal dat san
   const showBookingModal = (court) => {
     setCurrentBookingCourt(court);
     setIsBookingModalVisible(true);

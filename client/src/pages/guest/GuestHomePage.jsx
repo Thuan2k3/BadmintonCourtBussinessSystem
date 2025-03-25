@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import GuestLayout from "../../components/GuestLayout";
-import { Row, Col, Card, Tag, Typography, Button, Modal } from "antd";
+import { Row, Col, Card, Tag, Typography, Button, Modal, message } from "antd";
 import { Pagination } from "antd";
+import GuestBookingCourt from "../../components/GuestBookingCourt";
 
 const { Text, Title } = Typography;
 
@@ -10,18 +11,25 @@ const GuestHomePage = () => {
   const [courts, setCourts] = useState([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [currentCourt, setCurrentCourt] = useState(null);
+  const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
+  const [currentBookingCourt, setCurrentBookingCourt] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 4; // Cố định số lượng sân hiển thị mỗi trang
 
   // Lấy danh sách sân từ API
   const getAllCourt = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/v1/user/court");
-      if (res.data.success) {
-        setCourts(res.data.data);
-      }
+      const response = await axios.get(
+        "http://localhost:8080/api/v1/user/bookings/court",
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      ); // Cập nhật URL API của bạn
+      setCourts(response.data);
     } catch (error) {
-      console.error("Lỗi khi lấy danh sách sân:", error);
+      message.error("Không thể tải dữ liệu sân.");
     }
   };
 
@@ -40,6 +48,19 @@ const GuestHomePage = () => {
     setIsModalVisible(false);
     setCurrentCourt(null);
   };
+
+  // Hiện modal Xem tình trang dat san
+  const showBookingModal = (court) => {
+    setCurrentBookingCourt(court);
+    setIsBookingModalVisible(true);
+  };
+
+  // Đóng modal
+  const handleBookingCancel = () => {
+    setIsBookingModalVisible(false);
+    setCurrentBookingCourt(null);
+  };
+
   // Tính toán danh sách sân hiển thị theo trang hiện tại
   const filteredCourts = courts.slice(
     (currentPage - 1) * pageSize,
@@ -156,6 +177,30 @@ const GuestHomePage = () => {
                 >
                   🔍 Xem Chi Tiết
                 </Button>
+                {/* Nút "Xem tình trạng đặt sân" */}
+                <Button
+                  type="primary"
+                  shape="round"
+                  block
+                  style={{
+                    marginTop: "12px",
+                    background: "linear-gradient(135deg, #1890ff, #40a9ff)", // ✅ Xanh gradient nổi bật
+                    border: "none",
+                    fontWeight: "bold",
+                    color: "#fff",
+                    letterSpacing: "0.5px",
+                    textTransform: "uppercase", // ✅ Chữ in hoa cho chuyên nghiệp
+                    boxShadow: "0 4px 12px rgba(24, 144, 255, 0.5)", // ✅ Bóng màu xanh
+                    transition: "all 0.3s ease-in-out",
+                  }}
+                  onClick={() => showBookingModal(court)}
+                  onMouseEnter={(e) =>
+                    (e.target.style.transform = "scale(1.1)")
+                  }
+                  onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+                >
+                  Xem tình trạng đặt sân
+                </Button>
               </Card>
             </Col>
           ))}
@@ -201,6 +246,25 @@ const GuestHomePage = () => {
               <strong>📋 Mô tả:</strong>{" "}
               {currentCourt.description || "Không có mô tả."}
             </p>
+          </Modal>
+        )}
+        {/* Modal Xem tình trạng đặt sân */}
+        {currentBookingCourt && (
+          <Modal
+            visible={isBookingModalVisible}
+            onCancel={handleBookingCancel}
+            footer={[
+              <Button key="back" onClick={handleBookingCancel}>
+                Đóng
+              </Button>,
+            ]}
+            bodyStyle={{
+              borderRadius: "16px",
+              padding: "24px",
+              background: "#fafafa",
+            }}
+          >
+            <GuestBookingCourt court={currentBookingCourt} />
           </Modal>
         )}
         {/* Phân trang */}
