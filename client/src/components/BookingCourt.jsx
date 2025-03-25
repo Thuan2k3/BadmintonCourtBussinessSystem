@@ -328,12 +328,12 @@ const BookingCourt = ({ court }) => {
                         />
                       ) : bookingState[dayIndex][slotIndex] === "selected" ? (
                         <CheckSquareOutlined
-                          style={{ fontSize: "20px", color: "#1890ff" }}
+                          style={{ fontSize: "20px", color: "#faad14" }}
                         />
                       ) : bookingState[dayIndex][slotIndex] ===
                         "selectunbooked" ? (
                         <CloseSquareOutlined
-                          style={{ fontSize: "20px", color: "#1890ff" }}
+                          style={{ fontSize: "20px", color: "#8c8c8c" }}
                         />
                       ) : (
                         <CloseOutlined
