@@ -233,7 +233,7 @@ const HomePage = () => {
                   🔍 Xem Chi Tiết
                 </Button>
                 {/* Nút "Đặt sân" */}
-                <Button
+                {user.role==="customer" && <Button
                   type="primary"
                   shape="round"
                   block
@@ -252,7 +252,7 @@ const HomePage = () => {
                   onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
                 >
                   Đặt sân
-                </Button>
+                </Button>}
               </Card>
             </Col>
           ))}
