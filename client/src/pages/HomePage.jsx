@@ -6,6 +6,7 @@ import { Row, Col, Card, Tag, Modal, Button, message, Typography } from "antd";
 import { Pagination } from "antd";
 import { useSelector } from "react-redux";
 import BookingCourt from "../components/BookingCourt";
+import EmployeeBookingCourt from "../components/EmployeeBookingCourt";
 
 const { Text, Title } = Typography;
 
@@ -233,26 +234,30 @@ const HomePage = () => {
                   🔍 Xem Chi Tiết
                 </Button>
                 {/* Nút "Đặt sân" */}
-                {user.role==="customer" && <Button
-                  type="primary"
-                  shape="round"
-                  block
-                  style={{
-                    marginTop: "12px",
-                    background: "linear-gradient(135deg, #ff4d4f, #ff7875)",
-                    border: "none",
-                    fontWeight: "bold",
-                    boxShadow: "0 4px 12px rgba(255, 77, 79, 0.5)",
-                    transition: "transform 0.3s",
-                  }}
-                  onClick={() => showBookingModal(court)}
-                  onMouseEnter={(e) =>
-                    (e.target.style.transform = "scale(1.1)")
-                  }
-                  onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
-                >
-                  Đặt sân
-                </Button>}
+                {(user.role === "customer" || user.role === "employee") && (
+                  <Button
+                    type="primary"
+                    shape="round"
+                    block
+                    style={{
+                      marginTop: "12px",
+                      background: "linear-gradient(135deg, #ff4d4f, #ff7875)",
+                      border: "none",
+                      fontWeight: "bold",
+                      boxShadow: "0 4px 12px rgba(255, 77, 79, 0.5)",
+                      transition: "transform 0.3s",
+                    }}
+                    onClick={() => showBookingModal(court)}
+                    onMouseEnter={(e) =>
+                      (e.target.style.transform = "scale(1.1)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.target.style.transform = "scale(1)")
+                    }
+                  >
+                    {user.role==="customer"?"Đặt sân":"Xem đặt sân"}
+                  </Button>
+                )}
               </Card>
             </Col>
           ))}
@@ -316,7 +321,7 @@ const HomePage = () => {
               background: "#fafafa",
             }}
           >
-            <BookingCourt court={currentBookingCourt} />
+            {user.role==="customer"?<BookingCourt court={currentBookingCourt} />: <EmployeeBookingCourt court={currentBookingCourt} />}
           </Modal>
         )}
         {/* Phân trang */}
