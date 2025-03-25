@@ -327,10 +327,14 @@ const BookingCourt = ({ court }) => {
                           style={{ color: "#52c41a", fontSize: "20px" }}
                         />
                       ) : bookingState[dayIndex][slotIndex] === "selected" ? (
-                        <CheckSquareOutlined />
+                        <CheckSquareOutlined
+                          style={{ fontSize: "20px", color: "#1890ff" }}
+                        />
                       ) : bookingState[dayIndex][slotIndex] ===
                         "selectunbooked" ? (
-                        <CloseSquareOutlined />
+                        <CloseSquareOutlined
+                          style={{ fontSize: "20px", color: "#1890ff" }}
+                        />
                       ) : (
                         <CloseOutlined
                           style={{ color: "#f5222d", fontSize: "20px" }}
@@ -347,7 +351,7 @@ const BookingCourt = ({ court }) => {
                       width: "100%", // Button chiếm toàn bộ chiều rộng cột
                       height: "40px",
                       fontSize: "14px",
-                      border: "none"
+                      border: "none",
                     }}
                   >
                     {/* Nội dung Button (giờ) */}
