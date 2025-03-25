@@ -69,7 +69,7 @@ const ReputationPage = () => {
         }}
       >
         <h1 className="text-center mb-4" style={{ color: "#2c3e50" }}>
-          📊 QUẢN LÝ ĐIỂM UY TÍN KHÁCH HÀNG
+          📊 XEM ĐIỂM UY TÍN KHÁCH HÀNG
         </h1>
 
         {/* ✅ Thanh tìm kiếm */}
