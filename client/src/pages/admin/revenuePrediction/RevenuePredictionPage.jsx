@@ -101,9 +101,13 @@ const RevenuePredictionPage = () => {
 
         <Alert
           message={`📊 Sai số trung bình (MAE): ${
-            mae ? mae.toLocaleString() : "Đang tính toán..."
-          } VNĐ - Tỷ lệ lỗi: ${
-            errorRate ? errorRate.toFixed(2) : "Đang tính toán..."
+            mae
+              ? `${Math.round(mae).toLocaleString()} VNĐ`
+              : "Đang tính toán..."
+          } - Tỷ lệ lỗi: ${
+            errorRate
+              ? errorRate.toFixed(2).replace(".", ",")
+              : "Đang tính toán..."
           }%`}
           type="info"
           showIcon
