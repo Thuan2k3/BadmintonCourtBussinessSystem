@@ -52,7 +52,8 @@ const RevenuePredictionPage = () => {
     },
     label: {
       position: "top",
-      style: { fill: "#2c3e50", fontWeight: "bold" },
+      style: { fill: "rgb(255, 255, 255)", fontWeight: "bold" },
+      formatter: (item) => item.toLocaleString(),
     },
   };
 
