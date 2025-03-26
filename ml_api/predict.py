@@ -1,10 +1,11 @@
-from datetime import timedelta
+from datetime import date, timedelta
 import pandas as pd
 import numpy as np
 import pickle
 import os
 import pymongo
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error
 
 # Kết nối MongoDB
 try:
@@ -16,10 +17,6 @@ except Exception as e:
     print(f"❌ Lỗi kết nối MongoDB: {e}")
     invoices_collection = None
     invoice_details_collection = None
-
-from datetime import date, timedelta
-
-from datetime import date, timedelta
 
 def get_data():
     """Lấy dữ liệu số lượt thuê sân và số sản phẩm bán ra từ MongoDB, xử lý ngày thiếu"""
@@ -120,6 +117,40 @@ def train_model():
 
     print("\n✅ Mô hình đã được train lại và lưu thành công!")
 
+def evaluate_model():
+    """Đánh giá mô hình bằng MAE (Mean Absolute Error) và tỷ lệ lỗi %"""
+    df = get_data()
+    if df.empty:
+        print("⚠️ Không có dữ liệu để đánh giá!")
+        return None
+
+    # 📊 Chia tập train (80%) và test (20%)
+    train_size = int(0.8 * len(df))
+    test_df = df[train_size:]
+
+    # Load mô hình đã huấn luyện
+    model = load_model()
+    if model is None:
+        print("⚠️ Model chưa được train!")
+        return None
+
+    # 🔹 Dự đoán trên tập test
+    X_test = test_df[['court_rentals', 'products_sold', 'day_number', 'weekday_number']]
+    y_test = test_df['totalAmount']
+    y_pred = model.predict(X_test)
+
+    # 🔢 Tính MAE (Sai số tuyệt đối trung bình)
+    mae = mean_absolute_error(y_test, y_pred)
+
+    # 📈 Tính tỷ lệ lỗi % (MAE / Trung bình doanh thu thật * 100)
+    mean_actual = y_test.mean()
+    mae_percentage = (mae / mean_actual) * 100 if mean_actual != 0 else 0
+
+    print(f"📊 MAE (Sai số tuyệt đối trung bình): {mae:.2f} VNĐ")
+    print(f"📈 Tỷ lệ lỗi MAE: {mae_percentage:.2f}%")
+
+    return mae, mae_percentage
+
 def load_model():
     """Load mô hình từ file Model.pkl"""
     if not os.path.exists("Model.pkl"):
@@ -178,5 +209,7 @@ def predict_next_seven_days():
 
 # Kiểm tra bằng cách dự đoán 7 ngày tới
 if __name__ == "__main__":
-    train_model()  # Huấn luyện mô hình trước khi dự đoán
-    predict_next_seven_days()
+    train_model()                  # Huấn luyện mô hình (nếu chưa có)
+    mae, mae_percent = evaluate_model() # Đánh giá mô hình
+    print(f"Tỷ lệ lỗi MAE: {mae:.2f} VNĐ ({mae_percent:.2f}%)")
+    predict_next_seven_days()       # Dự đoán 7 ngày tiếp theo

@@ -9,6 +9,8 @@ const RevenuePredictionPage = () => {
   const [predictions, setPredictions] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [mae, setMae] = useState(null);
+  const [errorRate, setErrorRate] = useState(null);
 
   useEffect(() => {
     const fetchPrediction = async () => {
@@ -16,7 +18,9 @@ const RevenuePredictionPage = () => {
         const response = await axios.get(
           "http://127.0.0.1:5001/predict/seven_days"
         );
-        setPredictions(response.data);
+        setPredictions(response.data.predictions);
+        setMae(response.data.mae);
+        setErrorRate(response.data.error_rate); // 📊 Lấy tỷ lệ lỗi
       } catch (error) {
         setError("❌ Lỗi khi lấy dữ liệu dự đoán.");
         console.error(error);
@@ -94,6 +98,17 @@ const RevenuePredictionPage = () => {
         >
           📊 DỰ ĐOÁN DOANH THU 7 NGÀY TỚI
         </h1>
+
+        <Alert
+          message={`📊 Sai số trung bình (MAE): ${
+            mae ? mae.toLocaleString() : "Đang tính toán..."
+          } VNĐ - Tỷ lệ lỗi: ${
+            errorRate ? errorRate.toFixed(2) : "Đang tính toán..."
+          }%`}
+          type="info"
+          showIcon
+          style={{ marginBottom: "20px" }}
+        />
 
         {/* ✅ Trạng thái tải dữ liệu */}
         {loading && (
