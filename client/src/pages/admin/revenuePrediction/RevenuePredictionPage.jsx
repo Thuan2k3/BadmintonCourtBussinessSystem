@@ -107,7 +107,7 @@ const RevenuePredictionPage = () => {
               : "Đang tính toán..."
           } - Tỷ lệ lỗi: ${
             errorRate
-              ? errorRate.toFixed(2).replace(".", ",")
+              ? errorRate.toFixed(2)
               : "Đang tính toán..."
           }%`}
           type="info"
