@@ -324,7 +324,15 @@ const BookingCourt = ({ court }) => {
                     icon={
                       bookingState[dayIndex][slotIndex] === "booked" ? (
                         <CheckOutlined
-                          style={{ color: "#52c41a", fontSize: "20px" }}
+                          style={{
+                            color:
+                              user?._id !==
+                              court.bookings[dayIndex].timeSlots[slotIndex]
+                                ?.userId
+                                ? "rgba(82, 196, 26, 0.3)" // Màu xanh lá rất nhạt
+                                : "#52c41a",
+                            fontSize: "20px",
+                          }}
                         />
                       ) : bookingState[dayIndex][slotIndex] === "selected" ? (
                         <CheckSquareOutlined
