@@ -82,7 +82,7 @@ def get_data():
 
     # 📌 Đảm bảo bao gồm tất cả các ngày (bao gồm ngày không có giao dịch)
     start_date = df['day'].min() if not df.empty else date.today()
-    end_date = date.today()
+    end_date = date.today() - timedelta(days=1)
 
     # Tạo danh sách ngày đầy đủ
     full_date_range = pd.date_range(start=start_date, end=end_date)
