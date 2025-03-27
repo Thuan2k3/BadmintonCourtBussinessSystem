@@ -48,6 +48,11 @@ const CourtPage = () => {
     convertToUnsigned(court.name).includes(convertToUnsigned(searchTerm))
   );
 
+  // Tính toán danh sách sân cần hiển thị dựa trên trang hiện tại
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const courtsToShow = filteredCourts.slice(startIndex, endIndex);
+
   return (
     <Layout>
       <div
@@ -124,7 +129,7 @@ const CourtPage = () => {
             </thead>
 
             <tbody>
-              {filteredCourts.map((court, index) => (
+              {courtsToShow.map((court, index) => (
                 <tr key={court._id} className="align-middle text-center">
                   <td>{index + 1}</td>
                   <td className="fw-semibold">{court.name}</td>
@@ -170,14 +175,15 @@ const CourtPage = () => {
         </div>
         {/* Phân trang */}
         {filteredCourts.length > pageSize && (
-        <div className="d-flex justify-content-center mt-4">
-          <Pagination
-            current={currentPage}
-            pageSize={pageSize}
-            total={filteredCourts.length}
-            onChange={(page) => setCurrentPage(page)}
-          />
-        </div>
+          <div className="d-flex justify-content-center mt-4">
+            <Pagination
+              current={currentPage}
+              pageSize={pageSize}
+              total={filteredCourts.length}
+              onChange={(page) => setCurrentPage(page)}
+              showSizeChanger={false} // Ẩn chọn số lượng item trên trang
+            />
+          </div>
         )}
       </div>
     </Layout>
