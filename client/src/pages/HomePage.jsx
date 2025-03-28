@@ -2,7 +2,23 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Layout from "../components/Layout";
 import GuestLayout from "../components/GuestLayout";
-import { Row, Col, Card, Tag, Modal, Button, message, Typography } from "antd";
+import {
+  Row,
+  Col,
+  Card,
+  Tag,
+  Modal,
+  Button,
+  message,
+  Typography,
+  Space,
+} from "antd";
+import {
+  CheckOutlined,
+  CheckSquareOutlined,
+  CloseSquareOutlined,
+  CloseOutlined,
+} from "@ant-design/icons";
 import { Pagination } from "antd";
 import { useSelector } from "react-redux";
 import BookingCourt from "../components/BookingCourt";
@@ -258,7 +274,9 @@ const HomePage = () => {
                       (e.target.style.transform = "scale(1)")
                     }
                   >
-                    {user.role === "customer" ? "Đặt sân" : "Xem tình trạng đặt sân"}
+                    {user.role === "customer"
+                      ? "Đặt sân"
+                      : "Xem tình trạng đặt sân"}
                   </Button>
                 )}
               </Card>
@@ -325,9 +343,84 @@ const HomePage = () => {
             }}
           >
             {user.role === "customer" ? (
-              <BookingCourt court={currentBookingCourt} />
+              <>
+                <Space
+                  direction="vertical"
+                  size="small"
+                  style={{ padding: "10px" }}
+                >
+                  <Space
+                    size="middle"
+                    wrap
+                    style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}
+                  >
+                    <h6>Chú thích:</h6>
+                    <Tag>
+                      <CheckOutlined
+                        style={{ fontSize: "20px", color: "#52c41a" }}
+                      />{" "}
+                      Đã đặt (của bạn)
+                    </Tag>
+                    <Tag>
+                      <CheckOutlined
+                        style={{
+                          fontSize: "20px",
+                          color: "rgba(82, 196, 26, 0.3)",
+                        }}
+                      />{" "}
+                      Đã có người đặt
+                    </Tag>
+                    <Tag>
+                      <CheckSquareOutlined
+                        style={{ fontSize: "20px", color: "#faad14" }}
+                      />{" "}
+                      Đang chọn để đặt
+                    </Tag>
+                    <Tag>
+                      <CloseSquareOutlined
+                        style={{ fontSize: "20px", color: "#8c8c8c" }}
+                      />{" "}
+                      Đang chọn để hủy
+                    </Tag>
+                    <Tag>
+                      <CloseOutlined
+                        style={{ color: "#f5222d", fontSize: "20px" }}
+                      />{" "}
+                      Chưa đặt
+                    </Tag>
+                  </Space>
+                </Space>
+                <BookingCourt court={currentBookingCourt} />
+              </>
             ) : (
-              <EmployeeBookingCourt court={currentBookingCourt} />
+              <>
+                <Space
+                  direction="vertical"
+                  size="small"
+                  style={{ padding: "10px" }}
+                >
+                  <Space
+                    size="middle"
+                    wrap
+                    style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}
+                  >
+                    <h6>Chú thích:</h6>
+                    <Tag>
+                      <CheckOutlined
+                        style={{ fontSize: "20px", color: "#52c41a" }}
+                      />{" "}
+                      Đã đặt
+                    </Tag>
+                    <Tag>
+                      <CloseOutlined
+                        style={{ color: "#f5222d", fontSize: "20px" }}
+                      />{" "}
+                      Chưa đặt
+                    </Tag>
+                  </Space>
+                </Space>
+                <EmployeeBookingCourt court={currentBookingCourt} />
+              </>
             )}
           </Modal>
         )}

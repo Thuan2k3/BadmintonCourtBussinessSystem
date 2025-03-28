@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Spin, message, Typography, Empty, Pagination } from "antd";
+import {
+  Row,
+  Col,
+  Spin,
+  message,
+  Typography,
+  Empty,
+  Pagination,
+  Space,
+  Tag,
+} from "antd";
+import {
+  CheckOutlined,
+  CloseOutlined,
+} from "@ant-design/icons";
 import Layout from "../../../components/Layout";
 import EmployeeBookingCourt from "../../../components/EmployeeBookingCourt";
 import axios from "axios";
@@ -64,6 +78,24 @@ const EmployeeCourtBookingStatusPage = () => {
           >
             📅 XEM TÌNH TRẠNG ĐẶT SÂN
           </Title>
+
+          <Space direction="vertical" size="small" style={{ padding: "10px" }}>
+            <Space
+              size="middle"
+              wrap
+              style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}
+            >
+              <h6>Chú thích:</h6>
+              <Tag>
+                <CheckOutlined style={{ fontSize: "20px", color: "#52c41a" }} />{" "}
+                Đã đặt
+              </Tag>
+              <Tag>
+                <CloseOutlined style={{ color: "#f5222d", fontSize: "20px" }} />{" "}
+                Chưa đặt
+              </Tag>
+            </Space>
+          </Space>
 
           {loading ? (
             <div style={{ display: "flex", justifyContent: "center" }}>

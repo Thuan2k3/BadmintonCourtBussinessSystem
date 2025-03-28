@@ -1,7 +1,18 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import GuestLayout from "../../components/GuestLayout";
-import { Row, Col, Card, Tag, Typography, Button, Modal, message } from "antd";
+import {
+  Row,
+  Col,
+  Card,
+  Tag,
+  Typography,
+  Button,
+  Modal,
+  message,
+  Space,
+} from "antd";
+import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 import { Pagination } from "antd";
 import GuestBookingCourt from "../../components/GuestBookingCourt";
 
@@ -264,7 +275,34 @@ const GuestHomePage = () => {
               background: "#fafafa",
             }}
           >
-            <GuestBookingCourt court={currentBookingCourt} />
+            <>
+              <Space
+                direction="vertical"
+                size="small"
+                style={{ padding: "10px" }}
+              >
+                <Space
+                  size="middle"
+                  wrap
+                  style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}
+                >
+                  <h6>Chú thích:</h6>
+                  <Tag>
+                    <CheckOutlined
+                      style={{ fontSize: "20px", color: "#52c41a" }}
+                    />{" "}
+                    Đã đặt
+                  </Tag>
+                  <Tag>
+                    <CloseOutlined
+                      style={{ color: "#f5222d", fontSize: "20px" }}
+                    />{" "}
+                    Chưa đặt
+                  </Tag>
+                </Space>
+              </Space>
+              <GuestBookingCourt court={currentBookingCourt} />
+            </>
           </Modal>
         )}
         {/* Phân trang */}

@@ -1,5 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Spin, message, Empty, Typography, Pagination } from "antd";
+import {
+  Row,
+  Col,
+  Spin,
+  message,
+  Empty,
+  Typography,
+  Pagination,
+  Space,
+  Tag,
+} from "antd";
+import {
+  CheckOutlined,
+  CheckSquareOutlined,
+  CloseSquareOutlined,
+  CloseOutlined,
+} from "@ant-design/icons";
 import GuestLayout from "../../../components/GuestLayout";
 import BookingCourt from "../../../components/BookingCourt";
 import axios from "axios";
@@ -62,6 +78,42 @@ const CourtBookingStatusPage = () => {
           >
             📅 XEM TÌNH TRẠNG ĐẶT SÂN
           </Title>
+
+          <Space direction="vertical" size="small" style={{ padding: "10px" }}>
+            <Space
+              size="middle"
+              wrap
+              style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}
+            >
+              <h6>Chú thích:</h6>
+              <Tag>
+                <CheckOutlined style={{ fontSize: "20px", color: "#52c41a" }} />{" "}
+                Đã đặt (của bạn)
+              </Tag>
+              <Tag>
+                <CheckOutlined
+                  style={{ fontSize: "20px", color: "rgba(82, 196, 26, 0.3)" }}
+                />{" "}
+                Đã có người đặt
+              </Tag>
+              <Tag>
+                <CheckSquareOutlined
+                  style={{ fontSize: "20px", color: "#faad14" }}
+                />{" "}
+                Đang chọn để đặt
+              </Tag>
+              <Tag>
+                <CloseSquareOutlined
+                  style={{ fontSize: "20px", color: "#8c8c8c" }}
+                />{" "}
+                Đang chọn để hủy
+              </Tag>
+              <Tag>
+                <CloseOutlined style={{ color: "#f5222d", fontSize: "20px" }} />{" "}
+                Chưa đặt
+              </Tag>
+            </Space>
+          </Space>
 
           {loading ? (
             <div style={{ display: "flex", justifyContent: "center" }}>
