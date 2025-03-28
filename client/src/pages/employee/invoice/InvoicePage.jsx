@@ -420,7 +420,10 @@ const InvoicePage = () => {
 
       // ✅ Lưu vào localStorage nếu là sân "guest"
       if (courtId === "guest") {
-        localStorage.setItem("guest_order", JSON.stringify(updatedItems));
+        const guestOrders = updatedItems.filter(
+          (item) => item.court?._id === "guest"
+        );
+        localStorage.setItem("guest_order", JSON.stringify(guestOrders));
       }
 
       return updatedItems;
@@ -609,9 +612,11 @@ const InvoicePage = () => {
 
     // Lắng nghe dữ liệu từ Firebase theo thời gian thực
     const unsubscribe = onValue(orderRef, (orderSnap) => {
+      let updatedOrders = [];
+
       if (orderSnap.exists()) {
         const ordersData = orderSnap.val();
-        const updatedOrders = Object.keys(ordersData).map((courtId) => ({
+        updatedOrders = Object.keys(ordersData).map((courtId) => ({
           court: ordersData[courtId].court || {
             _id: "guest",
             name: "Khách vãng lai",
@@ -621,16 +626,40 @@ const InvoicePage = () => {
           totalAmount: ordersData[courtId].totalAmount || 0,
           customer: ordersData[courtId].customer || null,
         }));
-
-        setOrderItemsCourt(updatedOrders);
-      } else {
-        setOrderItemsCourt([]);
       }
+
+      // ✅ Lấy `guest_order` từ localStorage để hợp nhất với dữ liệu từ Firebase
+      const guestOrder = JSON.parse(
+        localStorage.getItem("guest_order") || "[]"
+      );
+
+      if (guestOrder.length > 0) {
+        console.log("🟢 Dữ liệu khách vãng lai từ localStorage:", guestOrder);
+
+        guestOrder.forEach((guestItem) => {
+          const existingIndex = updatedOrders.findIndex(
+            (order) => order.court._id === guestItem.court._id
+          );
+
+          if (existingIndex !== -1) {
+            // 🔹 Nếu sân đã có trong Firebase, hợp nhất sản phẩm & tổng tiền
+            updatedOrders[existingIndex].products.push(...guestItem.products);
+            updatedOrders[existingIndex].totalAmount += guestItem.totalAmount;
+          } else {
+            // 🔹 Nếu chưa có, thêm mới
+            updatedOrders.push(guestItem);
+          }
+        });
+      }
+
+      // ✅ Cập nhật state cuối cùng sau khi đã hợp nhất dữ liệu
+      setOrderItemsCourt(updatedOrders);
     });
 
     // Cleanup listener khi unmount
     return () => off(orderRef, "value", unsubscribe);
-  }, []); // Chỉ chạy 1 lần khi component mounted
+  }, []); // Chạy một lần khi component mounted
+
   // Khi orderItemsCourt thay đổi, cập nhật courts và products
   useEffect(() => {
     // Cập nhật danh sách sân
@@ -646,14 +675,6 @@ const InvoicePage = () => {
 
     setCourts(allCourts);
   }, [orderItemsCourt]); // Chạy mỗi khi orderItemsCourt thay đổi
-  useEffect(() => {
-    if (selectedCourt._id == "guest") {
-      const guestOrder = localStorage.getItem("guest_order");
-      if (guestOrder) {
-        setOrderItemsCourt(JSON.parse(guestOrder));
-      }
-    }
-  }, [orderItemsCourt]);
   // Khi thay đổi loại hóa đơn
   const handleTypeChange = (checkedValue) => {
     if (type === checkedValue) {
