@@ -14,21 +14,15 @@ def predict_seven_days():
     
     # 🟢 Giải nén nếu evaluate_model trả về nhiều giá trị
     result = evaluate_model()
-    mae = result if isinstance(result, (int, float)) else result[0]  
+    mae, mae_percentage = result if isinstance(result, tuple) else (result, 0)
 
     print(f"✅ Model đã được train. MAE: {mae:.2f} VNĐ")
 
     predictions = predict_next_seven_days()  # 🔮 Dự đoán 7 ngày
     if predictions:
-        # 📊 Tính doanh thu trung bình
-        avg_revenue = sum(p["revenue"] for p in predictions) / len(predictions)
-
-        # 📈 Tính tỷ lệ lỗi
-        error_rate = (mae / avg_revenue) * 100 if avg_revenue != 0 else 0
-
         return jsonify({
             "mae": mae,
-            "error_rate": round(error_rate, 2),
+            "error_rate": round(mae_percentage, 2),  # Dùng tỷ lệ lỗi từ evaluate_model()
             "predictions": predictions
         })
 

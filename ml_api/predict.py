@@ -126,15 +126,21 @@ def evaluate_model():
 
     # 📊 Chia tập train (80%) và test (20%)
     train_size = int(0.8 * len(df))
-    test_df = df[train_size:]
+    train_df = df.iloc[:train_size]  # ✅ Lấy 80% đầu làm train
+    test_df = df.iloc[train_size:]   # ✅ Lấy 20% cuối làm test
 
-    # Load mô hình đã huấn luyện
+    # Chuẩn bị dữ liệu train
+    X_train = train_df[['court_rentals', 'products_sold', 'day_number', 'weekday_number']]
+    y_train = train_df['totalAmount']
+
+    # Train model
     model = load_model()
     if model is None:
-        print("⚠️ Model chưa được train!")
-        return None
+        print("⚠️ Model chưa được train, đang train lại...")
+        model = LinearRegression()
+        model.fit(X_train, y_train)  # 🔹 Huấn luyện mô hình
 
-    # 🔹 Dự đoán trên tập test
+    # Dự đoán trên tập test
     X_test = test_df[['court_rentals', 'products_sold', 'day_number', 'weekday_number']]
     y_test = test_df['totalAmount']
     y_pred = model.predict(X_test)
