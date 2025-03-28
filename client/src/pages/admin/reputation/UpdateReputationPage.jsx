@@ -26,6 +26,7 @@ const UpdateReputationPage = () => {
         const customerData = res.data.data;
         form.setFieldsValue({
           full_name: customerData.full_name,
+          email: customerData.email,
           reputation_score: customerData.reputation_score, // Set điểm uy tín
         });
       } else {
@@ -78,6 +79,10 @@ const UpdateReputationPage = () => {
           <h3 className="text-center">CẬP NHẬT ĐIỂM UY TÍN</h3>
 
           <Form.Item label="Họ và tên" name="full_name">
+            <InputNumber disabled style={{ width: "100%" }} />
+          </Form.Item>
+
+          <Form.Item label="Email" name="email">
             <InputNumber disabled style={{ width: "100%" }} />
           </Form.Item>
 
