@@ -659,6 +659,9 @@ const InvoicePage = () => {
     if (type === checkedValue) {
       setType("both"); // Nếu bấm vào cái đang chọn thì chuyển lại "both"
     } else {
+      if (checkedValue === "product") {
+        setSelectedCourt(defaultCourt);
+      }
       setType(checkedValue); // Chọn 1 cái thì thành cái đó
     }
   };

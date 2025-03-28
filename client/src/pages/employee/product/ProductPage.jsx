@@ -151,7 +151,7 @@ const ProductPage = () => {
           flexDirection: "column",
         }}
       >
-        <h1 className="text-center mb-4">🎾 QUẢN LÝ SẢN PHẨM</h1>
+        <h1 className="text-center mb-4">🛍️ QUẢN LÝ SẢN PHẨM</h1>
 
         {/* Tìm kiếm và thêm sản phẩm */}
         <div className="d-flex flex-column align-items-center mb-4">
