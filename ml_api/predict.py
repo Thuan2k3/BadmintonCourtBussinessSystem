@@ -138,7 +138,7 @@ def evaluate_model():
     if model is None:
         print("⚠️ Model chưa được train, đang train lại...")
         model = LinearRegression()
-        model.fit(X_train, y_train)  # 🔹 Huấn luyện mô hình
+    model.fit(X_train, y_train)  # 🔹 Huấn luyện mô hình
 
     # Dự đoán trên tập test
     X_test = test_df[['court_rentals', 'products_sold', 'day_number', 'weekday_number']]
