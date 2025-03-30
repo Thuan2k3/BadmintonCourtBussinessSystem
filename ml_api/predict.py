@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 import pandas as pd
 import numpy as np
 import pickle
@@ -111,6 +111,12 @@ def train_model():
     model = LinearRegression()
     model.fit(X, y)
 
+    # 🔍 Hiển thị hệ số hồi quy của mô hình
+    print("\n📌 Hệ số hồi quy của mô hình:")
+    for feature, coef in zip(['court_rentals', 'products_sold', 'day_number', 'weekday_number'], model.coef_):
+        print(f"- {feature}: {coef:.4f}")
+    print(f"🎯 Hệ số chặn (Intercept): {model.intercept_:.4f}")
+
     # Lưu model
     with open("Model.pkl", "wb") as file:
         pickle.dump(model, file)
@@ -141,9 +147,15 @@ def evaluate_model():
     model.fit(X_train, y_train)  # 🔹 Huấn luyện mô hình
 
     # Dự đoán trên tập test
-    X_test = test_df[['court_rentals', 'products_sold', 'day_number', 'weekday_number']]
+    avg_rentals = df['court_rentals'].mean()
+    avg_products_sold = df['products_sold'].mean()
+    X_test_simulated = [
+        [avg_rentals, avg_products_sold, row['day_number'], row['weekday_number']]
+        for _, row in test_df.iterrows()
+    ]
+    X_test_simulated = pd.DataFrame(X_test_simulated, columns=['court_rentals', 'products_sold', 'day_number', 'weekday_number'])
     y_test = test_df['totalAmount']
-    y_pred = model.predict(X_test)
+    y_pred = model.predict(X_test_simulated)
 
     # 🔢 Tính MAE (Sai số tuyệt đối trung bình)
     mae = mean_absolute_error(y_test, y_pred)
@@ -173,6 +185,8 @@ def predict_revenue(future_data):
 
     try:
         future_data_df = pd.DataFrame(future_data, columns=['court_rentals', 'products_sold', 'day_number', 'weekday_number'])
+        print("\n📊 Dữ liệu đầu vào mô hình dự đoán:")
+        print(future_data_df.to_string(index=False))  # In đẹp hơn, không có index
         predicted_revenue = model.predict(future_data_df)
     except Exception as e:
         print(f"❌ Lỗi khi dự đoán: {e}")
