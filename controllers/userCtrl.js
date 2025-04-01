@@ -48,7 +48,7 @@ const loginController = async (req, res) => {
     if (!user) {
       return res
         .status(200)
-        .send({ message: "Không tìm thấy tài khoản!", success: false });
+        .send({ message: "Email hoặc mật khẩu không đúng", success: false });
     }
     if (user.isBlocked) {
       return res
@@ -68,7 +68,7 @@ const loginController = async (req, res) => {
     const isMath = await bcrypt.compare(req.body.password, user.password);
     if (!isMath) {
       return res.status(200).send({
-        message: "Email hoặc mật khẩu không chính xác!",
+        message: "Email hoặc mật khẩu không đúng!",
         success: false,
       });
     }
