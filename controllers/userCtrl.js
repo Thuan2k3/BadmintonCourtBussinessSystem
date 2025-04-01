@@ -48,7 +48,7 @@ const loginController = async (req, res) => {
     if (!user) {
       return res
         .status(200)
-        .send({ message: "user not found", success: false });
+        .send({ message: "Không tìm thấy tài khoản!", success: false });
     }
     if (user.isBlocked) {
       return res
