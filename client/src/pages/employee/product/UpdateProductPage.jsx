@@ -241,7 +241,7 @@ const UpdateProductPage = () => {
             name="price"
             rules={[
               { required: true, message: "Vui lòng nhập giá sản phẩm" },
-              { pattern: /^[0-9]+$/, message: "Giá sản phẩm phải là số" },
+              { pattern: /^[0-9]+$/, message: "Giá sản phẩm phải là số nguyên dương" },
             ]}
           >
             <Input />
