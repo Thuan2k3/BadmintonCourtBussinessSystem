@@ -23,6 +23,7 @@ import { Pagination } from "antd";
 import { useSelector } from "react-redux";
 import BookingCourt from "../components/BookingCourt";
 import EmployeeBookingCourt from "../components/EmployeeBookingCourt";
+import Comment from "../components/Comment";
 
 const { Text, Title } = Typography;
 
@@ -324,6 +325,11 @@ const HomePage = () => {
               <strong>📋 Mô tả:</strong>{" "}
               {currentCourt.description || "Không có mô tả."}
             </p>
+
+            {/* Thêm phần bình luận */}
+            <div style={{ marginTop: "24px" }}>
+              <Comment courtId={currentCourt._id} customerId={user._id} />
+            </div>
           </Modal>
         )}
         {/* Modal Đặt sân */}

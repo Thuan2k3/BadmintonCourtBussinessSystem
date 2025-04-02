@@ -15,6 +15,7 @@ const InvoiceDetail = require("../models/invoiceDetailModel");
 const Customer = require("../models/customerModel");
 const moment = require("moment");
 const dayjs = require("dayjs");
+const Comment = require("../models/commentModel");
 
 //register callback
 const registerController = async (req, res) => {
@@ -376,6 +377,112 @@ const getAllCourtController = async (req, res) => {
   }
 };
 
+// Controller để lấy bình luận theo court_id
+const getCommentByCourtController = async (req, res) => {
+  const { court_id } = req.params;
+
+  try {
+    // Lấy tất cả bình luận của sân cụ thể
+    const comments = await Comment.find({ court_id })
+      .populate("customer_id", "full_name email") // Populate thông tin khách hàng
+      .populate("court_id", "name"); // Populate thông tin sân
+
+    // Trả về danh sách bình luận
+    res.status(200).json(comments);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi lấy bình luận", error });
+  }
+};
+
+// Controller để thêm bình luận mới
+const createCommentController = async (req, res) => {
+  const { customer_id, court_id, content } = req.body;
+
+  if (!customer_id || !court_id || !content) {
+    return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
+  }
+
+  try {
+    // Tạo bình luận mới
+    const newComment = new Comment({
+      customer_id,
+      court_id,
+      content,
+    });
+
+    // Lưu bình luận vào database
+    const savedComment = await newComment.save();
+
+    // Trả về bình luận đã lưu
+    res.status(201).json(savedComment);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi thêm bình luận", error });
+  }
+};
+
+// Controller để cập nhật bình luận
+const updateCommentController = async (req, res) => {
+  const { content } = req.body;
+  const { id } = req.params;
+
+  try {
+    // Lấy bình luận theo comment_id
+    const comment = await Comment.findById(id);
+
+    if (!comment) {
+      return res.status(404).json({ message: "Bình luận không tồn tại" });
+    }
+
+    // Kiểm tra quyền sửa bình luận (chỉ cho phép sửa bình luận của chính người dùng)
+    if (comment.customer_id.toString() !== req.body.customer_id) {
+      return res
+        .status(403)
+        .json({ message: "Bạn không có quyền sửa bình luận này" });
+    }
+
+    // Cập nhật nội dung bình luận và thời gian cập nhật
+    comment.content = content;
+    comment.updated_at = Date.now(); // Cập nhật thời gian sửa
+
+    // Lưu bình luận đã cập nhật
+    const updatedComment = await comment.save();
+
+    // Trả về bình luận đã cập nhật
+    res.status(200).json(updatedComment);
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi sửa bình luận", error });
+  }
+};
+
+// Controller để xóa bình luận
+const deleteCommentController = async (req, res) => {
+  const { id } = req.params;
+  const { customer_id } = req.headers; // Lấy customer_id từ header
+
+  try {
+    // Lấy bình luận theo comment_id
+    const comment = await Comment.findById(id);
+
+    if (!comment) {
+      return res.status(404).json({ message: "Bình luận không tồn tại" });
+    }
+
+    // Kiểm tra quyền xóa bình luận (chỉ cho phép xóa bình luận của chính người dùng)
+    if (comment.customer_id.toString() !== customer_id) {
+      return res
+        .status(403)
+        .json({ message: "Bạn không có quyền xóa bình luận này" });
+    }
+
+    await Comment.deleteOne({ _id: id });
+
+    // Trả về phản hồi thành công
+    res.status(200).json({ message: "Bình luận đã được xóa thành công" });
+  } catch (error) {
+    res.status(500).json({ message: "Lỗi khi xóa bình luận", error });
+  }
+};
+
 module.exports = {
   loginController,
   registerController,
@@ -385,4 +492,8 @@ module.exports = {
   getCourtsWithBookingsController,
   createBookingWithCourtController,
   cancelBookingWithCourtController,
+  getCommentByCourtController,
+  createCommentController,
+  updateCommentController,
+  deleteCommentController,
 };

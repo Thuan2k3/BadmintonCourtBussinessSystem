@@ -8,6 +8,10 @@ const {
   getCourtsWithBookingsController,
   createBookingWithCourtController,
   cancelBookingWithCourtController,
+  getCommentByCourtController,
+  createCommentController,
+  updateCommentController,
+  deleteCommentController,
 } = require("../controllers/userCtrl");
 const authMiddleware = require("../middlewares/authMiddleware");
 
@@ -41,5 +45,17 @@ router.get("/court", getAllCourtController);
 //Product || GET
 // Lấy danh sách san pham
 router.get("/product", getAllProductController);
+
+// Lấy danh sách bình luận theo court_id
+router.get("/comment/:court_id", getCommentByCourtController);
+
+// Thêm bình luận mới
+router.post("/comment", createCommentController);
+
+// Cập nhật bình luận
+router.put("/comment/:id", updateCommentController); // Dùng comment_id thay vì court_id
+
+// Xóa bình luận
+router.delete("/comment/:id", deleteCommentController); // Dùng comment_id thay vì court_id
 
 module.exports = router;
