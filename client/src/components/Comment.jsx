@@ -6,7 +6,7 @@ import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 const { TextArea } = Input;
 const { Title, Text } = Typography;
 
-const Comment = ({ courtId, customerId }) => {
+const Comment = ({ courtId, customer }) => {
   const [comments, setComments] = useState([]); // Đảm bảo comments là một mảng rỗng ban đầu
   const [newComment, setNewComment] = useState("");
   const [editingCommentId, setEditingCommentId] = useState(null);
@@ -41,7 +41,7 @@ const Comment = ({ courtId, customerId }) => {
       const response = await axios.post(
         "http://localhost:8080/api/v1/user/comment",
         {
-          customer_id: customerId,
+          customer_id: customer._id,
           court_id: courtId,
           content: newComment,
         }
@@ -63,7 +63,7 @@ const Comment = ({ courtId, customerId }) => {
         `http://localhost:8080/api/v1/user/comment/${commentId}`,
         {
           content: editedContent,
-          customer_id: customerId,
+          customer_id: customer._id,
         }
       );
       const updatedComments = comments.map((comment) =>
@@ -85,7 +85,7 @@ const Comment = ({ courtId, customerId }) => {
         `http://localhost:8080/api/v1/user/comment/${commentId}`,
         {
           headers: {
-            customer_id: customerId,
+            customer_id: customer._id,
           },
         }
       );
@@ -135,23 +135,27 @@ const Comment = ({ courtId, customerId }) => {
                 </div>
               ) : (
                 <div>
-                  <Button
-                    icon={<EditOutlined />}
-                    onClick={() => {
-                      setEditingCommentId(comment._id);
-                      setEditedContent(comment.content);
-                    }}
-                    style={{ marginRight: "10px" }}
-                  >
-                    Sửa
-                  </Button>
-                  <Button
-                    icon={<DeleteOutlined />}
-                    onClick={() => handleDeleteComment(comment._id)}
-                    danger
-                  >
-                    Xóa
-                  </Button>
+                  {customer?._id === comment?.customer_id?._id && (
+                    <>
+                      <Button
+                        icon={<EditOutlined />}
+                        onClick={() => {
+                          setEditingCommentId(comment._id);
+                          setEditedContent(comment.content);
+                        }}
+                        style={{ marginRight: "10px" }}
+                      >
+                        Sửa
+                      </Button>
+                      <Button
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleDeleteComment(comment._id)}
+                        danger
+                      >
+                        Xóa
+                      </Button>
+                    </>
+                  )}
                 </div>
               )}
             </Card>
@@ -160,25 +164,27 @@ const Comment = ({ courtId, customerId }) => {
       )}
 
       {/* Form thêm bình luận */}
-      <Card style={{ marginTop: "20px" }}>
-        <Form layout="vertical">
-          <Form.Item label="Viết bình luận của bạn...">
-            <TextArea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              rows={4}
-              placeholder="Viết bình luận của bạn..."
-            />
-          </Form.Item>
-          <Button
-            type="primary"
-            onClick={handleAddComment}
-            disabled={!newComment.trim()}
-          >
-            Thêm bình luận
-          </Button>
-        </Form>
-      </Card>
+      {customer && (
+        <Card style={{ marginTop: "20px" }}>
+          <Form layout="vertical">
+            <Form.Item label="Viết bình luận của bạn...">
+              <TextArea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                rows={4}
+                placeholder="Viết bình luận của bạn..."
+              />
+            </Form.Item>
+            <Button
+              type="primary"
+              onClick={handleAddComment}
+              disabled={!newComment.trim()}
+            >
+              Thêm bình luận
+            </Button>
+          </Form>
+        </Card>
+      )}
     </div>
   );
 };

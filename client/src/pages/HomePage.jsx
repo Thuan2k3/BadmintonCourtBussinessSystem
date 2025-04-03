@@ -328,7 +328,7 @@ const HomePage = () => {
 
             {/* Thêm phần bình luận */}
             <div style={{ marginTop: "24px" }}>
-              <Comment courtId={currentCourt._id} customerId={user._id} />
+              <Comment courtId={currentCourt._id} customer={customer} />
             </div>
           </Modal>
         )}

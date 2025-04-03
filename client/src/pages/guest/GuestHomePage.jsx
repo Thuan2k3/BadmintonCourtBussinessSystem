@@ -15,6 +15,7 @@ import {
 import { CheckOutlined, CloseOutlined } from "@ant-design/icons";
 import { Pagination } from "antd";
 import GuestBookingCourt from "../../components/GuestBookingCourt";
+import Comment from "../../components/Comment";
 
 const { Text, Title } = Typography;
 
@@ -257,6 +258,11 @@ const GuestHomePage = () => {
               <strong>📋 Mô tả:</strong>{" "}
               {currentCourt.description || "Không có mô tả."}
             </p>
+
+            {/* Thêm phần bình luận */}
+            <div style={{ marginTop: "24px" }}>
+              <Comment courtId={currentCourt._id} />
+            </div>
           </Modal>
         )}
         {/* Modal Xem tình trạng đặt sân */}
