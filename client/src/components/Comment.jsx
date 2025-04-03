@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Button, Input, Card, Form, Typography, List } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Modal } from "antd";
+import { ExclamationCircleOutlined } from "@ant-design/icons";
+
+const { confirm } = Modal;
 
 const { TextArea } = Input;
 const { Title, Text } = Typography;
@@ -96,6 +100,21 @@ const Comment = ({ courtId, customer }) => {
     }
   };
 
+  // Hàm hiển thị modal xác nhận xóa
+  const confirmDeleteComment = (commentId) => {
+    confirm({
+      title: "Xác nhận xóa bình luận",
+      icon: <ExclamationCircleOutlined />,
+      content: "Bạn có chắc chắn muốn xóa bình luận này không?",
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk() {
+        handleDeleteComment(commentId);
+      },
+    });
+  };
+
   return (
     <div className="container mt-4">
       <Title level={3}>Bình luận</Title>
@@ -149,7 +168,7 @@ const Comment = ({ courtId, customer }) => {
                       </Button>
                       <Button
                         icon={<DeleteOutlined />}
-                        onClick={() => handleDeleteComment(comment._id)}
+                        onClick={() => confirmDeleteComment(comment._id)}
                         danger
                       >
                         Xóa
