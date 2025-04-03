@@ -4,6 +4,12 @@ import { Button, Input, Card, Form, Typography, List } from "antd";
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { Modal } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/vi"; // Hỗ trợ tiếng Việt
+
+dayjs.extend(relativeTime);
+dayjs.locale("vi");
 
 const { confirm } = Modal;
 
@@ -134,6 +140,15 @@ const Comment = ({ courtId, customer }) => {
               title={<strong>{comment.customer_id.full_name}</strong>}
             >
               <p>{comment.content}</p>
+              <Text type="secondary">{dayjs(comment.createdAt).fromNow()}</Text>
+              {comment.updatedAt !== comment.createdAt && (
+                <Text
+                  type="secondary"
+                  style={{ marginLeft: "10px", fontStyle: "italic" }}
+                >
+                  (Chỉnh sửa: {dayjs(comment.updatedAt).fromNow()})
+                </Text>
+              )}
 
               {comment._id === editingCommentId ? (
                 <div>
