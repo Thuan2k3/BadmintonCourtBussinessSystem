@@ -967,7 +967,7 @@ const updateAccountController = async (req, res) => {
       req.body;
     let { password } = req.body;
 
-    let updateData = { full_name, email, phone, address, role, isBlocked };
+    let updateData = { full_name, email, phone, address, isBlocked };
 
     // Kiểm tra user có tồn tại không
     let existingUser = await User.findById(id);
@@ -996,57 +996,79 @@ const updateAccountController = async (req, res) => {
     if (password) {
       updateData.password = await bcrypt.hash(password, 10);
     } else {
-      password = existingUser.password;
+      updateData.password = existingUser.password;
     }
 
-    // Cập nhật thông tin trong bảng User
-    await User.findByIdAndUpdate(id, updateData, { new: true });
-
-    // Nếu role thay đổi, kiểm tra trước khi cập nhật
-    if (oldRole !== role) {
-      const hasInvoices = await Invoice.exists({
+    // Kiểm tra xem user có liên kết với hóa đơn hoặc lịch đặt sân không
+    const hasLinkedRecords =
+      (await Invoice.exists({
         $or: [{ customer: id }, { employee: id }],
-      });
+      })) || (await TimeSlotBooking.exists({ customer: id }));
 
-      if (hasInvoices) {
+    if (oldRole !== role) {
+      if (hasLinkedRecords) {
         return res.status(400).json({
           success: false,
           message:
-            "Không thể cập nhật vai trò vì tài khoản đã tồn tại trong hóa đơn!",
+            "Không thể cập nhật vai trò vì tài khoản đã tồn tại trong hóa đơn hoặc lịch đặt sân!",
         });
       }
 
-      // Xóa tài khoản cũ trước khi tạo mới
-      if (oldRole === "employee") await Employee.findByIdAndDelete(id);
-      if (oldRole === "admin") await Admin.findByIdAndDelete(id);
-      if (oldRole === "customer") await Customer.findByIdAndDelete(id);
+      // Xóa vai trò cũ trước khi tạo mới
+      await Promise.all([
+        oldRole === "employee" && Employee.findByIdAndDelete(id),
+        oldRole === "admin" && Admin.findByIdAndDelete(id),
+        oldRole === "customer" && Customer.findByIdAndDelete(id),
+      ]);
 
       // Đợi xóa xong rồi mới tạo mới
-      if (role === "employee") {
-        await Employee.create({
-          _id: id,
-          ...updateData,
-          hire_date: hire_date || Date.now(),
+      const roleModelMap = {
+        employee: Employee,
+        admin: Admin,
+        customer: Customer,
+      };
+
+      if (!roleModelMap[role]) {
+        return res.status(400).json({
+          success: false,
+          message: "Vai trò không hợp lệ!",
         });
-      } else if (role === "admin") {
-        await Admin.create({ _id: id, ...updateData });
-      } else if (role === "customer") {
-        await Customer.create({ _id: id, ...updateData });
       }
+
+      const newRoleData = {
+        _id: id,
+        ...updateData,
+        ...(role === "employee" && { hire_date: hire_date || Date.now() }),
+      };
+
+      await roleModelMap[role].create(newRoleData);
     } else {
       // Nếu role không đổi, cập nhật dữ liệu theo bảng tương ứng
-      if (role === "admin") {
-        await Admin.findByIdAndUpdate(id, updateData, { new: true });
-      } else if (role === "employee") {
-        await Employee.findByIdAndUpdate(
-          id,
-          { ...updateData, hire_date: hire_date || existingUser.hire_date },
-          { new: true }
-        );
-      } else {
-        await Customer.findByIdAndUpdate(id, updateData, { new: true });
+      const roleModelMap = {
+        admin: Admin,
+        employee: Employee,
+        customer: Customer,
+      };
+
+      if (!roleModelMap[role]) {
+        return res.status(400).json({
+          success: false,
+          message: "Vai trò không hợp lệ!",
+        });
       }
+
+      const updatedData =
+        role === "employee"
+          ? { ...updateData, hire_date: hire_date || existingUser.hire_date }
+          : updateData;
+
+      await roleModelMap[role].findByIdAndUpdate(id, updatedData, {
+        new: true,
+      });
     }
+
+    // Cập nhật thông tin trong bảng User
+    await User.findByIdAndUpdate(id, { ...updateData, role }, { new: true });
 
     res.status(200).json({
       success: true,
