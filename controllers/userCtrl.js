@@ -16,6 +16,10 @@ const Customer = require("../models/customerModel");
 const moment = require("moment");
 const dayjs = require("dayjs");
 const Comment = require("../models/commentModel");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 //register callback
 const registerController = async (req, res) => {
@@ -129,7 +133,10 @@ const getCourtsWithBookingsController = async (req, res) => {
     // Hàm lấy 7 ngày tiếp theo
     const getNext7Days = () => {
       return Array.from({ length: 7 }, (_, i) => {
-        return dayjs().add(i, "day").format("YYYY-MM-DD");
+        return dayjs()
+          .tz("Asia/Ho_Chi_Minh")
+          .add(i, "day")
+          .format("YYYY-MM-DD");
       });
     };
 
@@ -207,9 +214,15 @@ const createBookingWithCourtController = async (req, res) => {
       return res.status(400).json({ error: "Dữ liệu không hợp lệ!" });
     }
 
-    const bookingDate = new Date(date);
-    const today = new Date();
-    today.setHours(7, 0, 0, 0);
+    // Chuyển ngày đặt sân về 00:00:00 UTC+7
+    const bookingDate = dayjs(date)
+      .tz("Asia/Ho_Chi_Minh")
+      .startOf("day")
+      .toDate();
+    bookingDate.setHours(7, 0, 0, 0);
+
+    // Lấy ngày hiện tại theo giờ Việt Nam (00:00:00)
+    const today = dayjs().tz("Asia/Ho_Chi_Minh").startOf("day").toDate();
 
     if (bookingDate <= today) {
       return res
@@ -278,15 +291,20 @@ const cancelBookingWithCourtController = async (req, res) => {
     const { bookingId } = req.params;
     const { timeSlotId } = req.body;
 
-    const today = new Date();
-    today.setHours(7, 0, 0, 0);
-
     const booking = await Booking.findById(bookingId);
     if (!booking) {
       return res.status(404).json({ error: "Không tìm thấy đặt sân." });
     }
 
-    const bookingDate = new Date(booking.date);
+    // Chuyển ngày đặt sân về 00:00:00 UTC+7
+    const bookingDate = dayjs(booking.date)
+      .tz("Asia/Ho_Chi_Minh")
+      .startOf("day")
+      .toDate();
+    bookingDate.setHours(7, 0, 0, 0);
+
+    // Lấy ngày hiện tại theo giờ Việt Nam (00:00:00)
+    const today = dayjs().tz("Asia/Ho_Chi_Minh").startOf("day").toDate();
     if (bookingDate <= today) {
       return res
         .status(400)
