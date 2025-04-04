@@ -101,11 +101,11 @@ const InvoiceDetailPage = () => {
               <>
                 <p>
                   <strong>Thời Gian Check-in:</strong>{" "}
-                  {new Date(invoice.checkInTime).toLocaleString()}
+                  {dayjs(invoice.checkInTime).format("HH:mm:ss DD-MM-YYYY")}
                 </p>
                 <p>
                   <strong>Thời Gian Check-out:</strong>{" "}
-                  {new Date(invoice.checkOutTime).toLocaleString()}
+                  {dayjs(invoice.checkOutTime).format("HH:mm:ss DD-MM-YYYY")}
                 </p>
                 <p>
                   <strong>Tổng số giờ thuê:</strong>{" "}
@@ -219,7 +219,7 @@ const InvoiceDetailPage = () => {
           {invoice.checkInTime && invoice.checkOutTime && <></>}
           <p>
             <strong>Thời Gian Lập Hóa Đơn:</strong>{" "}
-            {new Date(invoice.createdAt).toLocaleString()}
+            {dayjs(invoice.createdAt).format("HH:mm:ss DD-MM-YYYY")}
           </p>
 
           {invoice.invoiceDetails && invoice.invoiceDetails.length > 0 ? (

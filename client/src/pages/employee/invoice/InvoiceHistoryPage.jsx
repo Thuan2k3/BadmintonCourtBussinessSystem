@@ -105,7 +105,7 @@ const InvoiceHistoryPage = () => {
                   <td>{invoice._id}</td>
                   <td>{invoice.customer?.full_name || "Khách vãng lai"}</td>
                   <td>{invoice.employee?.full_name || "N/A"}</td>
-                  <td>{dayjs(invoice.createdAt).format("YYYY-MM-DD HH:mm:ss")}</td>
+                  <td>{dayjs(invoice.createdAt).format("HH:mm:ss DD-MM-YYYY")}</td>
                   <td>{invoice.totalAmount?.toLocaleString()} đ</td>
                   <td>
                     <Link to={`/employee/invoice/detail/${invoice._id}`}>
