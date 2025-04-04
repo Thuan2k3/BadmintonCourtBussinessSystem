@@ -147,15 +147,9 @@ def evaluate_model():
     model.fit(X_train, y_train)  # 🔹 Huấn luyện mô hình
 
     # Dự đoán trên tập test
-    avg_rentals = df['court_rentals'].mean()
-    avg_products_sold = df['products_sold'].mean()
-    X_test_simulated = [
-        [avg_rentals, avg_products_sold, row['day_number'], row['weekday_number']]
-        for _, row in test_df.iterrows()
-    ]
-    X_test_simulated = pd.DataFrame(X_test_simulated, columns=['court_rentals', 'products_sold', 'day_number', 'weekday_number'])
+    X_test = test_df[['court_rentals', 'products_sold', 'day_number', 'weekday_number']]
     y_test = test_df['totalAmount']
-    y_pred = model.predict(X_test_simulated)
+    y_pred = model.predict(X_test)
 
     # 🔢 Tính MAE (Sai số tuyệt đối trung bình)
     mae = mean_absolute_error(y_test, y_pred)
