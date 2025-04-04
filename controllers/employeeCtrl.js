@@ -347,7 +347,10 @@ const getCourtsWithBookingsController = async (req, res) => {
     // Hàm lấy 7 ngày tiếp theo
     const getNext7Days = () => {
       return Array.from({ length: 7 }, (_, i) => {
-        return dayjs().add(i, "day").format("YYYY-MM-DD");
+        return dayjs()
+          .tz("Asia/Ho_Chi_Minh")
+          .add(i, "day")
+          .format("YYYY-MM-DD");
       });
     };
 
