@@ -12,12 +12,14 @@ import {
   message,
   Typography,
   Space,
+  Input,
 } from "antd";
 import {
   CheckOutlined,
   CheckSquareOutlined,
   CloseSquareOutlined,
   CloseOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import { Pagination } from "antd";
 import { useSelector } from "react-redux";
@@ -37,6 +39,7 @@ const HomePage = () => {
   const { user } = useSelector((state) => state.user);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 4; // Cố định số lượng sân hiển thị mỗi trang
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Xác định Layout dựa trên vai trò người dùng
   const CurrentLayout = user?.role === "customer" ? GuestLayout : Layout;
@@ -108,11 +111,27 @@ const HomePage = () => {
     }
   }, [user]);
 
-  // Tính toán danh sách sân hiển thị theo trang hiện tại
-  const filteredCourts = courts.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
+  // Hàm loại bỏ dấu tiếng Việt
+  const removeAccents = (str) => {
+    return str
+      .normalize("NFD") // Tách dấu ra khỏi ký tự
+      .replace(/[\u0300-\u036f]/g, "") // Xóa các dấu tiếng Việt
+      .toLowerCase(); // Chuyển về chữ thường
+  };
+
+  // Xử lý khi nhập tìm kiếm
+  const handleSearch = (value) => {
+    setSearchTerm(removeAccents(value));
+  };
+
+  // Lọc sân theo từ khóa tìm kiếm
+  const filteredCourts = courts
+    .filter((court) => removeAccents(court.name).includes(searchTerm))
+    .slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  // Tổng số lượng sân sau khi tìm kiếm
+  const totalFilteredCourts = courts.filter((court) =>
+    removeAccents(court.name).includes(searchTerm)
+  ).length;
 
   return (
     <CurrentLayout>
@@ -165,6 +184,17 @@ const HomePage = () => {
         >
           🏸 Danh Sách Sân Cầu Lông
         </Title>
+
+        {/* Ô tìm kiếm */}
+        <div style={{ marginBottom: "20px", textAlign: "center" }}>
+          <Input
+            placeholder="Tìm kiếm sân theo tên..."
+            prefix={<SearchOutlined />}
+            allowClear
+            onChange={(e) => handleSearch(e.target.value)}
+            style={{ width: "50%", borderRadius: "8px" }}
+          />
+        </div>
 
         {/* Danh sách sân */}
         <Row gutter={[32, 32]} justify="center">
@@ -431,12 +461,12 @@ const HomePage = () => {
           </Modal>
         )}
         {/* Phân trang */}
-        {courts.length > pageSize && (
+        {totalFilteredCourts > pageSize && (
           <div className="d-flex justify-content-center mt-4">
             <Pagination
               current={currentPage}
               pageSize={pageSize}
-              total={courts.length}
+              total={totalFilteredCourts}
               onChange={(page) => setCurrentPage(page)}
             />
           </div>

@@ -186,7 +186,13 @@ const AccountPage = () => {
           </Link>
         </div>
 
-        <Tabs activeKey={activeTab} onChange={(key) => setActiveTab(key)}>
+        <Tabs
+          activeKey={activeTab}
+          onChange={(key) => {
+            setActiveTab(key);
+            setCurrentPage(1); // 🔥 Reset về trang 1 khi đổi tab
+          }}
+        >
           <TabPane tab="📋 Tất cả" key="all">
             {renderAccountTable("all")}
           </TabPane>
