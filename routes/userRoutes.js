@@ -12,6 +12,7 @@ const {
   createCommentController,
   updateCommentController,
   deleteCommentController,
+  getCustomerController,
 } = require("../controllers/userCtrl");
 const authMiddleware = require("../middlewares/authMiddleware");
 
@@ -26,18 +27,25 @@ router.post("/login", loginController);
 router.post("/register", registerController);
 
 //Auth || POST
-router.post("/getUserData", authMiddleware, authController);
+router.post("/getUserData", authMiddleware(), authController);
 
 //Route lay bookings tu court
 router.get("/bookings/court", getCourtsWithBookingsController);
 
 // Route tạo booking mới
-router.post("/bookings", authMiddleware, createBookingWithCourtController);
+router.post(
+  "/bookings",
+  authMiddleware("customer"),
+  createBookingWithCourtController
+);
 router.delete(
   "/bookings/:bookingId",
-  authMiddleware,
+  authMiddleware("customer"),
   cancelBookingWithCourtController
 );
+
+// Lấy mot khách hàng
+router.get("/customer/:id", authMiddleware(["customer"]), getCustomerController);
 
 // Lấy danh sách san
 router.get("/court", getAllCourtController);

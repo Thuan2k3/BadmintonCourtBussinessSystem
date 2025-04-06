@@ -17,23 +17,11 @@ const {
   createCourtController,
   updateCourtController,
   deleteCourtController,
-  getAllAccountController,
   getAccountController,
-  createAccountController,
-  updateAccountController,
-  deleteAccountController,
-  getAllTimeSlotController,
-  getTimeSlotController,
-  createTimeSlotController,
-  updateTimeSlotController,
-  deleteTimeSlotController,
   getCourtsWithBookingsController,
-  createBookingWithCourtController,
-  cancelBookingWithCourtController,
   getAllInvoicesController,
   createInvoiceController,
   getInvoiceDetailController,
-  getRevenueController,
   getTimeSlotBooking,
   getAllCustomerController,
 } = require("../controllers/employeeCtrl");
@@ -41,128 +29,113 @@ const {
 const router = express.Router();
 
 //GET METHOD || USERS
-router.get("/getAllUsers", authMiddleware, getAllUsersController);
+router.get("/getAllUsers", authMiddleware(["employee"]), getAllUsersController);
 
 // Lấy danh sách san
-router.get("/court", authMiddleware, getAllCourtController);
+router.get("/court", authMiddleware(["employee"]), getAllCourtController);
 
 // Lấy mot san
-router.get("/court/:id", authMiddleware, getCourtController);
+router.get("/court/:id", authMiddleware(["employee"]), getCourtController);
 
 //Them san
-router.post("/court", authMiddleware, createCourtController);
+router.post("/court", authMiddleware(["employee"]), createCourtController);
 
 //cap nhat san
-router.put("/court/:id", authMiddleware, updateCourtController);
+router.put("/court/:id", authMiddleware(["employee"]), updateCourtController);
 
 //Xoa san
-router.delete("/court/:id", authMiddleware, deleteCourtController);
-
-// Lấy danh sách khung gio
-router.get("/time-slot", authMiddleware, getAllTimeSlotController);
-
-// Lấy mot khung gio
-router.get("/time-slot/:id", authMiddleware, getTimeSlotController);
-
-//Them khung gio
-router.post("/time-slot", authMiddleware, createTimeSlotController);
-
-//cap nhat khung gio
-router.put("/time-slot/:id", authMiddleware, updateTimeSlotController);
-
-//Xoa khung gio
-router.delete("/time-slot/:id", authMiddleware, deleteTimeSlotController);
+router.delete(
+  "/court/:id",
+  authMiddleware(["employee"]),
+  deleteCourtController
+);
 
 //Route lay bookings tu court
-router.get("/bookings/court", authMiddleware, getCourtsWithBookingsController);
-
-// Route tạo booking mới
-router.post("/bookings", authMiddleware, createBookingWithCourtController);
-
-router.delete(
-  "/bookings/:bookingId",
-  authMiddleware,
-  cancelBookingWithCourtController
+router.get(
+  "/bookings/court",
+  authMiddleware(["employee"]),
+  getCourtsWithBookingsController
 );
 
 // Lấy danh sách danh mục
 router.get(
   "/product-categories",
-  authMiddleware,
+  authMiddleware(["employee"]),
   getAllProductCategoryController
 );
 // Lấy một danh mục
 router.get(
   "/product-categories/:id",
-  authMiddleware,
+  authMiddleware(["employee"]),
   getProductCategoryByIdController
 );
 
 // Thêm danh mục mới
 router.post(
   "/product-categories",
-  authMiddleware,
+  authMiddleware(["employee"]),
   createProductCategoryController
 );
 
 router.put(
   "/product-categories/:id",
-  authMiddleware,
+  authMiddleware(["employee"]),
   updateProductCategoryController
 );
 
 // Xóa danh mục
 router.delete(
   "/product-categories/:id",
-  authMiddleware,
+  authMiddleware(["employee"]),
   deleteProductCategoryController
 );
 
 // Lấy danh sách san pham
-router.get("/product", authMiddleware, getAllProductController);
+router.get("/product", authMiddleware(["employee"]), getAllProductController);
 
 // Lấy mot san pham
-router.get("/product/:id", authMiddleware, getProductController);
+router.get("/product/:id", authMiddleware(["employee"]), getProductController);
 
 //Them san pham
-router.post("/product", authMiddleware, createProductController);
+router.post("/product", authMiddleware(["employee"]), createProductController);
 
 //cap nhat san pham
-router.put("/product/:id", authMiddleware, updateProductController);
+router.put(
+  "/product/:id",
+  authMiddleware(["employee"]),
+  updateProductController
+);
 
 //Xoa san pham
-router.delete("/product/:id", authMiddleware, deleteProductController);
-
-// Lấy danh sách tai khoan
-router.get("/account", authMiddleware, getAllAccountController);
+router.delete(
+  "/product/:id",
+  authMiddleware(["employee"]),
+  deleteProductController
+);
 
 // Lấy danh sách khach hang
-router.get("/customer", authMiddleware, getAllCustomerController);
+router.get("/customer", authMiddleware(["employee"]), getAllCustomerController);
 
 // Lấy mot tai khoan
-router.get("/account/:id", authMiddleware, getAccountController);
-
-//Them tai khoan
-router.post("/account", authMiddleware, createAccountController);
-
-//cap nhat tai khoan
-router.put("/account/:id", authMiddleware, updateAccountController);
-
-//Xoa tai khoan
-router.delete("/account/:id", authMiddleware, deleteAccountController);
+router.get("/account/:id", authMiddleware(["employee"]), getAccountController);
 
 // Lấy danh sách hóa đơn
-router.get("/invoice", authMiddleware, getAllInvoicesController);
+router.get("/invoice", authMiddleware(["employee"]), getAllInvoicesController);
 
 // Tạo hóa đơn
-router.post("/invoice", authMiddleware, createInvoiceController);
+router.post("/invoice", authMiddleware(["employee"]), createInvoiceController);
 
 //Lấy hóa đơn theo id
-router.get("/invoice/:id", authMiddleware, getInvoiceDetailController);
+router.get(
+  "/invoice/:id",
+  authMiddleware(["employee"]),
+  getInvoiceDetailController
+);
 
-router.get("/court/:courtId/:date/:time", authMiddleware, getTimeSlotBooking);
-
-// API: Thống kê tổng doanh thu theo ngày, tháng, năm
-router.get("/revenue", authMiddleware, getRevenueController);
+router.get(
+  "/court/:courtId/:date/:time",
+  authMiddleware(["employee"]),
+  getTimeSlotBooking
+);
 
 module.exports = router;

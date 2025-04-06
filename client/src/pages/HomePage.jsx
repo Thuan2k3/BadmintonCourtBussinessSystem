@@ -48,7 +48,7 @@ const HomePage = () => {
   const getCustomerById = async () => {
     try {
       const res = await axios.get(
-        `http://localhost:8080/api/v1/admin/customer/${user._id}`,
+        `http://localhost:8080/api/v1/user/customer/${user._id}`,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }

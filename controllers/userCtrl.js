@@ -77,7 +77,7 @@ const loginController = async (req, res) => {
         success: false,
       });
     }
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
     res
@@ -112,6 +112,33 @@ const authController = async (req, res) => {
       message: "auth error",
       success: false,
       error,
+    });
+  }
+};
+
+const getCustomerController = async (req, res) => {
+  try {
+    // Tìm khách hàng theo ID (ẩn mật khẩu)
+    const customer = await Customer.findById(req.params.id).select("-password");
+
+    // Kiểm tra nếu không tìm thấy khách hàng
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy khách hàng",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: customer,
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy thông tin khách hàng:", error);
+    res.status(500).json({
+      success: false,
+      message: "Lỗi server",
+      error: error.message,
     });
   }
 };
@@ -505,6 +532,7 @@ module.exports = {
   loginController,
   registerController,
   authController,
+  getCustomerController,
   getAllCourtController,
   getAllProductController,
   getCourtsWithBookingsController,
