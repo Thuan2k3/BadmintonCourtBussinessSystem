@@ -3,7 +3,7 @@ const serviceAccount = require("./firebase-service-account.json"); // Đường 
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://badmintoncourtbussiness-default-rtdb.firebaseio.com/", // Thay bằng URL Firebase của bạn
+  databaseURL: "https://badminton-court-bussiness-default-rtdb.firebaseio.com", // Thay bằng URL Firebase của bạn
 });
 
 const db = admin.database();
