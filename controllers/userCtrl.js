@@ -77,9 +77,13 @@ const loginController = async (req, res) => {
         success: false,
       });
     }
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
     res
       .status(200)
       .send({ message: "Đăng nhập thành công", success: true, token });
@@ -159,12 +163,26 @@ const getCourtsWithBookingsController = async (req, res) => {
 
     // Hàm lấy 7 ngày tiếp theo
     const getNext7Days = () => {
-      return Array.from({ length: 7 }, (_, i) => {
-        return dayjs()
-          .tz("Asia/Ho_Chi_Minh")
-          .add(i, "day")
-          .format("YYYY-MM-DD");
-      });
+      const result = [];
+      const nowsystem = new Date();
+      const now = new Date(nowsystem.getTime() + 7 * 60 * 60 * 1000);
+      console.log(now);
+
+      // Đặt mốc giờ hiện tại về 00:00 giờ Việt Nam (UTC+7)
+      now.setUTCHours(7, 0, 0, 0);
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(now);
+        date.setDate(now.getDate() + i);
+
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, "0");
+        const dd = String(date.getDate()).padStart(2, "0");
+
+        result.push(`${yyyy}-${mm}-${dd}`);
+      }
+
+      return result;
     };
 
     const dates = getNext7Days();
@@ -242,14 +260,14 @@ const createBookingWithCourtController = async (req, res) => {
     }
 
     // Chuyển ngày đặt sân về 00:00:00 UTC+7
-    const bookingDate = dayjs(date)
-      .tz("Asia/Ho_Chi_Minh")
-      .startOf("day")
-      .toDate();
-    bookingDate.setHours(7, 0, 0, 0);
+    const bookingDate = new Date(date);
+    console.log(bookingDate);
 
     // Lấy ngày hiện tại theo giờ Việt Nam (00:00:00)
-    const today = dayjs().tz("Asia/Ho_Chi_Minh").startOf("day").toDate();
+    const todaysystem = new Date();
+    const today = new Date(todaysystem.getTime() + 7 * 60 * 60 * 1000);
+    today.setUTCHours(0, 0, 0, 0);
+    console.log(today);
 
     if (bookingDate <= today) {
       return res
@@ -324,14 +342,14 @@ const cancelBookingWithCourtController = async (req, res) => {
     }
 
     // Chuyển ngày đặt sân về 00:00:00 UTC+7
-    const bookingDate = dayjs(booking.date)
-      .tz("Asia/Ho_Chi_Minh")
-      .startOf("day")
-      .toDate();
-    bookingDate.setHours(7, 0, 0, 0);
+    const bookingDate = new Date(booking.date);
+    console.log(bookingDate);
 
     // Lấy ngày hiện tại theo giờ Việt Nam (00:00:00)
-    const today = dayjs().tz("Asia/Ho_Chi_Minh").startOf("day").toDate();
+    const todaysystem = new Date();
+    const today = new Date(todaysystem.getTime() + 7 * 60 * 60 * 1000);
+    today.setUTCHours(0, 0, 0, 0);
+    console.log(today);
     if (bookingDate <= today) {
       return res
         .status(400)
