@@ -13,6 +13,7 @@ import {
   Typography,
   Space,
   Input,
+  Select,
 } from "antd";
 import {
   CheckOutlined,
@@ -29,6 +30,7 @@ import Comment from "../components/Comment";
 import BookingHistory from "../components/BookingHistory";
 
 const { Text, Title } = Typography;
+const { Option } = Select;
 
 const HomePage = () => {
   const [courts, setCourts] = useState([]);
@@ -42,6 +44,7 @@ const HomePage = () => {
   const pageSize = 4; // Cố định số lượng sân hiển thị mỗi trang
   const [searchTerm, setSearchTerm] = useState("");
   const [openModal, setOpenModal] = useState(false);
+  const [priceRange, setPriceRange] = useState(null);
 
   // Xác định Layout dựa trên vai trò người dùng
   const CurrentLayout = user?.role === "customer" ? GuestLayout : Layout;
@@ -128,12 +131,48 @@ const HomePage = () => {
 
   // Lọc sân theo từ khóa tìm kiếm
   const filteredCourts = courts
-    .filter((court) => removeAccents(court.name).includes(searchTerm))
-    .slice((currentPage - 1) * pageSize, currentPage * pageSize);
-  // Tổng số lượng sân sau khi tìm kiếm
-  const totalFilteredCourts = courts.filter((court) =>
-    removeAccents(court.name).includes(searchTerm)
-  ).length;
+    .filter((court) => {
+      const nameMatch = removeAccents(court.name).includes(searchTerm);
+      let priceMatch = true;
+
+      // Nếu không có giá trị lọc giá, mặc định là "Tất cả"
+      if (priceRange === "under100k") {
+        priceMatch = court.price < 100000;
+      } else if (priceRange === "100k-150k") {
+        priceMatch = court.price >= 100000 && court.price <= 150000;
+      } else if (priceRange === "150k-200k") {
+        priceMatch = court.price >= 150000 && court.price <= 200000;
+      } else if (priceRange === "over200k") {
+        priceMatch = court.price > 200000;
+      } else if (priceRange === "all") {
+        priceMatch = true; // Nếu là "Tất cả", không lọc theo giá
+      }
+
+      return nameMatch && priceMatch;
+    })
+    .slice((currentPage - 1) * pageSize, currentPage * pageSize); // Phân trang
+
+  // Tổng số lượng sân sau khi tìm kiếm và lọc theo giá
+  const totalFilteredCourts = courts.filter((court) => {
+    const nameMatch = removeAccents(court.name).includes(searchTerm); // Lọc theo tên sân
+    let priceMatch = true;
+
+    // Nếu chọn "Tất cả", không lọc theo giá
+    if (priceRange === "all") {
+      priceMatch = true;
+    } else if (priceRange === "under100k") {
+      priceMatch = court.price < 100000;
+    } else if (priceRange === "100k-150k") {
+      priceMatch = court.price >= 100000 && court.price <= 150000;
+    } else if (priceRange === "150k-200k") {
+      priceMatch = court.price >= 150000 && court.price <= 200000;
+    } else if (priceRange === "over200k") {
+      priceMatch = court.price > 200000;
+    }
+
+    // Trả về kết quả nếu cả 2 điều kiện đều thỏa mãn
+    return nameMatch && priceMatch;
+  }).length;
 
   return (
     <CurrentLayout>
@@ -205,8 +244,20 @@ const HomePage = () => {
             prefix={<SearchOutlined />}
             allowClear
             onChange={(e) => handleSearch(e.target.value)}
-            style={{ width: "50%", borderRadius: "8px" }}
+            style={{ width: "70%", borderRadius: "8px", marginRight: "10px" }}
           />
+          {/* Dropdown lọc giá */}
+          <Select
+            placeholder="Chọn phạm vi giá"
+            style={{ width: "20%", borderRadius: "8px", marginTop: "12px" }}
+            onChange={(value) => setPriceRange(value)} // Lưu lựa chọn của người dùng
+          >
+            <Option value="all">Tất cả</Option>
+            <Option value="under100k">Dưới 100.000</Option>
+            <Option value="100k-150k">100.000 - 150.000</Option>
+            <Option value="150k-200k">150.000 - 200.000</Option>
+            <Option value="over200k">Trên 200.000</Option>
+          </Select>
         </div>
 
         {/* Danh sách sân */}
