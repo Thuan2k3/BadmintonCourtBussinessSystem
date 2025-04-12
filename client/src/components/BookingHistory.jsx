@@ -26,6 +26,7 @@ const BookingHistory = ({ visible, onClose, userId }) => {
             `http://localhost:8080/api/v1/user/booking-history`,
             {
               headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
                 customer_id: userId,
               },
             }

@@ -54,6 +54,11 @@ const Comment = ({ courtId, customer }) => {
           customer_id: customer._id,
           court_id: courtId,
           content: newComment,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
       );
       setComments([...comments, response.data]);
@@ -74,6 +79,11 @@ const Comment = ({ courtId, customer }) => {
         {
           content: editedContent,
           customer_id: customer._id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
       );
       const updatedComments = comments.map((comment) =>
@@ -95,6 +105,7 @@ const Comment = ({ courtId, customer }) => {
         `http://localhost:8080/api/v1/user/comment/${commentId}`,
         {
           headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
             customer_id: customer._id,
           },
         }

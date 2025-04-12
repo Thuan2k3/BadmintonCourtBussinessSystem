@@ -59,15 +59,15 @@ router.get("/product", getAllProductController);
 router.get("/comment/:court_id", getCommentByCourtController);
 
 // Thêm bình luận mới
-router.post("/comment", createCommentController);
+router.post("/comment", authMiddleware("customer"), createCommentController);
 
 // Cập nhật bình luận
-router.put("/comment/:id", updateCommentController); // Dùng comment_id thay vì court_id
+router.put("/comment/:id", authMiddleware("customer"), updateCommentController); // Dùng comment_id thay vì court_id
 
 // Xóa bình luận
-router.delete("/comment/:id", deleteCommentController); // Dùng comment_id thay vì court_id
+router.delete("/comment/:id", authMiddleware("customer"), deleteCommentController); // Dùng comment_id thay vì court_id
 
 // Lấy danh sách dat san theo user_id
-router.get("/booking-history", getBookingByUserController);
+router.get("/booking-history", authMiddleware("customer"), getBookingByUserController);
 
 module.exports = router;
