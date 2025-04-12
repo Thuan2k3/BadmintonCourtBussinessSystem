@@ -26,6 +26,7 @@ import { useSelector } from "react-redux";
 import BookingCourt from "../components/BookingCourt";
 import EmployeeBookingCourt from "../components/EmployeeBookingCourt";
 import Comment from "../components/Comment";
+import BookingHistory from "../components/BookingHistory";
 
 const { Text, Title } = Typography;
 
@@ -40,6 +41,7 @@ const HomePage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 4; // Cố định số lượng sân hiển thị mỗi trang
   const [searchTerm, setSearchTerm] = useState("");
+  const [openModal, setOpenModal] = useState(false);
 
   // Xác định Layout dựa trên vai trò người dùng
   const CurrentLayout = user?.role === "customer" ? GuestLayout : Layout;
@@ -139,8 +141,9 @@ const HomePage = () => {
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
+            alignItems: "center",
+            justifyContent: "flex-end", // đẩy sang phải nếu cần
+            gap: 12, // tạo khoảng cách giữa 2 phần
           }}
         >
           <div
@@ -158,6 +161,16 @@ const HomePage = () => {
               {customer?.reputation_score}
             </span>
           </div>
+
+          <Button type="primary" onClick={() => setOpenModal(true)}>
+            Xem lịch sử đặt sân
+          </Button>
+
+          <BookingHistory
+            visible={openModal}
+            onClose={() => setOpenModal(false)}
+            userId={user._id}
+          />
         </div>
       )}
 

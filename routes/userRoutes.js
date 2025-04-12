@@ -13,6 +13,7 @@ const {
   updateCommentController,
   deleteCommentController,
   getCustomerController,
+  getBookingByUserController,
 } = require("../controllers/userCtrl");
 const authMiddleware = require("../middlewares/authMiddleware");
 
@@ -65,5 +66,8 @@ router.put("/comment/:id", updateCommentController); // Dùng comment_id thay v�
 
 // Xóa bình luận
 router.delete("/comment/:id", deleteCommentController); // Dùng comment_id thay vì court_id
+
+// Lấy danh sách dat san theo user_id
+router.get("/booking-history", getBookingByUserController);
 
 module.exports = router;

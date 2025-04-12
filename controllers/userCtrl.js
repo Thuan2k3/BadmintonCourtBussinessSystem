@@ -546,6 +546,32 @@ const deleteCommentController = async (req, res) => {
   }
 };
 
+const getBookingByUserController = async (req, res) => {
+  try {
+    const { customer_id } = req.headers; // Lấy customer_id từ header
+    console.log(customer_id);
+
+    const bookings = await TimeSlotBooking.find({ user: customer_id })
+      .populate("court", "name price") // Lấy tên sân
+      .populate("timeSlot", "time") // Lấy giờ bắt đầu
+      .sort({ date: -1 });
+
+    const result = bookings.map((b) => ({
+      _id: b._id,
+      date: b.date.toISOString().split("T")[0],
+      courtName: b.court.name,
+      price: b.court.price,
+      time: b.timeSlot.time,
+      status: b.status,
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error("Lỗi lấy lịch sử đặt sân:", err);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
 module.exports = {
   loginController,
   registerController,
@@ -560,4 +586,5 @@ module.exports = {
   createCommentController,
   updateCommentController,
   deleteCommentController,
+  getBookingByUserController,
 };
