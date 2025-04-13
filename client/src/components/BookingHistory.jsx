@@ -65,7 +65,7 @@ const BookingHistory = ({ visible, onClose, userId }) => {
       render: (record) => `${record.time}`,
     },
     {
-      title: "Trạng thái",
+      title: "Trạng thái sau đặt sân",
       dataIndex: "status",
       key: "status",
       render: (status) => {
@@ -108,7 +108,7 @@ const BookingHistory = ({ visible, onClose, userId }) => {
           columns={columns}
           dataSource={bookingHistory}
           rowKey="_id"
-          pagination={{ pageSize: 5 }}
+          pagination={{ pageSize: 5, position: ["bottomCenter"] }}
         />
       )}
     </Modal>
