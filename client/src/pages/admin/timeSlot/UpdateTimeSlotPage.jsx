@@ -56,7 +56,9 @@ const UpdateTimeSlotPage = () => {
       }
     } catch (error) {
       dispatch(hideLoading());
-      message.error("Có lỗi xảy ra. Vui lòng thử lại!");
+      message.error(
+        error.response.data.message || "Có lỗi xảy ra. Vui lòng thử lại!"
+      );
     }
   };
 

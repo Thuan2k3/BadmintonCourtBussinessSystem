@@ -264,6 +264,15 @@ const updateTimeSlotController = async (req, res) => {
     const { id } = req.params; // Lấy id từ tham số URL
     const updateData = req.body; // Lấy dữ liệu cập nhật từ body của yêu cầu
 
+    // Kiểm tra khung giờ có đang được sử dụng không
+    const isBooked = await TimeSlotBooking.exists({ timeSlot: id });
+    if (isBooked) {
+      return res.status(400).json({
+        success: false,
+        message: "Không thể sửa khung giờ đã có đặt sân.",
+      });
+    }
+
     // Cập nhật khung giờ theo ID
     const updatedTimeSlot = await TimeSlot.findByIdAndUpdate(id, updateData, {
       new: true,
