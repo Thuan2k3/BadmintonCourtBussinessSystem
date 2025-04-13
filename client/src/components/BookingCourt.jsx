@@ -114,10 +114,6 @@ const BookingCourt = ({ court }) => {
           }
         }
       }
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
     } catch (error) {
       message.error("Có lỗi xảy ra khi đặt sân!");
       console.error(error);
@@ -172,10 +168,6 @@ const BookingCourt = ({ court }) => {
           }
         }
       }
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
     } catch (error) {
       message.error("Có lỗi xảy ra khi hủy đặt sân!");
       console.error(error);

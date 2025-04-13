@@ -109,8 +109,13 @@ const HomePage = () => {
     setCurrentBookingCourt(null);
   };
 
+  // Gọi 1 lần duy nhất khi component mount
   useEffect(() => {
     getAllCourt();
+  }, [courts]);
+
+  // Gọi khi user đã có và là customer
+  useEffect(() => {
     if (user?.role === "customer") {
       getCustomerById();
     }
