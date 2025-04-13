@@ -7,8 +7,9 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { Card, Button, Row, Col, Modal, message, Tooltip } from "antd";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
+import { hideLoading, showLoading } from "../redux/features/alertSlice";
 
 const { confirm } = Modal;
 
@@ -33,6 +34,7 @@ const BookingCourt = ({ court }) => {
   // Xác định nếu là mobile (dưới 768px)
   const isMobile = window.innerWidth <= 768;
   const { user } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
 
   const [bookingState, setBookingState] = useState(
     court.bookings.map((day) =>
@@ -82,6 +84,7 @@ const BookingCourt = ({ court }) => {
     try {
       for (const slot of selectedSlots) {
         try {
+          dispatch(showLoading());
           const response = await axios.post(
             `http://localhost:8080/api/v1/user/bookings`,
             {
@@ -96,6 +99,7 @@ const BookingCourt = ({ court }) => {
               },
             }
           );
+          dispatch(hideLoading());
 
           if (response.data.success) {
             message.success("Đặt sân thành công!");
@@ -143,6 +147,7 @@ const BookingCourt = ({ court }) => {
     try {
       for (const slot of selectedSlots) {
         try {
+          dispatch(showLoading());
           const response = await axios.delete(
             `http://localhost:8080/api/v1/user/bookings/${slot.bookingId}`,
             {
@@ -152,6 +157,7 @@ const BookingCourt = ({ court }) => {
               },
             }
           );
+          dispatch(hideLoading());
 
           if (response.data.success) {
             message.success("Hủy đặt sân thành công!");

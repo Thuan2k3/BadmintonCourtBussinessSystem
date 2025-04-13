@@ -2,6 +2,7 @@ const userModel = require("../models/userModels");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModels");
+const { sendBookingConfirmation, sendCancellationConfirmation } = require("../utils/mailer");
 const productCategory = require("../models/productCategoryModels");
 const Product = require("../models/productModels");
 const Court = require("../models/courtModel");
@@ -315,6 +316,23 @@ const createBookingWithCourtController = async (req, res) => {
 
     await newTimeSlotBooking.save();
 
+    // Lấy thông tin sân từ courtId
+    const court = await Court.findById(courtId);
+
+    // Gửi email xác nhận
+    const user = await User.findById(userId);
+    if (user?.email) {
+      try {
+        await sendBookingConfirmation(user.email, {
+          date: bookingDate.toISOString().split("T")[0], // YYYY-MM-DD
+          timeSlot,
+          courtName: court.name,
+        });
+      } catch (err) {
+        console.error("Lỗi gửi mail:", err.message);
+      }
+    }
+
     // Cập nhật timeSlots trong Booking
     await Booking.findByIdAndUpdate(booking._id, {
       $push: { timeSlots: newTimeSlotBooking._id },
@@ -360,6 +378,27 @@ const cancelBookingWithCourtController = async (req, res) => {
     const deletedBooking = await TimeSlotBooking.findOneAndDelete({
       _id: timeSlotId,
     });
+
+    // Lấy thông tin sân từ courtId
+    const court = await Court.findById(deletedBooking.court);
+
+    // Lấy thông tin khung giờ từ timeSlotId
+    const timeSlot = await TimeSlot.findById(deletedBooking.timeSlot);
+
+    // Lấy thông tin người dùng từ booking
+    const user = await User.findById(deletedBooking.user);
+    if (user?.email) {
+      try {
+        // Gửi email xác nhận hủy sân
+        await sendCancellationConfirmation(user.email, {
+          date: bookingDate.toISOString().split("T")[0], // ngày đặt sân
+          timeSlot,
+          courtName: court.name,
+        });
+      } catch (err) {
+        console.error("Lỗi gửi mail:", err.message);
+      }
+    }
 
     if (!deletedBooking) {
       return res
