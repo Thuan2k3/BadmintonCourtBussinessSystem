@@ -47,7 +47,7 @@ const CourtBookingStatusPage = () => {
     };
 
     fetchCourts();
-  }, [courts]);
+  }, []);
 
   const paginatedCourts = courts.slice(
     (currentPage - 1) * pageSize,

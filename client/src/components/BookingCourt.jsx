@@ -107,6 +107,7 @@ const BookingCourt = ({ court }) => {
             message.error(response.data.message || "Đặt sân thất bại!");
           }
         } catch (error) {
+          dispatch(hideLoading());
           if (error.response) {
             message.error(error.response.data.error || "Đặt sân thất bại!");
           } else {
@@ -161,6 +162,7 @@ const BookingCourt = ({ court }) => {
             message.error(response.data.message || "Hủy đặt sân thất bại!");
           }
         } catch (error) {
+          dispatch(hideLoading());
           if (error.response) {
             message.error(error.response.data.error || "Hủy đặt sân thất bại!");
           } else {
