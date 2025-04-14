@@ -52,13 +52,13 @@ const InvoiceHistoryPage = () => {
           <DatePicker
             value={startDate ? dayjs(startDate) : null}
             onChange={(date) => setStartDate(date)}
-            format="YYYY-MM-DD"
+            format="DD-MM-YYYY"
             placeholder="Chọn ngày bắt đầu"
           />
           <DatePicker
             value={endDate ? dayjs(endDate) : null}
             onChange={(date) => setEndDate(date)}
-            format="YYYY-MM-DD"
+            format="DD-MM-YYYY"
             placeholder="Chọn ngày kết thúc"
           />
           <Button type="primary" onClick={getInvoices}>Lọc</Button>
