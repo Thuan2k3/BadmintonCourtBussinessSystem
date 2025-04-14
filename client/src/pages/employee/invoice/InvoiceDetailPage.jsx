@@ -225,8 +225,8 @@ const InvoiceDetailPage = () => {
           {invoice.invoiceDetails && invoice.invoiceDetails.length > 0 ? (
             <>
               <h4>Chi Tiết Mua Sản Phẩm Tại Chỗ</h4>
-              <table className="table table-bordered">
-                <thead className="table-dark">
+              <table className="table table-bordered" style={{ border: '1px solid black' }}>
+                <thead>
                   <tr>
                     <th>STT</th>
                     <th>Tên Sản Phẩm</th>
