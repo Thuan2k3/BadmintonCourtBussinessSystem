@@ -52,13 +52,13 @@ const InvoiceHistoryPage = () => {
           <DatePicker
             value={startDate ? dayjs(startDate) : null}
             onChange={(date) => setStartDate(date)}
-            format="DD-MM-YYYY"
+            format="DD/MM/YYYY"
             placeholder="Chọn ngày bắt đầu"
           />
           <DatePicker
             value={endDate ? dayjs(endDate) : null}
             onChange={(date) => setEndDate(date)}
-            format="DD-MM-YYYY"
+            format="DD/MM/YYYY"
             placeholder="Chọn ngày kết thúc"
           />
           <Button type="primary" onClick={getInvoices}>Lọc</Button>
@@ -105,7 +105,7 @@ const InvoiceHistoryPage = () => {
                   <td>{invoice._id}</td>
                   <td>{invoice.customer?.full_name || "Khách vãng lai"}</td>
                   <td>{invoice.employee?.full_name || "N/A"}</td>
-                  <td>{dayjs(invoice.createdAt).format("HH:mm:ss DD-MM-YYYY")}</td>
+                  <td>{dayjs(invoice.createdAt).format("HH:mm:ss DD/MM/YYYY")}</td>
                   <td>{invoice.totalAmount?.toLocaleString()} đ</td>
                   <td>
                     <Link to={`/employee/invoice/detail/${invoice._id}`}>
