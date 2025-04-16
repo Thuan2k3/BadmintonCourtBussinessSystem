@@ -346,12 +346,23 @@ const getCourtsWithBookingsController = async (req, res) => {
 
     // Hàm lấy 7 ngày tiếp theo
     const getNext7Days = () => {
-      return Array.from({ length: 7 }, (_, i) => {
-        return dayjs()
-          .tz("Asia/Ho_Chi_Minh")
-          .add(i, "day")
-          .format("YYYY-MM-DD");
-      });
+      const result = [];
+      const nowsystem = new Date();
+      const now = new Date(nowsystem.getTime() + 7 * 60 * 60 * 1000);
+      console.log(now);
+
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(now);
+        date.setDate(now.getDate() + i);
+
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, "0");
+        const dd = String(date.getDate()).padStart(2, "0");
+
+        result.push(`${yyyy}-${mm}-${dd}`);
+      }
+
+      return result;
     };
 
     const dates = getNext7Days();

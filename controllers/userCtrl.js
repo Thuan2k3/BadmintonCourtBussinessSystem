@@ -169,9 +169,6 @@ const getCourtsWithBookingsController = async (req, res) => {
       const now = new Date(nowsystem.getTime() + 7 * 60 * 60 * 1000);
       console.log(now);
 
-      // Đặt mốc giờ hiện tại về 00:00 giờ Việt Nam (UTC+7)
-      now.setUTCHours(7, 0, 0, 0);
-
       for (let i = 0; i < 7; i++) {
         const date = new Date(now);
         date.setDate(now.getDate() + i);
