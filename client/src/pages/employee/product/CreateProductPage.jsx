@@ -125,9 +125,9 @@ const CreateProductPage = () => {
           </Form.Item>
 
           <Form.Item
-            label="Loại sản phẩm"
+            label="Danh mục sản phẩm"
             name="category"
-            rules={[{ required: true, message: "Vui lòng chọn loại sản phẩm" }]}
+            rules={[{ required: true, message: "Vui lòng chọn danh mục sản phẩm" }]}
           >
             <Select>
               {productCategories.map((productCategory) => (
