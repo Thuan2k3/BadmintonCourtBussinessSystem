@@ -204,6 +204,7 @@ const getCourtsWithBookingsController = async (req, res) => {
       const nowsystem = new Date();
       const now = new Date(nowsystem.getTime() + 7 * 60 * 60 * 1000);
       console.log(now);
+      now.setUTCHours(0, 0, 0, 0);
 
       for (let i = 0; i < 7; i++) {
         const date = new Date(now);
