@@ -49,7 +49,7 @@ const sendCancellationConfirmation = async (toEmail, bookingInfo) => {
     subject: "Xác nhận hủy đặt sân",
     html: `
       <h3>Chào bạn,</h3>
-      <p>Đặt sân của bạn đã bị hủy thành công với thông tin sau:</p>
+      <p>Bạn đã hủy đặt sân thành công với thông tin sau:</p>
       <ul>
         <li><b>Ngày:</b> ${formatDate(bookingInfo.date)}</li>
         <li><b>Khung giờ:</b> ${bookingInfo.timeSlot.time}</li>
