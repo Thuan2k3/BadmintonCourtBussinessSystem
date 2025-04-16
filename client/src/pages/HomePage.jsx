@@ -375,7 +375,7 @@ const HomePage = () => {
                     }
                   >
                     {user.role === "customer"
-                      ? "Đặt sân"
+                      ? "Quản lý đặt sân"
                       : "Xem tình trạng đặt sân"}
                   </Button>
                 )}
