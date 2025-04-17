@@ -15,9 +15,12 @@ const { Title, Text } = Typography;
 
 // Hàm loại bỏ dấu tiếng Việt
 const removeVietnameseTones = (str) => {
+  if (typeof str !== "string") return "";
   return str
     .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[\u0300-\u036f]/g, "") // remove diacritics
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
     .toLowerCase();
 };
 
@@ -34,8 +37,8 @@ const ProductSelector = ({
         <Select
           showSearch
           placeholder="Chọn sản phẩm"
-          style={{ width: "100%", height: 40 }} // Cho nó dài hết khung chứa
-          optionFilterProp="label"
+          style={{ width: "100%", height: 40 }}
+          optionFilterProp="labelText"
           onChange={(value) =>
             setSelectedProduct(products.find((p) => p._id === value))
           }
@@ -55,10 +58,10 @@ const ProductSelector = ({
                 </div>
               </Tooltip>
             ),
+            labelText: product.name, // thêm labelText dạng string
           }))}
-          // Tìm kiếm không phân biệt dấu
           filterOption={(input, option) =>
-            removeVietnameseTones(option.label).includes(
+            removeVietnameseTones(option.labelText || "").includes(
               removeVietnameseTones(input)
             )
           }

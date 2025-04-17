@@ -8,6 +8,7 @@ const { Text } = Typography;
 
 // Hàm loại bỏ dấu tiếng Việt
 const removeVietnameseTones = (str) => {
+  if (typeof str !== "string") return "";
   return str
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
@@ -200,7 +201,8 @@ const CustomerSelector = ({
             { value: null, label: "Không chọn khách hàng" },
             ...users.map((user) => ({
               value: user._id,
-              label: (
+              label: `${user.full_name} - ${user.email}`, // dùng để lọc
+              customLabel: (
                 <Tooltip title={`${user.full_name} - ${user.email}`}>
                   <div
                     style={{
@@ -218,6 +220,7 @@ const CustomerSelector = ({
               ),
             })),
           ]}
+          optionLabelProp="customLabel" // dùng cái này để hiển thị custom UI
           filterOption={(input, option) =>
             removeVietnameseTones(option.label).includes(
               removeVietnameseTones(input)
