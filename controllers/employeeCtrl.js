@@ -628,9 +628,13 @@ const getAllInvoicesController = async (req, res) => {
 
     // Lọc theo khoảng thời gian tạo hóa đơn (timestamps)
     if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999); // set tới cuối ngày
+
       filter.createdAt = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate),
+        $gte: start,
+        $lte: end,
       };
     }
 
