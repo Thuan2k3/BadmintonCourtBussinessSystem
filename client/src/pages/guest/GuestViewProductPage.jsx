@@ -22,14 +22,24 @@ const GuestViewProductPage = () => {
       const res = await axios.get("http://localhost:8080/api/v1/user/product");
       if (res.data.success) {
         setProducts(res.data.data);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy sản phẩm:", error);
+    }
+  };
+  // Lấy danh sách sản phẩm từ API
+  const getAllProductCategory = async () => {
+    try {
+      const res = await axios.get("http://localhost:8080/api/v1/user/product-categories");
+      if (res.data.success) {
         // Lấy danh mục duy nhất
         const uniqueCategories = [
-          ...new Set(res.data.data.map((p) => p.category.name)),
+          ...new Set(res.data.data.map((p) => p.name)),
         ];
         setCategories(uniqueCategories);
       }
     } catch (error) {
-      console.error("Lỗi khi lấy sản phẩm:", error);
+      console.error("Lỗi khi lấy danh mục sản phẩm:", error);
     }
   };
 
@@ -47,6 +57,7 @@ const GuestViewProductPage = () => {
 
   useEffect(() => {
     getAllProduct();
+    getAllProductCategory();
   }, []);
 
   const getFilteredProducts = () => {

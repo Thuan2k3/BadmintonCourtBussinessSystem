@@ -14,6 +14,7 @@ const {
   deleteCommentController,
   getCustomerController,
   getBookingByUserController,
+  getAllProductCategoryController,
 } = require("../controllers/userCtrl");
 const authMiddleware = require("../middlewares/authMiddleware");
 
@@ -54,6 +55,12 @@ router.get("/court", getAllCourtController);
 //Product || GET
 // Lấy danh sách san pham
 router.get("/product", getAllProductController);
+
+// Lấy danh sách danh mục
+router.get(
+  "/product-categories",
+  getAllProductCategoryController
+);
 
 // Lấy danh sách bình luận theo court_id
 router.get("/comment/:court_id", getCommentByCourtController);

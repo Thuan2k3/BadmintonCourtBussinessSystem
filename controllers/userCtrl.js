@@ -2,7 +2,10 @@ const userModel = require("../models/userModels");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModels");
-const { sendBookingConfirmation, sendCancellationConfirmation } = require("../utils/mailer");
+const {
+  sendBookingConfirmation,
+  sendCancellationConfirmation,
+} = require("../utils/mailer");
 const productCategory = require("../models/productCategoryModels");
 const Product = require("../models/productModels");
 const Court = require("../models/courtModel");
@@ -608,6 +611,15 @@ const getBookingByUserController = async (req, res) => {
     res.status(500).json({ message: "Lỗi server" });
   }
 };
+//Danh muc
+const getAllProductCategoryController = async (req, res) => {
+  try {
+    const productCategories = await productCategory.find();
+    res.status(200).json({ success: true, data: productCategories });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Lỗi server", error });
+  }
+};
 
 module.exports = {
   loginController,
@@ -624,4 +636,5 @@ module.exports = {
   updateCommentController,
   deleteCommentController,
   getBookingByUserController,
+  getAllProductCategoryController,
 };
