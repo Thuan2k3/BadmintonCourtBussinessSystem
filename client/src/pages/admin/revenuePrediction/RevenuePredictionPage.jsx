@@ -97,7 +97,7 @@ const RevenuePredictionPage = () => {
           className="text-center mb-5"
           style={{ color: "#2c3e50", fontWeight: "700" }}
         >
-          📊 DỰ ĐOÁN DOANH THU 7 NGÀY TỚI
+          📊 DỰ ĐOÁN DOANH THU TRONG 7 NGÀY
         </h1>
 
         <Alert
