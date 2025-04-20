@@ -144,7 +144,7 @@ const HomePage = () => {
       if (priceRange === "under100k") {
         priceMatch = court.price < 100000;
       } else if (priceRange === "100k-150k") {
-        priceMatch = court.price >= 100000 && court.price < 150000;
+        priceMatch = court.price >= 100000 && court.price <= 150000;
       } else if (priceRange === "150k-200k") {
         priceMatch = court.price >= 150000 && court.price <= 200000;
       } else if (priceRange === "over200k") {
@@ -168,7 +168,7 @@ const HomePage = () => {
     } else if (priceRange === "under100k") {
       priceMatch = court.price < 100000;
     } else if (priceRange === "100k-150k") {
-      priceMatch = court.price >= 100000 && court.price < 150000;
+      priceMatch = court.price >= 100000 && court.price <= 150000;
     } else if (priceRange === "150k-200k") {
       priceMatch = court.price >= 150000 && court.price <= 200000;
     } else if (priceRange === "over200k") {
