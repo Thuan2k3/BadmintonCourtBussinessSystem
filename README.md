@@ -28,14 +28,6 @@
 ### Dự đoán doanh thu
 ![Dự đoán doanh thu](./assets/DuDoanDoanhThu.png)
 
----
-
-## Giao diện demo
-
-![Trang chủ](./assets/TrangChu.png)
-![Xem tình trạng đặt sân](./assets/XemTinhTrangDatSan.png)
-![Quản lý hóa đơn](./assets/QuanLyHoaDon.png)
-![Dự đoán doanh thu](./assets/DuDoanDoanhThu.png)
 
 ## Cài đặt
 
