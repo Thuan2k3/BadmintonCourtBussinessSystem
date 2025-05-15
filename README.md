@@ -14,6 +14,9 @@
 
 ---
 
+## Sơ đồ use case tổng quát
+![Sơ đồ use case tổng quát](./assets/SoDoUseCaseTongQuat.png)
+
 ## 🖼️ Giao diện demo
 
 ### Trang chủ
