@@ -1,4 +1,4 @@
-# Dự án Quản lý Sân Cầu Lông
+# Dự án Phát Triển Website Kinh Doanh Sân Cầu Lông
 
 Ứng dụng giúp quản lý hoạt động kinh doanh sân cầu lông: đặt sân, quản lý hóa đơn, bán sản phẩm tại chỗ, và **dự đoán doanh thu bằng mô hình học máy**. Dự án phát triển với **MERN Stack** (MongoDB, ExpressJS, ReactJS, NodeJS) và tích hợp **Python Flask** cho phần dự đoán.
 
