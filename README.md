@@ -18,7 +18,7 @@
 ![Sơ đồ use case tổng quát](./assets/SoDoUseCaseTongQuat.png)
 
 ## Mô hình dữ liệu mức quan niệm (CDM)
-![Sơ đồ CDM](./assets/SoDoUseCaseTongQuat.png)
+![Sơ đồ CDM](./assets/CDM.png)
 
 ## 🖼️ Giao diện demo
 
